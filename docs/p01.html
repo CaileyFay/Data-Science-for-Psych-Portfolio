@@ -11,9 +11,9 @@
 
 
 
-<title>Portfolio 1</title>
+<title>Portfolio 1: Math-ing in R</title>
 
-<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -141,11 +141,15 @@ $(document).ready(function () {
     href = "index.html";
   var menuAnchor = $('a[href="' + href + '"]');
 
-  // mark it active
-  menuAnchor.tab('show');
-
-  // if it's got a parent navbar menu mark it active as well
-  menuAnchor.closest('li.dropdown').addClass('active');
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
 
   // Navbar adjustments
   var navHeight = $(".navbar").first().height() + 15;
@@ -174,8 +178,8 @@ $(document).ready(function () {
   border-radius: 4px;
 }
 
-.tabset-dropdown > .nav-tabs > li.active:before {
-  content: "";
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
   font-family: 'Glyphicons Halflings';
   display: inline-block;
   padding: 10px;
@@ -183,16 +187,9 @@ $(document).ready(function () {
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-  content: "&#xe258;";
-  border: none;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-  content: "";
+  content: "\e258";
   font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
+  border: none;
 }
 
 .tabset-dropdown > .nav-tabs > li.active {
@@ -293,20 +290,56 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Portfolio 1</h1>
+<h1 class="title toc-ignore">Portfolio 1: Math-ing in R</h1>
 
 </div>
 
 
 <blockquote>
-<p>The projects should be numbered consecutively (i.e., in the order in
-which you began them), and should include for each project a description
-of the goal, the product (computer program, hand graph, computer graph,
-etc.), the data, and some interpretation. Reports must be reproducible
-and of high quality in terms of writing, grammar, presentation, etc.</p>
+<p>This may come as a shock to no one, but R can do math. In this
+portfolio piece, I will demonstrate how to do some math in R that I find
+particularly enjoyable.</p>
 </blockquote>
 <pre class="r"><code>library(tidyverse) 
-library(datasauRus)</code></pre>
+library(tidyr)
+library(mosaicCalc)</code></pre>
+<pre class="r"><code># Create a barplot of the number of fish encounters by species
+ggplot(data = fish_encounters, aes(x = station, y = seen)) +
+  geom_bar(stat = &quot;identity&quot;) +
+  labs(x = &quot;Species&quot;, y = &quot;Number of Fish Encounters&quot;)</code></pre>
+<p><img src="p01_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<p>Sed mollis purus faucibus leo finibus, ut pharetra nibh elementum.
+Nulla id orci lorem. Mauris sollicitudin mi eget tellus vehicula, ut
+convallis lorem mollis. In blandit nulla diam, a malesuada sem volutpat
+interdum. Ut elementum elit at velit maximus, ac tempor odio porttitor.
+Suspendisse lobortis sollicitudin tortor, ut pharetra libero luctus a.
+Sed hendrerit faucibus metus. Sed rutrum purus vel pellentesque
+euismod.</p>
+<pre class="r"><code># Create a barplot of the number of fish encounters by species
+ggplot(data = fish_encounters, aes(x = station, y = seen)) +
+  geom_bar(stat = &quot;identity&quot;) +
+  labs(x = &quot;Species&quot;, y = &quot;Number of Fish Encounters&quot;)</code></pre>
+<p><img src="p01_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p>Mauris placerat in velit a pharetra. Nulla viverra bibendum lectus,
+ut lobortis nibh. Aenean malesuada, orci vitae dictum placerat, enim
+justo aliquet leo, ac tincidunt augue ipsum et mi. Nullam in pharetra
+metus, nec molestie felis. Duis varius rhoncus pulvinar. Integer semper
+urna sed tellus rhoncus, vel suscipit odio iaculis. Mauris iaculis neque
+pellentesque ex convallis venenatis. Sed ultrices euismod fermentum. Ut
+feugiat risus at turpis tincidunt viverra.</p>
+<pre class="r"><code># Create a barplot of the number of fish encounters by species
+ggplot(data = fish_encounters, aes(x = station, y = seen)) +
+  geom_bar(stat = &quot;identity&quot;) +
+  labs(x = &quot;Species&quot;, y = &quot;Number of Fish Encounters&quot;)</code></pre>
+<p><img src="p01_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>Donec sagittis suscipit orci in ultrices. Vivamus iaculis eleifend
+est et dictum. Fusce non urna at lacus dapibus tincidunt ac sed nibh.
+Donec luctus lectus elit, ac ultrices tortor mollis sit amet. Nulla
+finibus lacinia arcu. Proin sollicitudin non odio et pulvinar. Maecenas
+finibus faucibus finibus. Ut elementum metus velit, a sodales sapien
+commodo et. Vivamus pulvinar, sapien et porta cursus, elit est luctus
+nisi, eget fringilla odio diam et enim. Sed sodales suscipit bibendum.
+Morbi ut metus semper, laoreet felis sodales, consequat dolor.</p>
 
 
 

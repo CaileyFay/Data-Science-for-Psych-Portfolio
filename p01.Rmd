@@ -1,38 +1,50 @@
 ---
-title: "Portfolio 1"
+title: "Portfolio 1: Math-ing in R"
 ---
 
-> The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
+> This may come as a shock to no one, but R can do math. In this portfolio piece, I will demonstrate how to do some math in R that I find particularly enjoyable. 
+
+Let's load the relevant packages first, among these are the package mosaiCalc (CITATION NEEDED) which will do some of the heavy lifting.
 
 ```{r load-packages, message=FALSE}
 library(tidyverse) 
 library(tidyr)
-data(fish_encounters)
+library(mosaicCalc)
+#this is also helpful and necessary 
+help(package="mosaicCalc")
 ```
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum eget nibh vel est aliquet iaculis at placerat sem. Aenean faucibus iaculis ultricies. Nullam consequat odio in ultricies ullamcorper. Etiam venenatis in est vitae ullamcorper. Nam vitae urna ut dolor rhoncus aliquet at vel neque. Quisque tristique leo finibus nisi interdum, sit amet tempor risus viverra. Donec mollis vulputate sodales. Nunc ornare, leo quis euismod eleifend, eros mi maximus felis, vel varius lacus dui eget nibh. Duis vitae nunc nisl. Donec accumsan aliquam elit, eu fringilla quam pulvinar eget.
+We will start with vectors, something all of us can get behind. Contrasts are vectors, and we love contrasts, don't we? 
+```{r}
+#first making a simple linear combination 
+#add in an actual example from Eric's class, show that they dot to zero using R 
+project()
 
-Mauris in ligula mauris. Curabitur facilisis pharetra metus eget lobortis. In egestas nibh sit amet faucibus eleifend. Suspendisse imperdiet viverra blandit. Phasellus consectetur tincidunt eros eu facilisis. Quisque maximus, orci eget sodales aliquam, velit lorem semper dolor, nec convallis erat ipsum mattis velit. Pellentesque porttitor, mauris vitae aliquam mattis, metus nisl viverra turpis, vel convallis metus sapien et ex. Nunc consequat ipsum id dolor eleifend, sit amet semper eros sodales. Pellentesque consectetur, dui quis venenatis malesuada, nunc lorem lacinia libero, vitae malesuada dui arcu in augue. Aliquam id sagittis libero. Vestibulum aliquet sagittis libero, non posuere odio molestie ut. Curabitur lacus enim, viverra vel odio non, pretium efficitur elit. Mauris posuere efficitur interdum. Nunc sed bibendum turpis, quis fringilla velit. Phasellus eu lorem lobortis eros molestie laoreet.
+```
 
-
+To plot a vector field in R, we can use the vectorfield_plot function. It seems like it can only handle two dimensional vectors but I will certainly circle back with a more interesting example if I learn otherwise. The use of tilde expressions are terrible, but my example functions are ..... 
 
 ```{r}
-# Create a barplot of the number of fish encounters by species
-ggplot(data = fish_encounters, aes(x = station, y = seen)) +
-  geom_bar(stat = "identity") +
-  labs(x = "Species", y = "Number of Fish Encounters")
+#plot a vector field 
+vectorfield_plot(x ~ tan(y), y ~ tan(x), bounds(x=-1:1, y=-1:1),
+  npts = 5,
+  color = "pink",
+  alpha = 0.9,
+  transform = sqrt,
+  env = NULL
+)
   
 ```
+As it turns out, this particular method will not handle three variables, but apparently one strategy is to use heatmaps to visualize the third variable. That is something to play around with in the future. 
 
-
-Sed mollis purus faucibus leo finibus, ut pharetra nibh elementum. Nulla id orci lorem. Mauris sollicitudin mi eget tellus vehicula, ut convallis lorem mollis. In blandit nulla diam, a malesuada sem volutpat interdum. Ut elementum elit at velit maximus, ac tempor odio porttitor. Suspendisse lobortis sollicitudin tortor, ut pharetra libero luctus a. Sed hendrerit faucibus metus. Sed rutrum purus vel pellentesque euismod.
-
+I'm bored of this, so I am going to practice taking some plain old boring integrals. First thing to note is that ~ is the enemy. They show up under lots of different conditions. At least in the context of differentiation, our friend "~" means "with respect to," which is fine. 
 
 ```{r}
-# Create a barplot of the number of fish encounters by species
-ggplot(data = fish_encounters, aes(x = station, y = seen)) +
-  geom_bar(stat = "identity") +
-  labs(x = "Species", y = "Number of Fish Encounters")
+#Tutorial Example, need to come up with my own stuff - I will just run through pauls online notes problems in here and time if I can do it faster by hand vs on R 
+library(pracma) #for the integrate function, because the functions in mosiacCalc suck. 
+
+
+
   
 ```
 

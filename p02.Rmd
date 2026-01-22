@@ -1,5 +1,40 @@
 ---
-title: "Portfolio 2"
+title: "Correlation Matrix"
 ---
 
-> The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
+I am the PSY211 TA, and one of my main responsibilities is grading research reports. I help my students use SPSS to analyse their hypotheses. In this portfolio, I will use R to create scales, and then I will create a correlation matrix among many of the variables, and then make a scatter plot matrix. 
+
+First, I am going to load the dataset that they use for their projects: 
+```{r}
+library(haven)
+OnlinePsychologySurveyData <- read_sav("~/Documents/TA /OnlinePsychologySurveyData.sav")
+View(OnlinePsychologySurveyData)
+```
+
+Next, I will create scales for self-control, self-esteem, fear of negative evaluation, religiosity, political orientation, child-oriented, conscientousness, extraversion, emotional stability, satisfaction with life, and group affiliation seeking. 
+
+Starting with self-control: 
+```{r}
+#Recode Variables 
+
+#Reliability Analysis 
+
+#Make the composite 
+```
+
+Next, self-esteem: 
+```{r}
+
+
+```
+
+Fear of negative evaluation:
+```{r}
+
+
+```
+
+Now that everything is clean and ready to go, I will produce the correlation matrix:
+```{r}
+
+```
