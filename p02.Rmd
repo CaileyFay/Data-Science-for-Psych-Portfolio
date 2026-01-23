@@ -15,8 +15,6 @@ library(qgraph)
 library(visdat)
 library(corrr)
 Data <- read_sav("~/Documents/GitHub/Data-Science-for-Psych-Portfolio/OnlinePsychologySurveyData.sav")
-
-
 ```
 
 Next, I will create scales for self-control, self-esteem, fear of negative evaluation, religiosity, political orientation, child-oriented, conscientousness, extraversion, emotional stability, satisfaction with life, and group affiliation seeking. 
@@ -417,7 +415,7 @@ vis_cor(
   cor_method = "pearson",
   na_action = "pairwise.complete.obs"
 )
-#this is very cool and it makes sense - self esteem looks quite unrelated to fear of negative evaluation 
+#this is very cool and it makes sense - self esteem looks quite to fear of negative evaluation 
 #lets filter and make the network plot 
 new_FNE_RSE<-Data[,c("RSE1","RRSE2","RSE3","RSE4","RRSE5","RRSE6","RSE7","RRSE8","RRSE9","RSE10","FNE1","RFNE2","FNE3","RFNE4","FNE5",  "RFNE7","FNE8","FNE9","RFNE10","FNE11")]
 new_FNE_RSE_matrix <- cor(new_FNE_RSE)
