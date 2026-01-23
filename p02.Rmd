@@ -13,8 +13,8 @@ library(dplyr)
 library(psych)
 library(qgraph)
 library(visdat)
-library(corr)
-Data <- read_sav("~/Documents/TA /OnlinePsychologySurveyData.sav")
+library(corrr)
+Data <- read_sav("~/Documents/TA/OnlinePsychologySurveyData.sav")
 View(OnlinePsychologySurveyData)
 
 ```
@@ -364,6 +364,64 @@ vis_cor(
 ```
 Now I want to make it like a network:
 ```{r}
-network_plot(cor_matrix)
+#To make sure the matrix doesn't have any NAs - something wrong with the children scale one
+new_scales <-Data[,c("SCscale","RSEscale","FNEscale","RCIscale","Conscale","Extrascale","SWLscale","GASscale","PoliticalOrientation")]
+better_cor_matrix <- cor(new_scales)
+
+network_plot(better_cor_matrix, min_cor = 0)
+#this made me really happy 
 
 ```
+
+Just because I am having a lot of fun, I am going to repeat this with the items within a scale, one with failry high reliability, and another that is only so-so: 
+```{r}
+#Religiosity items alpha was .97
+religion_cor_matrix <- cor(Religiosityitems)
+vis_cor(
+  Religiosityitems,
+  cor_method = "pearson",
+  na_action = "pairwise.complete.obs"
+)
+#these are very correlated, wow 
+#RCI1, RCI2 and RC16 have a bunch of NAs for some reason, so that is an issue with the network plot. I am going to filter them out 
+new_religiosity <-Data[,c("RCI3","RCI4","RCI5",
+                  "RCI7","RCI8","RCI9","RCI10")]
+new_religion_cor_matrix <- cor(new_religiosity)
+
+network_plot(new_religion_cor_matrix, min_cor = 0)
+#this is pretty dense, as you would expect 
+```
+
+Now for the less reliable scale: self control: still fairly reliable .88
+```{r}
+SC_cor_matrix <- cor(SCitems)
+vis_cor(
+  SCitems,
+  cor_method = "pearson",
+  na_action = "pairwise.complete.obs"
+)
+#not nearly as red as religiosity 
+#a few items are NAs in the correlation matrix, and I am just going to drop them. I am not investing time into trying to fix it. 
+new_SCitems <-Data[,c("RSC1","RSC2","SC8","RSC9","SC10","RSC11","RSC12","RSC13")]
+new_SCitems_matrix <- cor(new_SCitems)
+network_plot(new_SCitems_matrix, min_cor = 0)
+#this was also cool 
+```
+Last thing I would like to do is map fear of negative evaluation and self esteem together, since the first network plot revealed that there were very related
+```{r}
+FNE_RSE <- Data[,c("RSE1","RRSE2","RSE3","RSE4","RRSE5","RRSE6","RSE7","RRSE8","RRSE9","RSE10","FNE1","RFNE2","FNE3","RFNE4","FNE5","FNE6",  "RFNE7","FNE8","FNE9","RFNE10","FNE11","FNE12")]
+FNE_RSE_matrix <- cor(FNE_RSE)
+#FNE6 and FNE12 are the only ones with missing data
+vis_cor(
+  FNE_RSE,
+  cor_method = "pearson",
+  na_action = "pairwise.complete.obs"
+)
+#this is very cool and it makes sense - self esteem looks quite unrelated to fear of negative evaluation 
+#lets filter and make the network plot 
+new_FNE_RSE<-Data[,c("RSE1","RRSE2","RSE3","RSE4","RRSE5","RRSE6","RSE7","RRSE8","RRSE9","RSE10","FNE1","RFNE2","FNE3","RFNE4","FNE5",  "RFNE7","FNE8","FNE9","RFNE10","FNE11")]
+new_FNE_RSE_matrix <- cor(new_FNE_RSE)
+network_plot(new_FNE_RSE_matrix, min_cor = 0)
+#this reveals four different clusters of items, which would suggest that they are each capturing something a little bit different, but still very related, about self esteem and FNE. 
+```
+
