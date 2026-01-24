@@ -306,28 +306,10 @@ among items within a scale.</p>
 projects:</p>
 <pre class="r"><code>library(haven)
 library(ggplot2)
-library(rstatix)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;rstatix&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:stats&#39;:
-## 
-##     filter</code></pre>
-<pre class="r"><code>library(dplyr)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;dplyr&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:stats&#39;:
-## 
-##     filter, lag</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     intersect, setdiff, setequal, union</code></pre>
-<pre class="r"><code>library(psych)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;psych&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:ggplot2&#39;:
-## 
-##     %+%, alpha</code></pre>
-<pre class="r"><code>library(qgraph)
+library(rstatix)
+library(dplyr)
+library(psych)
+library(qgraph)
 library(visdat)
 library(corrr)
 Data &lt;- read_sav(&quot;~/Documents/GitHub/Data-Science-for-Psych-Portfolio/OnlinePsychologySurveyData.sav&quot;)</code></pre>
@@ -1132,7 +1114,7 @@ vis_cor(
   na_action = &quot;pairwise.complete.obs&quot;
 )</code></pre>
 <p><img src="p02_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
-<pre class="r"><code>#this is very cool and it makes sense - self esteem looks quite unrelated to fear of negative evaluation 
+<pre class="r"><code>#this is very cool and it makes sense - self esteem looks quite to fear of negative evaluation 
 #lets filter and make the network plot 
 new_FNE_RSE&lt;-Data[,c(&quot;RSE1&quot;,&quot;RRSE2&quot;,&quot;RSE3&quot;,&quot;RSE4&quot;,&quot;RRSE5&quot;,&quot;RRSE6&quot;,&quot;RSE7&quot;,&quot;RRSE8&quot;,&quot;RRSE9&quot;,&quot;RSE10&quot;,&quot;FNE1&quot;,&quot;RFNE2&quot;,&quot;FNE3&quot;,&quot;RFNE4&quot;,&quot;FNE5&quot;,  &quot;RFNE7&quot;,&quot;FNE8&quot;,&quot;FNE9&quot;,&quot;RFNE10&quot;,&quot;FNE11&quot;)]
 new_FNE_RSE_matrix &lt;- cor(new_FNE_RSE)
