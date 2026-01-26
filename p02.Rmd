@@ -1,8 +1,8 @@
 ---
-title: "Correlation Matrix"
+title: "Correlation Matrix, Scatter Plot Matrix, and Network Plots"
 ---
 
-I am the PSY211 TA, and one of my main responsibilities is grading research reports. I help my students use SPSS to analyse their hypotheses. In this portfolio, I will use R to create scales, and then I will create a correlation matrix among many of the personality variables, and then I will make a series of heatmaps and network plots to visualize relationships between scales, as well as relationships among items within a scale.  
+I am a PSY211 TA, and one of my main responsibilities is grading research reports. I help students learn how to use SPSS to analyse their hypotheses, but I could use some practice doing it in R. In this portfolio, I will use R to create scales, and then I will create a correlation matrix among many of the personality variables, and then I will make a series of heatmaps and network plots to visualize relationships between scales, as well as relationships among items within a scale. It will be fun for me to see relationships among variables at a larger scale, after I have spent so much time reading reports about this datasets.
 
 First, I am going to load the dataset that they use for their projects: 
 ```{r message=FALSE, warning=FALSE}
@@ -14,20 +14,21 @@ library(psych)
 library(qgraph)
 library(visdat)
 library(corrr)
+library(GGally) #[Found it here](https://r-graph-gallery.com/correlogram.html)
 Data <- read_sav("~/Documents/GitHub/Data-Science-for-Psych-Portfolio/OnlinePsychologySurveyData.sav")
 ```
 
-Next, I will create scales for self-control, self-esteem, fear of negative evaluation, religiosity, political orientation, child-oriented, conscientousness, extraversion, emotional stability, satisfaction with life, and group affiliation seeking. 
+Next, I will create scales for self-control, self-esteem, fear of negative evaluation, religiosity, political orientation, child-oriented, conscientousness, extraversion, emotional stability, satisfaction with life, and group affiliation seeking. To make this document more readable I am going to comment out the reliability analysis stuff, as well as the summary stats I did to make sure the recoding was correct each time. 
 
 Starting with satisfaction with life: 
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 #5 items mean composited 
 SWLitems <- Data[,c("SWL1","SWL2","SWL3","SWL4","SWL5")]
-alpha(SWLitems, check.keys = TRUE)
+#alpha(SWLitems, check.keys = TRUE)
 #alpha is .91 
 #Make the composite 
 Data$SWLscale <- rowMeans(Data[,c("SWL1","SWL2","SWL3","SWL4","SWL5")], na.rm = TRUE)
-summary(Data$SWLscale)
+#summary(Data$SWLscale)
 ```
 
 Next, religiostiy : 
@@ -35,12 +36,12 @@ Next, religiostiy :
 #10 items mean composited, no recodes 
 Religiosityitems <- Data[,c("RCI1","RCI2","RCI3","RCI4","RCI5","RCI6",
                   "RCI7","RCI8","RCI9","RCI10")]
-alpha(Religiosityitems, check.keys = TRUE)
+#alpha(Religiosityitems, check.keys = TRUE)
 #alpha is .97 
 #mean composite 
 Data$RCIscale <- rowMeans(Data[,c("RCI1","RCI2","RCI3","RCI4","RCI5","RCI6",
                   "RCI7","RCI8","RCI9","RCI10")], na.rm = TRUE)
-summary(Data$RCIscale)
+#summary(Data$RCIscale)
 
 ```
 
@@ -49,7 +50,7 @@ Fear of negative evaluation:
 #1-5 scale, 12 items 
 #R: 2, 4, 7, 10. Average all items to compute a total scale score.
 #Recode Variables 
-table(Data$FNE2)
+#table(Data$FNE2)
 Data$RFNE2 <- dplyr::case_when(
   Data$FNE2 == 1 ~ 5,
  Data$FNE2 == 2 ~ 4,
@@ -58,9 +59,9 @@ Data$RFNE2 <- dplyr::case_when(
  Data$FNE2 == 5 ~ 1,
   TRUE ~ NA_real_
 )
-table(Data$RFNE2)
+#table(Data$RFNE2)
 
-table(Data$FNE4)
+#table(Data$FNE4)
 Data$RFNE4 <- dplyr::case_when(
   Data$FNE4 == 1 ~ 5,
  Data$FNE4 == 2 ~ 4,
@@ -69,9 +70,9 @@ Data$RFNE4 <- dplyr::case_when(
  Data$FNE4 == 5 ~ 1,
   TRUE ~ NA_real_
 )
-table(Data$RFNE4)
+#table(Data$RFNE4)
 
-table(Data$FNE10)
+#table(Data$FNE10)
 Data$RFNE10 <- dplyr::case_when(
   Data$FNE10 == 1 ~ 5,
  Data$FNE10 == 2 ~ 4,
@@ -80,9 +81,9 @@ Data$RFNE10 <- dplyr::case_when(
  Data$FNE10 == 5 ~ 1,
   TRUE ~ NA_real_
 )
-table(Data$RFNE10)
+#table(Data$RFNE10)
 
-table(Data$FNE7)
+#table(Data$FNE7)
 Data$RFNE7 <- dplyr::case_when(
   Data$FNE7 == 1 ~ 5,
  Data$FNE7 == 2 ~ 4,
@@ -91,24 +92,24 @@ Data$RFNE7 <- dplyr::case_when(
  Data$FNE7 == 5 ~ 1,
   TRUE ~ NA_real_
 )
-table(Data$RFNE7)
+#table(Data$RFNE7)
 
 #Reliability Analysis 
 FNEitems <- Data[,c("FNE1","RFNE2","FNE3","RFNE4","FNE5","FNE6",
                   "RFNE7","FNE8","FNE9","RFNE10","FNE11","FNE12")]
-alpha(FNEitems, check.keys = TRUE)
+#alpha(FNEitems, check.keys = TRUE)
 #alpha equals .94, so we are good to move ahead. 
 
 #Make the composite 
 Data$FNEscale <- rowMeans(Data[,c("FNE1","RFNE2","FNE3","RFNE4","FNE5","FNE6",
                   "RFNE7","FNE8","FNE9","RFNE10","FNE11","FNE12")], na.rm = TRUE)
-summary(Data$FNEscale)
+#summary(Data$FNEscale)
 ```
 Group affiliation seeking: 
 ```{r}
 #FMSI - Group Affiliation Seeking: 13, 14, 15, 16R, 17, 18, one to seven scale
 #recoding item 16 first 
-table(Data$FSMI16)
+#table(Data$FSMI16)
 Data$RFSMI16 <- dplyr::case_when(
   Data$FSMI16 == 1 ~ 7,
  Data$FSMI16 == 2 ~ 6,
@@ -119,10 +120,10 @@ Data$RFSMI16 <- dplyr::case_when(
  Data$FSMI16 == 7 ~ 1,
   TRUE ~ NA_real_
 )
-table(Data$RFSMI16)
+#table(Data$RFSMI16)
 #reliability 
 GASitems <- Data[,c("FSMI13","FSMI14","FSMI15","RFSMI16","FSMI17","FSMI18")]
-alpha(GASitems, check.keys = TRUE)
+#alpha(GASitems, check.keys = TRUE)
 #Alpha is .84
 #Mean composite 
 Data$GASscale <- rowMeans(Data[,c("FSMI13","FSMI14","FSMI15","RFSMI16","FSMI17","FSMI18")], na.rm = TRUE)
@@ -178,11 +179,11 @@ Data$RRSE9 <- dplyr::case_when(
 )
 #reliability, alpha is .91
 RSEitems <- Data[,c("RSE1","RRSE2","RSE3","RSE4","RRSE5","RRSE6","RSE7","RRSE8","RRSE9","RSE10")]
-alpha(RSEitems, check.keys=TRUE)
+#alpha(RSEitems, check.keys=TRUE)
 
 #Mean composite 
 Data$RSEscale <- rowMeans(Data[,c("RSE1","RRSE2","RSE3","RSE4","RRSE5","RRSE6","RSE7","RRSE8","RRSE9","RSE10")], na.rm = TRUE)
-summary(Data$RSEscale)
+#summary(Data$RSEscale)
 
 ```
 Self control:
@@ -263,11 +264,11 @@ Data$RSC13 <- dplyr::case_when(
 )
 #R: 1, 2, 3, 4, 6, 9, 11, 12, 13.
 SCitems <- Data[,c("RSC1","RSC2","RSC3","RSC4","SC5","RSC6","SC7","SC8","RSC9","SC10","RSC11","RSC12","RSC13")]
-alpha(SCitems, check.keys = TRUE)
+#alpha(SCitems, check.keys = TRUE)
 #Alpha is .88
 #mean composite 
 Data$SCscale <- rowMeans( Data[,c("RSC1","RSC2","RSC3","RSC4","SC5","RSC6","SC7","SC8","RSC9","SC10","RSC11","RSC12","RSC13")], na.rm = TRUE)
-summary(Data$SCscale)
+#summary(Data$SCscale)
 ```
 Political orientation: 
 ```{r}
@@ -299,11 +300,11 @@ Data$RFSMI65 <- dplyr::case_when(
   TRUE ~ NA_real_
 )
 Childrenitems <- Data[,c("FSMI61","FSMI62","RFSMI63","FSMI64","RFSMI65","FSMI66")]
-alpha(Childrenitems, check.keys = TRUE)
+#alpha(Childrenitems, check.keys = TRUE)
 #alpha is .73
 #mean composite 
 Data$Childrenscale <- rowMeans( Data[,c("FSMI61","FSMI62","RFSMI63","FSMI64","RFSMI65","FSMI66")], na.rm = TRUE)
-summary(Data$Childrenscale)
+#summary(Data$Childrenscale)
 ```
 Conscientousness:
 ```{r}
@@ -319,11 +320,11 @@ Data$RTIPI8 <- dplyr::case_when(
  Data$TIPI8 == 7 ~ 1,
   TRUE ~ NA_real_)
 Conscientiousitems <-Data[,c("TIPI3","RTIPI8")]
-alpha(Conscientiousitems, check.keys = TRUE)
+#alpha(Conscientiousitems, check.keys = TRUE)
 #alpha is .60
 
 Data$Conscale <- rowMeans(Data[,c("TIPI3","RTIPI8")], na.rm = TRUE)
-summary(Data$Conscale)
+#summary(Data$Conscale)
 
 ```
 Extraversion:
@@ -339,19 +340,19 @@ Data$RTIPI6 <- dplyr::case_when(
  Data$TIPI6 == 7 ~ 1,
   TRUE ~ NA_real_)
 Extraitems <- Data[,c("TIPI1","RTIPI6")]
-alpha(Extraitems, check.keys = TRUE)
+#alpha(Extraitems, check.keys = TRUE)
 #alpha is .74
 Data$Extrascale <- rowMeans(Data[,c("TIPI1","RTIPI6")], na.rm = TRUE)
-summary(Data$Extrascale)
+#summary(Data$Extrascale)
 
 ```
 Now that everything is clean and ready to go, I will produce the correlation matrix of the following variables: self-control, self-esteem, fear of negative evaluation, religiosity, political orientation, child-oriented, conscientousness, extraversion, satisfaction with life, and group affiliation seeking. 
-```{r}
+```{r warning=FALSE}
 df_scales <- Data[,c("SCscale","RSEscale","FNEscale","RCIscale","Childrenscale","Conscale","Extrascale","SWLscale","GASscale","PoliticalOrientation")]
 cor_matrix <- cor(df_scales)
 ```
 Next, I will express it as a heatmap using the vis_cor function:
-```{r}
+```{r warning=FALSE}
 vis_cor(
   df_scales,
   cor_method = "pearson",
@@ -361,7 +362,7 @@ vis_cor(
 
 ```
 Now I want to make it like a network:
-```{r}
+```{r warning=FALSE}
 #To make sure the matrix doesn't have any NAs - something wrong with the children scale one
 new_scales <-Data[,c("SCscale","RSEscale","FNEscale","RCIscale","Conscale","Extrascale","SWLscale","GASscale","PoliticalOrientation")]
 better_cor_matrix <- cor(new_scales)
@@ -369,10 +370,17 @@ better_cor_matrix <- cor(new_scales)
 network_plot(better_cor_matrix, min_cor = 0)
 #this made me really happy 
 
+ggpairs(df_scales) #way too much going on 
+
+df_scales_subset <- df_scales %>%
+  select(,c("SCscale","RSEscale","FNEscale","RCIscale","SWLscale"))
+ggpairs(df_scales_subset) #its still more condensed than I would like, the dots are too big
+
+
 ```
 
 Just because I am having a lot of fun, I am going to repeat this with the items within a scale, one with failry high reliability, and another that is only so-so: 
-```{r}
+```{r warning=FALSE}
 #Religiosity items alpha was .97
 religion_cor_matrix <- cor(Religiosityitems)
 vis_cor(
@@ -391,7 +399,7 @@ network_plot(new_religion_cor_matrix, min_cor = 0)
 ```
 
 Now for the less reliable scale: self control: still fairly reliable .88
-```{r}
+```{r warning=FALSE}
 SC_cor_matrix <- cor(SCitems)
 vis_cor(
   SCitems,
@@ -406,7 +414,7 @@ network_plot(new_SCitems_matrix, min_cor = 0)
 #this was also cool 
 ```
 Last thing I would like to do is map fear of negative evaluation and self esteem together, since the first network plot revealed that there were very related
-```{r}
+```{r warning=FALSE}
 FNE_RSE <- Data[,c("RSE1","RRSE2","RSE3","RSE4","RRSE5","RRSE6","RSE7","RRSE8","RRSE9","RSE10","FNE1","RFNE2","FNE3","RFNE4","FNE5","FNE6",  "RFNE7","FNE8","FNE9","RFNE10","FNE11","FNE12")]
 FNE_RSE_matrix <- cor(FNE_RSE)
 #FNE6 and FNE12 are the only ones with missing data
