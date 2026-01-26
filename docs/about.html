@@ -11,9 +11,9 @@
 
 
 
-<title>About This Website</title>
+<title>Welcome to My Portfolio</title>
 
-<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -141,11 +141,15 @@ $(document).ready(function () {
     href = "index.html";
   var menuAnchor = $('a[href="' + href + '"]');
 
-  // mark it active
-  menuAnchor.tab('show');
-
-  // if it's got a parent navbar menu mark it active as well
-  menuAnchor.closest('li.dropdown').addClass('active');
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
 
   // Navbar adjustments
   var navHeight = $(".navbar").first().height() + 15;
@@ -174,8 +178,8 @@ $(document).ready(function () {
   border-radius: 4px;
 }
 
-.tabset-dropdown > .nav-tabs > li.active:before {
-  content: "";
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
   font-family: 'Glyphicons Halflings';
   display: inline-block;
   padding: 10px;
@@ -183,16 +187,9 @@ $(document).ready(function () {
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-  content: "&#xe258;";
-  border: none;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-  content: "";
+  content: "\e258";
   font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
+  border: none;
 }
 
 .tabset-dropdown > .nav-tabs > li.active {
@@ -293,36 +290,12 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">About This Website</h1>
+<h1 class="title toc-ignore">Welcome to My Portfolio</h1>
 
 </div>
 
 
-<p>Donec mollis tempor mi, non rhoncus turpis gravida sed. Fusce a
-sodales ligula. Phasellus suscipit egestas finibus. Aliquam erat
-volutpat. Curabitur sed sagittis massa, eget vulputate dolor. Vivamus
-scelerisque non ante tempus congue. Quisque ut diam nisi. Vestibulum ut
-libero a risus faucibus tristique a sit amet nulla. Vestibulum blandit,
-nisi tristique imperdiet euismod, nisl nulla imperdiet eros, eu
-vulputate purus lectus nec elit.</p>
-<p>Nullam sagittis sollicitudin erat, non semper tellus hendrerit
-hendrerit. Pellentesque viverra malesuada dui. Donec sodales id libero
-ut convallis. Cras molestie, turpis at sagittis ultricies, tortor augue
-venenatis tortor, a imperdiet nunc tortor a nisi. Vestibulum ipsum
-risus, accumsan et elit sed, scelerisque ornare magna. Etiam et massa
-luctus, dapibus justo quis, rhoncus urna. Lorem ipsum dolor sit amet,
-consectetur adipiscing elit. Suspendisse cursus libero libero, vel
-luctus turpis eleifend et.</p>
-<p>Aenean vulputate tincidunt velit at sodales. Cras nulla mi, molestie
-sed enim in, ultrices molestie ante. Morbi interdum sagittis convallis.
-Fusce mauris diam, sagittis sit amet tempus maximus, elementum nec nisl.
-Integer semper diam purus, a porttitor mi sodales quis. Praesent in leo
-in velit pretium tincidunt. Sed congue luctus massa at scelerisque.
-Praesent posuere risus nec placerat elementum. Nullam dapibus a nisi sit
-amet sagittis. Phasellus in purus ac est euismod laoreet et aliquet
-enim. Maecenas sed sapien vulputate, blandit erat posuere, lobortis
-sapien. Morbi tincidunt lacus justo, in finibus ligula convallis ac.
-Integer in efficitur tellus. Maecenas feugiat aliquam imperdiet.</p>
+<p>Check out my pretty graphs!</p>
 
 
 
