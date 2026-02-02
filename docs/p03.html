@@ -318,28 +318,9 @@ seasons for shows that appear in multiple Netflix engagement reports? Do
 later seasons of popular shows maintain, gain, or lose audience
 engagement compared to their earlier seasons?</label></li>
 </ul>
-<pre class="r"><code># Read directly from GitHub
-
-movies &lt;- readr::read_csv(&#39;https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-07-29/movies.csv&#39;)</code></pre>
-<pre><code>## Rows: 36121 Columns: 8
-## ── Column specification ────────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr  (5): source, report, title, available_globally, runtime
-## dbl  (2): hours_viewed, views
-## date (1): release_date
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>shows &lt;- readr::read_csv(&#39;https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-07-29/shows.csv&#39;)</code></pre>
-<pre><code>## Rows: 27803 Columns: 8
-## ── Column specification ────────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr  (5): source, report, title, available_globally, runtime
-## dbl  (2): hours_viewed, views
-## date (1): release_date
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<p>First I will read in the data from Github:</p>
+<pre class="r"><code>movies &lt;- readr::read_csv(&#39;https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-07-29/movies.csv&#39;)
+shows &lt;- readr::read_csv(&#39;https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-07-29/shows.csv&#39;)</code></pre>
 
 
 

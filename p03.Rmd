@@ -1,19 +1,104 @@
 ---
 title: "Tidy Tuesday: Netflix"
 ---
-For this portfolio piece, I am handing over the "choose your own adventure" reins to the Tidy Tuesday Repo, because I hate making decisions. TidyTuesday has some general questions to consider, and I will be tailoring them to romantic reality TV shows in honor of Love is Blind Season 10, which is coming out next week! 
 
-Here are some of the things TidyTuesday wanted me to think about: 
+For this portfolio piece, I am handing over the "choose your own adventure" reins to the Tidy Tuesday Repo, because I hate making decisions.
 
-- [ ]  What is the relation between time since release and current viewing performance? Do older shows have staying power or do newer releases dominate?
-- [ ] How does the timing of a show's release (month/season) relate to engagement metrics?
-- [ ] How does the performance of globally available content compare to regionally restricted titles? Do global releases consistently outperform regional ones?
-- [ ] How do the top movie performers in each reporting period compare? Are the same kinds of movies consistently popular?
-- [ ] How does viewing change across seasons for shows that appear in multiple Netflix engagement reports? Do later seasons of popular shows maintain, gain, or lose audience engagement compared to their earlier seasons?
+Here are some of the things TidyTuesday wanted me to think about:
 
-```{r}
-# Read directly from GitHub
+-   [ ] What is the relation between time since release and current viewing performance? Do older shows have staying power or do newer releases dominate?
+-   [ ] How does the timing of a show's release (month/season) relate to engagement metrics?
+-   [ ] How does the performance of globally available content compare to regionally restricted titles? Do global releases consistently outperform regional ones?
+-   [ ] How do the top movie performers in each reporting period compare? Are the same kinds of movies consistently popular?
+-   [ ] How does viewing change across seasons for shows that appear in multiple Netflix engagement reports? Do later seasons of popular shows maintain, gain, or lose audience engagement compared to their earlier seasons?
 
+First I will read in the data from Github:
+
+```{r message=FALSE}
 movies <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-07-29/movies.csv')
 shows <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-07-29/shows.csv')
+
+library(ggplot2)
+library(polycor)
+library(tidyr)
+library(dplyr)
+library(tidytuesdayR)
+library(stringr)
+library(stringi)
+```
+
+Next I am going to get a sense of the lay of the land. From the following codes, I learned:
+
+-   [] We have data reports every 6 months on shows, from July of 2023 to June 2025. This means I can evaluate changes in engagement chunked into 6 month periods.
+-   [] The hours_viewed numbers are crazy, so adjusting them somehow will be helpful. Some options to consider would be making a proportion of hours viewed by runtime, or number of views?
+-   [] Runtime is a character, and thats a problem I may or may not choose to address
+
+```{r}
+table(shows$report)
+summary(shows$hours_viewed)
+str(shows$runtime)
+
+#adjusting the hours viewed into something more manageble 
+shows <- shows %>%
+  mutate(prop_hrs_viewed = hours_viewed / views)
+
+#filter for love is blind 
+LOB <- shows %>%
+  filter(stri_startswith_fixed(title, "Love is Blind: Season", case_insensitive = TRUE))
+
+#Filter for too hot too handle 
+Hot <- shows %>%
+  filter(str_starts(title, "Too Hot to Handle"))
+
+#we can see about release date becoming numeric by using date since origin? 
+
+```
+
+There are duplicates with different report dates. We can use this to see how viewership changes for each season as it gets older: 
+```{r}
+LOB4 <- LOB %>%
+  filter(stri_startswith_fixed(title, "Love is Blind: Season 4", case_insensitive = TRUE))
+
+ggplot(data = LOB4, mapping = aes(x=report, y=views)) +
+geom_col(fill = "pink", color = "black") +
+  labs(title = "Love Is Blind: Season 4 Views Since Release",
+         x = "Netflix Report Date",
+         y= "Number of Views") 
+```
+Now I want to do this so its every season displayed like this and faceted 
+```{r}
+#I think I need to make a variable that selects the four reports for each season 
+LOB <- LOB %>%
+  mutate(Season = case_when(
+    title == "Love Is Blind: Season 1" ~ 1,
+    title == "Love Is Blind: Season 2" ~ 2,
+    title == "Love Is Blind: Season 3" ~ 3,
+    title == "Love Is Blind: Season 4" ~ 4,
+    title == "Love Is Blind: Season 5" ~ 5,
+    title == "Love Is Blind: Season 6" ~ 6,
+    title == "Love Is Blind: Season 7" ~ 7,
+    title == "Love Is Blind: Season 8" ~ 8,
+    TRUE ~ NA_real_
+  ))
+
+ggplot(data = LOB, mapping = aes(x=report, y=views)) +
+geom_col(fill = "pink", color = "black") +
+  facet_wrap(~ Season)
+  labs(title = "Love Is Blind: Season 4 Views Since Release",
+         x = "Netflix Report Date",
+         y= "Number of Views") 
+
+```
+Which is more popular: Love is Blind or Too Hot Too Handle?
+
+```{r}
+ggplot(LOB, mapping = aes(x=release_date, y=prop_hrs_viewed)) +
+  geom_bar()
+```
+
+Release Timing and Engagement - [ ] I am going to first look at the past year, filtered by month. - [ ] Depending on how that goes, I am going to look at it averaged over years (i.e. average engagement of shows released in December across however many years of data I have)
+
+```{r}
+
+
 ```
