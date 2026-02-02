@@ -11,9 +11,9 @@
 
 
 
-<title>Portfolio 3</title>
+<title>Tidy Tuesday: Netflix</title>
 
-<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -141,11 +141,15 @@ $(document).ready(function () {
     href = "index.html";
   var menuAnchor = $('a[href="' + href + '"]');
 
-  // mark it active
-  menuAnchor.tab('show');
-
-  // if it's got a parent navbar menu mark it active as well
-  menuAnchor.closest('li.dropdown').addClass('active');
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
 
   // Navbar adjustments
   var navHeight = $(".navbar").first().height() + 15;
@@ -174,8 +178,8 @@ $(document).ready(function () {
   border-radius: 4px;
 }
 
-.tabset-dropdown > .nav-tabs > li.active:before {
-  content: "";
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
   font-family: 'Glyphicons Halflings';
   display: inline-block;
   padding: 10px;
@@ -183,16 +187,9 @@ $(document).ready(function () {
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-  content: "&#xe258;";
-  border: none;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-  content: "";
+  content: "\e258";
   font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
+  border: none;
 }
 
 .tabset-dropdown > .nav-tabs > li.active {
@@ -293,18 +290,56 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Portfolio 3</h1>
+<h1 class="title toc-ignore">Tidy Tuesday: Netflix</h1>
 
 </div>
 
 
-<blockquote>
-<p>The projects should be numbered consecutively (i.e., in the order in
-which you began them), and should include for each project a description
-of the goal, the product (computer program, hand graph, computer graph,
-etc.), the data, and some interpretation. Reports must be reproducible
-and of high quality in terms of writing, grammar, presentation, etc.</p>
-</blockquote>
+<p>For this portfolio piece, I am handing over the “choose your own
+adventure” reins to the Tidy Tuesday Repo, because I hate making
+decisions. TidyTuesday has some general questions to consider, and I
+will be tailoring them to romantic reality TV shows in honor of Love is
+Blind Season 10, which is coming out next week!</p>
+<p>Here are some of the things TidyTuesday wanted me to think about:</p>
+<ul class="task-list">
+<li><label><input type="checkbox" />What is the relation between time
+since release and current viewing performance? Do older shows have
+staying power or do newer releases dominate?</label></li>
+<li><label><input type="checkbox" />How does the timing of a show’s
+release (month/season) relate to engagement metrics?</label></li>
+<li><label><input type="checkbox" />How does the performance of globally
+available content compare to regionally restricted titles? Do global
+releases consistently outperform regional ones?</label></li>
+<li><label><input type="checkbox" />How do the top movie performers in
+each reporting period compare? Are the same kinds of movies consistently
+popular?</label></li>
+<li><label><input type="checkbox" />How does viewing change across
+seasons for shows that appear in multiple Netflix engagement reports? Do
+later seasons of popular shows maintain, gain, or lose audience
+engagement compared to their earlier seasons?</label></li>
+</ul>
+<pre class="r"><code># Read directly from GitHub
+
+movies &lt;- readr::read_csv(&#39;https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-07-29/movies.csv&#39;)</code></pre>
+<pre><code>## Rows: 36121 Columns: 8
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr  (5): source, report, title, available_globally, runtime
+## dbl  (2): hours_viewed, views
+## date (1): release_date
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>shows &lt;- readr::read_csv(&#39;https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-07-29/shows.csv&#39;)</code></pre>
+<pre><code>## Rows: 27803 Columns: 8
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr  (5): source, report, title, available_globally, runtime
+## dbl  (2): hours_viewed, views
+## date (1): release_date
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 
 
 

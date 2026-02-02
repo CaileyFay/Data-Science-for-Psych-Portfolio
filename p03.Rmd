@@ -1,5 +1,19 @@
 ---
-title: "Portfolio 3"
+title: "Tidy Tuesday: Netflix"
 ---
+For this portfolio piece, I am handing over the "choose your own adventure" reins to the Tidy Tuesday Repo, because I hate making decisions. TidyTuesday has some general questions to consider, and I will be tailoring them to romantic reality TV shows in honor of Love is Blind Season 10, which is coming out next week! 
 
-> The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
+Here are some of the things TidyTuesday wanted me to think about: 
+
+- [ ]  What is the relation between time since release and current viewing performance? Do older shows have staying power or do newer releases dominate?
+- [ ] How does the timing of a show's release (month/season) relate to engagement metrics?
+- [ ] How does the performance of globally available content compare to regionally restricted titles? Do global releases consistently outperform regional ones?
+- [ ] How do the top movie performers in each reporting period compare? Are the same kinds of movies consistently popular?
+- [ ] How does viewing change across seasons for shows that appear in multiple Netflix engagement reports? Do later seasons of popular shows maintain, gain, or lose audience engagement compared to their earlier seasons?
+
+```{r}
+# Read directly from GitHub
+
+movies <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-07-29/movies.csv')
+shows <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-07-29/shows.csv')
+```
