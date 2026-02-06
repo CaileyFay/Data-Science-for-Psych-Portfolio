@@ -321,8 +321,10 @@ not empirical, but I thought it would be fun.</label></li>
 href="https://www.youtube.com/watch?v=VTI84Pqk3SI&amp;t=1s"
 class="uri">https://www.youtube.com/watch?v=VTI84Pqk3SI&amp;t=1s</a> by
 Grace Thompkins that was super helpful.</p>
-<p>First, of course, I will load up my packages like always. And I am
-going to link in my google sheets.</p>
+<p>First, of course, I will load up my packages like always. In a
+separate file, I created the link between my google form responses and
+then cleaned it up a little bit. this is the document I am sourcing. It
+just makes life easier for when I am trying to set up the app.</p>
 <pre class="r"><code>library(shiny)
 library(googlesheets4)
 library(janitor)</code></pre>
@@ -341,34 +343,21 @@ library(janitor)</code></pre>
 ## 
 ##     intersect, setdiff, setequal, union</code></pre>
 <pre class="r"><code>library(tidyr)
-#this guy has a cool little way to import from sheets. I am completely in love with how easy this was
-# Source - https://stackoverflow.com/a/28986107
-# Posted by Max Conway
-# Retrieved 2026-02-05, License - CC BY-SA 3.0
-#https://github.com/maxconway/gsheet
 library(gsheet)
-ESM &lt;-gsheet2tbl(&#39;https://docs.google.com/spreadsheets/d/1grnrXPY2i8W73XHphScS3P0UcTvhw3BNEzlGYLVwJ4M/edit?resourcekey=&amp;gid=698980028#gid=698980028&#39;)</code></pre>
-<p>Now I am going to clean it up all nice:</p>
-<pre class="r"><code>ESM &lt;- ESM %&gt;%
-  mutate(num_name = case_when(
-    `Who are you` == &quot;Cailey&quot; ~ 0,
-    `Who are you` == &quot;Ethan&quot; ~ 1
-  )) %&gt;%
-  clean_names()
-#now its numeric, and there are no spaces in the names. Now I want to assign different names
 
-ESM &lt;- ESM %&gt;%
-  mutate(Extraversion = in_the_last_30_minutes_how_extraverted_have_you_felt,
-         Agreeableness = in_the_last_30_minutes_how_agreeable_have_you_felt,
-         Conscientiousness = in_the_last_30_minutes_how_conscientious_have_you_felt,
-         Emotional_Stability = in_the_last_30_minutes_how_emotionally_stable_have_you_felt,
-         Openness = in_the_last_30_minutes_how_open_have_you_felt)
-
-#now I am dropping the duplicated names 
-ESM &lt;- ESM %&gt;%
-  select(c(&quot;Extraversion&quot;,&quot;Agreeableness&quot;,&quot;Conscientiousness&quot;,&quot;Emotional_Stability&quot;,&quot;Openness&quot;,&quot;timestamp&quot;,&quot;who_are_you&quot;,&quot;num_name&quot;))
-
-#Last thing I want to do is convert the timestamp data into something workable. I need to think more about this. </code></pre>
+source(&quot;/Users/caileyfay/Documents/GitHub/Data-Science-for-Psych-Portfolio/P4_ESM/cleaning_ESM.r&quot;)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;lubridate&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     date, intersect, setdiff, union</code></pre>
+<pre><code>## Warning: There was 1 warning in `mutate()`.
+## ℹ In argument: `date_time = mdy_hms(all_of(timestamp))`.
+## Caused by warning:
+## ! Using `all_of()` outside of a selecting function was deprecated in tidyselect
+##   1.2.0.
+## ℹ See details at
+##   &lt;https://tidyselect.r-lib.org/reference/faq-selection-context.html&gt;</code></pre>
 
 
 

@@ -9,19 +9,10 @@
 
 library(shiny)
 library(ggplot2)
+library(tidyverse)
+library(googlesheets4)
 
-bsl <- read.csv("cancerData.csv", stringsAsFactors = FALSE)
-
-bsl <- bsl %>%
-  mutate(stat_num = case_when(
-    stat == "deaths" ~ 1,
-    stat == "cases" ~ 2,
-    stat == "mortalityRate" ~ 3,
-    stat == "deathsPerMillion" ~ 4,
-    TRUE ~ NA_real_,
-
-  ))
-
+source("/Users/caileyfay/Documents/GitHub/Data-Science-for-Psych-Portfolio/P4_ESM/cleaning_ESM.r")
 
 # Define UI for application
 ui <- fluidPage(

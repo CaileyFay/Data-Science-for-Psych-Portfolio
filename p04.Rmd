@@ -25,4 +25,29 @@ source("/Users/caileyfay/Documents/GitHub/Data-Science-for-Psych-Portfolio/P4_ES
 
 
 ```{r}
+#playing around with the bones of the graph I will create
+
+#I want to be able to click to see the profile of mine vs ethans, seperately 
+#I want a graph of mine mapped over his for one of the traits, or a faceted chart that shows ours stacked on top of each other for each of the five traits 
+#I want people to be able to select the personalty characteristic of interest 
+#the density thing is going to be a histogram for a trait
+#I also want plots of the time of day vs the level of the trait 
+#to help me get a concrete sense before I code something more generalized in the interactive graph: 
+ESM %>%
+  filter(who_are_you ="Cailey") %>%
+ggplot(aes(x=hour, y=Extraversion)) +
+  geom_point() +
+  geom_line(method = "lm") #making a scatter plot of the time of day and level of trait 
+
+ESM %>%
+  filter(who_are_you ="Cailey") %>%
+ggplot(aes(x=Extraversion)) +
+  geom_histogram() #density distribution for one of the traits? 
+
+ESM %>%
+  ggplot(mapping = aes(x=Extraversion),
+       color = "who_are_you",
+       fill = "who_are_you") +
+  geom_density(alpha = 0.7) #comparing Cailey and Ethan density distributions for a given trait 
+#I would like to figure out how to facet it so that we get five of these 
 
