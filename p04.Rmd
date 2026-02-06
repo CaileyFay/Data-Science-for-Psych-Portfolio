@@ -1,5 +1,30 @@
 ---
-title: "Portfolio 4"
+title: "Portfolio 4: Using Shiny App to Make an Interactive Dashboard of Some ESM Personality Data"
 ---
+I was once again inspired by something we talked about in Will's Personality Seminar. SO, for this portfolio, I will be doing an abrieviated version of the density distribution approach for mapping the relationship between trait standing and trait manifestation. The data is coming from my favorite guinea pig, my boyfriend, who was nice enough to fill out some short pseudo personality state assessment that I made. Here are my learning objectives for this portfolio piece...lets see if I succeed! 
 
-> The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
+- [] I want to learn how to make an interactive dashboard with the Shiny App. This is how I will visualize mr. boyfriends data. 
+- [] I also wanted to learn how to do a survey in such a way that it can be imported straight into r as it updates, and it turns out it was shockingly easy! Spoiler alert: I consider myself a qualtrics girly but google forms and some random post on stackoverflow did me a real solid. 
+- [] I wanted to test out the density distribution method on a real person I actually know. I am aware it's not empirical, but I thought it would be fun. 
+
+To get started with the Shiny app, I used this tutorial https://www.youtube.com/watch?v=VTI84Pqk3SI&t=1s by Grace Thompkins that was super helpful. 
+
+First, of course, I will load up my packages like always:
+```{r}
+library(shiny)
+library(googlesheets4)
+#this guy has a cool little way to import from sheets. I am completely in love with how easy this was
+# Source - https://stackoverflow.com/a/28986107
+# Posted by Max Conway
+# Retrieved 2026-02-05, License - CC BY-SA 3.0
+#https://github.com/maxconway/gsheet
+library(gsheet)
+ESM <-gsheet2tbl('https://docs.google.com/spreadsheets/d/1grnrXPY2i8W73XHphScS3P0UcTvhw3BNEzlGYLVwJ4M/edit?resourcekey=&gid=698980028#gid=698980028')
+
+```
+
+Now I am going to clean it up all nice:
+
+```{r}
+ESM <- ESM %>%
+  as.numeric()
