@@ -11,7 +11,7 @@
 
 
 
-<title>Portfolio 4: Using Shiny App to collect and visualize ESM personality data</title>
+<title>Portfolio 4: Using Shiny App to Make an Interactive Dashboard of Some ESM Personality Data</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -290,14 +290,85 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Portfolio 4: Using Shiny App to collect and
-visualize ESM personality data</h1>
+<h1 class="title toc-ignore">Portfolio 4: Using Shiny App to Make an
+Interactive Dashboard of Some ESM Personality Data</h1>
 
 </div>
 
 
-<p>First, of course, I will load up my packages like always:</p>
-<pre class="r"><code>library(shiny)</code></pre>
+<p>I was once again inspired by something we talked about in Will’s
+Personality Seminar. SO, for this portfolio, I will be doing an
+abrieviated version of the density distribution approach for mapping the
+relationship between trait standing and trait manifestation. The data is
+coming from my favorite guinea pig, my boyfriend, who was nice enough to
+fill out some short pseudo personality state assessment that I made.
+Here are my learning objectives for this portfolio piece…lets see if I
+succeed!</p>
+<ul class="task-list">
+<li><label><input type="checkbox" />I want to learn how to make an
+interactive dashboard with the Shiny App. This is how I will visualize
+mr. boyfriends data.</label></li>
+<li><label><input type="checkbox" />I also wanted to learn how to do a
+survey in such a way that it can be imported straight into r as it
+updates, and it turns out it was shockingly easy! Spoiler alert: I
+consider myself a qualtrics girly but google forms and some random post
+on stackoverflow did me a real solid.</label></li>
+<li><label><input type="checkbox" />I wanted to test out the density
+distribution method on a real person I actually know. I am aware it’s
+not empirical, but I thought it would be fun.</label></li>
+</ul>
+<p>To get started with the Shiny app, I used this tutorial <a
+href="https://www.youtube.com/watch?v=VTI84Pqk3SI&amp;t=1s"
+class="uri">https://www.youtube.com/watch?v=VTI84Pqk3SI&amp;t=1s</a> by
+Grace Thompkins that was super helpful.</p>
+<p>First, of course, I will load up my packages like always. And I am
+going to link in my google sheets.</p>
+<pre class="r"><code>library(shiny)
+library(googlesheets4)
+library(janitor)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;janitor&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     chisq.test, fisher.test</code></pre>
+<pre class="r"><code>library(dplyr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>library(tidyr)
+#this guy has a cool little way to import from sheets. I am completely in love with how easy this was
+# Source - https://stackoverflow.com/a/28986107
+# Posted by Max Conway
+# Retrieved 2026-02-05, License - CC BY-SA 3.0
+#https://github.com/maxconway/gsheet
+library(gsheet)
+ESM &lt;-gsheet2tbl(&#39;https://docs.google.com/spreadsheets/d/1grnrXPY2i8W73XHphScS3P0UcTvhw3BNEzlGYLVwJ4M/edit?resourcekey=&amp;gid=698980028#gid=698980028&#39;)</code></pre>
+<p>Now I am going to clean it up all nice:</p>
+<pre class="r"><code>ESM &lt;- ESM %&gt;%
+  mutate(num_name = case_when(
+    `Who are you` == &quot;Cailey&quot; ~ 0,
+    `Who are you` == &quot;Ethan&quot; ~ 1
+  )) %&gt;%
+  clean_names()
+#now its numeric, and there are no spaces in the names. Now I want to assign different names
+
+ESM &lt;- ESM %&gt;%
+  mutate(Extraversion = in_the_last_30_minutes_how_extraverted_have_you_felt,
+         Agreeableness = in_the_last_30_minutes_how_agreeable_have_you_felt,
+         Conscientiousness = in_the_last_30_minutes_how_conscientious_have_you_felt,
+         Emotional_Stability = in_the_last_30_minutes_how_emotionally_stable_have_you_felt,
+         Openness = in_the_last_30_minutes_how_open_have_you_felt)
+
+#now I am dropping the duplicated names 
+ESM &lt;- ESM %&gt;%
+  select(c(&quot;Extraversion&quot;,&quot;Agreeableness&quot;,&quot;Conscientiousness&quot;,&quot;Emotional_Stability&quot;,&quot;Openness&quot;,&quot;timestamp&quot;,&quot;who_are_you&quot;,&quot;num_name&quot;))
+
+#Last thing I want to do is convert the timestamp data into something workable. I need to think more about this. </code></pre>
 
 
 

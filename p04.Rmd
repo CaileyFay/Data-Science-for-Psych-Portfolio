@@ -3,28 +3,26 @@ title: "Portfolio 4: Using Shiny App to Make an Interactive Dashboard of Some ES
 ---
 I was once again inspired by something we talked about in Will's Personality Seminar. SO, for this portfolio, I will be doing an abrieviated version of the density distribution approach for mapping the relationship between trait standing and trait manifestation. The data is coming from my favorite guinea pig, my boyfriend, who was nice enough to fill out some short pseudo personality state assessment that I made. Here are my learning objectives for this portfolio piece...lets see if I succeed! 
 
-- [] I want to learn how to make an interactive dashboard with the Shiny App. This is how I will visualize mr. boyfriends data. 
-- [] I also wanted to learn how to do a survey in such a way that it can be imported straight into r as it updates, and it turns out it was shockingly easy! Spoiler alert: I consider myself a qualtrics girly but google forms and some random post on stackoverflow did me a real solid. 
-- [] I wanted to test out the density distribution method on a real person I actually know. I am aware it's not empirical, but I thought it would be fun. 
+- [ ] I want to learn how to make an interactive dashboard with the Shiny App. This is how I will visualize mr. boyfriends data. 
+- [ ] I also wanted to learn how to do a survey in such a way that it can be imported straight into r as it updates, and it turns out it was shockingly easy! Spoiler alert: I consider myself a qualtrics girly but google forms and some random post on stackoverflow did me a real solid. 
+- [ ] I wanted to test out the density distribution method on a real person I actually know. I am aware it's not empirical, but I thought it would be fun. 
 
 To get started with the Shiny app, I used this tutorial https://www.youtube.com/watch?v=VTI84Pqk3SI&t=1s by Grace Thompkins that was super helpful. 
 
-First, of course, I will load up my packages like always:
+First, of course, I will load up my packages like always. In a separate file, I created the link between my google form responses and then cleaned it up a little bit. this is the document I am sourcing. It just makes life easier for when I am trying to set up the app. 
 ```{r}
 library(shiny)
 library(googlesheets4)
-#this guy has a cool little way to import from sheets. I am completely in love with how easy this was
-# Source - https://stackoverflow.com/a/28986107
-# Posted by Max Conway
-# Retrieved 2026-02-05, License - CC BY-SA 3.0
-#https://github.com/maxconway/gsheet
+library(janitor)
+library(dplyr)
+library(tidyr)
 library(gsheet)
-ESM <-gsheet2tbl('https://docs.google.com/spreadsheets/d/1grnrXPY2i8W73XHphScS3P0UcTvhw3BNEzlGYLVwJ4M/edit?resourcekey=&gid=698980028#gid=698980028')
+
+source("/Users/caileyfay/Documents/GitHub/Data-Science-for-Psych-Portfolio/P4_ESM/cleaning_ESM.r")
 
 ```
 
-Now I am going to clean it up all nice:
+
 
 ```{r}
-ESM <- ESM %>%
-  as.numeric()
+
