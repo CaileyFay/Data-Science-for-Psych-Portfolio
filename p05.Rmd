@@ -1,5 +1,241 @@
 ---
-title: "Portfolio 5"
+title: "Survival Analysis"
 ---
+This is from my FYP workflow - I ran a survival analysis with some of the drug intiation data. I haven't included the behavior-genetic component, it is just a plain old survival analysis. Nothing fancy but it works. 
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
 
-> The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
+# set seed
+set.seed(20200804)
+
+library(psych)
+library(polycor)
+library(tidyverse)
+library(devtools)
+library(remotes)
+library(NlsyLinks)
+library(ggplot2)
+library(parameters)
+library(dplyr)
+library(gtsummary)
+library(discord)
+library(janitor)
+library(lm.beta)
+library(matrixStats)
+library(gt)
+library(OpenMx)
+library(ACEsimFit)
+```
+
+```{r}
+
+source("data/KidsDemographics/KidsDemographics.R")
+source("data/79Demographics/79Demographics.R")
+source("data/79Demographics/79Demographics.R")
+recode_missing_values <- FALSE
+
+source("data/Drugs79/Drugs79.R")
+
+#Next I am going to create a variable that just selects age at the 1st year anyone tried anything 
+
+#  new_data[new_data == -1] <- NA  # Refused
+#  new_data[new_data == -2] <- NA  # Dont know
+#  new_data[new_data == -3] <- NA  # Invalid missing
+#  new_data[new_data == -4] <- NA  # Valid missing
+#  new_data[new_data == -5] <- NA  # Non-interview
+
+df_Drugs79 <- df_Drugs79 %>%
+  mutate(did_interview = ifelse(
+    if_all(c(U1_Amphet, U1_Sedative, U1_Tranq, U1_Psych, U1_Heroin, U1_Narc, U1_Inhale, U1_Weed, U1_Coke, U1_Crack), 
+           ~ . == -5), 0, 1))
+
+df_Drugs79[df_Drugs79== -1] <- NA  # Refused
+df_Drugs79[df_Drugs79== -2] <- NA  # Dont know
+df_Drugs79[df_Drugs79== -3] <- NA  # Invalid missing
+df_Drugs79[df_Drugs79== -4] <- NA  # Valid missing
+df_Drugs79[df_Drugs79== -5] <- NA  # Non-interview
+
+df_Drugs79 <- df_Drugs79 %>%
+   mutate(  
+    Any_Drug_Use = ifelse(
+      is.na(U1_Amphet) & is.na(U1_Sedative) & is.na(U1_Tranq) & is.na(U1_Psych) & is.na(U1_Heroin) & is.na(U1_Narc) & is.na(U1_Inhale) & is.na(U1_Weed) & is.na(U1_Coke) & is.na(U1_Crack),
+      0,
+      1),
+    Any_Drug_Use = ifelse(did_interview == 0, NA, Any_Drug_Use),
+    First_Try = pmin(
+        U1_Amphet,
+        U1_Sedative,
+        U1_Tranq,
+        U1_Psych,
+        U1_Heroin,
+        U1_Narc,
+        U1_Inhale,
+        U1_Weed,
+        U1_Coke,
+        U1_Crack, na.rm = TRUE
+    ))
+#summary(df_Drugs79)
+
+#Also just because 
+hist(df_Drugs79$First_Try)
+hist(df_Drugs79$Any_Drug_Use)
+
+#make this ordinal now 
+#less than 10 will be our early users -- they will be class 1 
+#10-12 -2, 12-14 -3, 14-16 -4, 16-18 -5, 18-20 -6, 20-22 -7, 22+ -8, never -9
+#higher scores = earlier use 
+
+df_Drugs79 <- df_Drugs79 %>%
+  mutate(FU_Ord = case_when(
+    First_Try <= 10 ~ 1,
+    First_Try <= 12 ~ 2,
+    First_Try <= 14 ~ 3,
+    First_Try <= 16 ~ 4,
+    First_Try <= 18 ~ 5,
+    First_Try <= 20 ~ 6,
+    First_Try <= 22 ~ 7,
+    First_Try <= 24 ~ 8,
+    First_Try >= 24 ~ 9,
+    First_Try == NA ~ 10
+  ))
+
+hist(df_Drugs79$FU_Ord)
+
+#subset that looks at first age trying weed 
+table(df_Drugs79$U1_Weed)
+summary(df_Drugs79$U1_Weed)
+hist(df_Drugs79$U1_Weed)
+count(!is.na(df_Drugs79$U1_Weed))
+
+
+df_Drugs79 <- df_Drugs79 %>%
+  mutate(Weed_Ord = case_when(
+    U1_Weed <= 10 ~ 1,
+    U1_Weed <= 12 ~ 2,
+    U1_Weed <= 14 ~ 3,
+    U1_Weed <= 16 ~ 4,
+    U1_Weed <= 18 ~ 5,
+    U1_Weed <= 20 ~ 6,
+    U1_Weed <= 22 ~ 7,
+    U1_Weed <= 24 ~ 8,
+    U1_Weed >= 24 ~ 9,
+    U1_Weed == NA ~ 10
+  ))
+
+hist(df_Drugs79$Weed_Ord)
+#repeating a similar process with the child onset data 
+#Shoutout to Emma and Holland for the future kid onset data I will be using to guide my #variable search.
+source("data/KidDrugs/KidDrugs.R")
+anyDuplicated(df_KidsDrugs)
+df_KidsDrugs <- df_KidsDrugs %>%
+  select(-ends_with("_oops"))
+
+df_KidsDrugs <- df_KidsDrugs %>%
+  rowwise() %>%
+  mutate(First_Try = min(c_across(starts_with("1U_")), na.rm = TRUE)) %>%
+  ungroup() 
+
+#need to turn the Inf values into NAs 
+df_KidsDrugs <- df_KidsDrugs %>%
+  mutate(First_Try = if_else(is.infinite(First_Try), NA_real_, First_Try))
+
+hist(df_KidsDrugs$First_Try)
+#A bunch of kids must have thought it would be funny to say they were 95 when they first tried something. I am going to pull anyone who said they were less than five or older than 60 when they first tried something, and turn those values into NAs
+
+#df_KidsDrugs <- df_KidsDrugs %>%
+#  filter(First_Try > 5,
+#         First_Try < 30)
+
+hist(df_KidsDrugs$First_Try) #much better 
+sum(!is.na(df_KidsDrugs$First_Try))
+
+df_KidsDrugs <- df_KidsDrugs %>%
+  mutate(FU_Ord = case_when(
+    First_Try <= 10 ~ 1,
+    First_Try <= 13 ~ 2,
+    First_Try <= 16 ~ 3,
+    First_Try <= 19 ~ 4,
+    First_Try <= 21 ~ 5,
+    First_Try <= 24 ~ 6,
+    First_Try >= 24 ~ 7,
+    First_Try == NA ~ 8,
+  ))
+
+#be careful if making this ordinal because of the filter 
+#creating the any drug ever variable for the survival analysis 
+df_KidsDrugs[df_KidsDrugs== -1] <- NA  # Refused
+df_KidsDrugs[df_KidsDrugs== -2] <- NA  # Dont know
+df_KidsDrugs[df_KidsDrugs== -3] <- NA  # Invalid missing
+df_KidsDrugs[df_KidsDrugs== -4] <- NA  # Valid missing
+df_KidsDrugs[df_KidsDrugs== -5] <- NA  # Non-interview
+
+df_KidsDrugs <- df_KidsDrugs %>%
+   mutate(Any_Drug_Use = ifelse(
+      is.na(First_Try),
+      0,
+      1))
+library(knitr)
+library(dplyr)
+library(survival)
+library(ggplot2)
+library(tibble)
+library(lubridate)
+library(ggsurvfit)
+library(gtsummary)
+library(tidycmprsk)
+library(condSURV)
+
+#any drug use variable and first try are going to be used to run the survival analysis
+Surv(df_Drugs79$First_Try, df_Drugs79$Any_Drug_Use)[1:10]
+
+s1 <- survfit(Surv(First_Try, Any_Drug_Use) ~ 1, data = df_Drugs79)
+str(s1)
+
+survfit2(Surv(First_Try, Any_Drug_Use) ~ 1, data = df_Drugs79) |> 
+  ggsurvfit() +
+  labs(
+    x = "Years",
+    y = "Overall survival probability") +
+  add_confidence_interval() +
+  add_risktable()
+
+#not super helpful because most people aren't going to do drugs on their 1st birthday 
+survfit(Surv(First_Try, Any_Drug_Use) ~ 1, data = df_Drugs79) |> 
+  tbl_survfit(
+    times = 2,
+    label_header = "**1-year survival (95% CI)**")
+
+#median age at first try of a drug is 16 
+survfit(Surv(First_Try, Any_Drug_Use) ~ 1, data = df_Drugs79)
+
+# I want to see if this varies by the parent and the kid drug data 
+#make a data frame with the parent Any_Drug_Use, and the kid _First_Try 
+
+df_KidsDrugsSkinny <- df_KidsDrugs %>%
+  select(c("First_Try","Any_Drug_Use","FU_Ord","CASEID","ExtendedID")) %>%
+  mutate(Group = 1)
+
+df_Drugs79Skinny <- df_Drugs79 %>%
+  select(c("CASEID","ExtendedID","Any_Drug_Use","FU_Ord","First_Try")) %>%
+  mutate(Group =2)
+
+df_DrugsSkinny <- rbind(df_KidsDrugsSkinny, df_Drugs79Skinny)
+                
+#Now I can run a survival analysis comparing groups 
+#median age for the 79ers and kids was 16 which is cool 
+survdiff(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny)
+survfit(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny)
+survfit2(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |> 
+  ggsurvfit() +
+  labs(
+    x = "Years",
+    y = "Overall survival probability") +
+  add_confidence_interval() +
+  add_risktable() +
+  labs(title ="Survival Analysis of NLSY Drug Initation Data on the '79 Cohort and Their Kids")
+
+#I don't know what this means but the helpful tutorial said to do it 
+coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |> 
+ tbl_regression(exp = TRUE) 
+#summary(df_GeneralRisk79)
+```

@@ -25,6 +25,7 @@ library(dplyr)
 library(tidytuesdayR)
 library(stringr)
 library(stringi)
+library(ggthemes)
 ```
 
 Next I am going to get a sense of the lay of the land. From the following codes, I learned:
@@ -39,8 +40,15 @@ summary(shows$hours_viewed)
 str(shows$runtime)
 
 #adjusting the hours viewed into something more manageble 
+shows$end_date <- now()
 shows <- shows %>%
-  mutate(prop_hrs_viewed = hours_viewed / views)
+  mutate(prop_hrs_viewed = hours_viewed / views,
+         release_year = year(release_date),
+         release_month = month(release_date),
+         age = as.duration(interval(release_date, end_date)))
+
+shows <- shows %>%
+  mutate(weeks_old = as.numeric(age / 604800))
 
 #filter for love is blind 
 LOB <- shows %>%
@@ -49,6 +57,15 @@ LOB <- shows %>%
 #Filter for too hot too handle 
 Hot <- shows %>%
   filter(str_starts(title, "Too Hot to Handle"))
+
+Dating_shows <- bind_rows(Hot, LOB)
+
+Dating_shows <- Dating_shows %>%
+  mutate(category = case_when(
+ str_starts(title,"Too Hot to Handle") ~ 1,
+  str_starts(title,"Love Is Blind") ~ 2,
+    .default = 3
+  ))
 
 #we can see about release date becoming numeric by using date since origin? 
 
@@ -65,6 +82,7 @@ geom_col(fill = "pink", color = "black") +
          x = "Netflix Report Date",
          y= "Number of Views") 
 ```
+
 Now I want to do this so its every season displayed like this and faceted 
 ```{r}
 #I think I need to make a variable that selects the four reports for each season 
@@ -81,16 +99,16 @@ LOB <- LOB %>%
     TRUE ~ NA_real_
   ))
 
-ggplot(data = LOB, mapping = aes(x=report, y=views)) +
+ggplot(data = LOB, mapping = aes(x=report, y=prop_hrs_viewed)) +
 geom_col(fill = "pink", color = "black") +
   facet_wrap(~ Season)
   labs(title = "Love Is Blind: Season 4 Views Since Release",
          x = "Netflix Report Date",
-         y= "Number of Views") 
+         y= "Hours per view") 
 
 ```
-Which is more popular: Love is Blind or Too Hot Too Handle?
 
+Which is more popular: Love is Blind or Too Hot Too Handle?
 ```{r}
 ggplot(LOB, mapping = aes(x=release_date, y=prop_hrs_viewed)) +
   geom_bar()
@@ -99,6 +117,64 @@ ggplot(LOB, mapping = aes(x=release_date, y=prop_hrs_viewed)) +
 Release Timing and Engagement - [ ] I am going to first look at the past year, filtered by month. - [ ] Depending on how that goes, I am going to look at it averaged over years (i.e. average engagement of shows released in December across however many years of data I have)
 
 ```{r}
+#release month - bubble scatter plot where the size of the bubbles is the release year 
+# x can be release month 
+# y can be the views 
 
+# thank you https://r-graph-gallery.com/320-the-basis-of-bubble-plot.html
+shows %>%
+  ggplot(aes(x=release_year, 
+             y=views,
+             size = release_month,
+             color = report)) +
+  geom_point(alpha = .3) +
+  scale_size(range = c(1,10), name = "Release Month")  +
+  labs(title = "Release Timing and Engagement",
+       x = "Release Year",
+       y = "Views")
+
+shows %>%
+  ggplot(aes(x=release_month, y=hours_viewed, size=re, fill=available_globally)) +
+    geom_point(alpha=0.5, shape=21, color="black") +
+    scale_size_area(name="Year") +
+    theme_wsj() +
+    theme(legend.position="bottom") +
+    ylab("Hours Viewed") +
+    xlab("Month of Release") +
+    theme(legend.position = "bottom")
+```
+
+What is the relation between time since release and current viewing performance? Do older shows have staying power or do newer releases dominate?
+```{r}
+#lets use the weeks_old variable for age 
+#to get current viewing performance I need to filter for the most recent report, which was 2025Jan-Jun
+#then, I think we start with a simple scatter of the show and its views on the y and months old on the x, and build from there 
+
+shows %>%
+  filter(report == "2025Jan-Jun",
+         views >= 10000000,
+         views <= 20000000) %>%
+  ggplot(aes(x=weeks_old, y=views)) +
+  geom_point(alpha = .7) +
+   labs(title = "Among the most popular shows, does age relate to views in 2025?",
+       x = "Weeks Old",
+       y = "Views")
+
+
+#doesn't show much of a relation, but also there is so much data. might help to color dots by category 
+
+Dating_shows %>%
+  filter(report == "2025Jan-Jun",
+         views >= 3000000) %>%
+  ggplot(aes(x=weeks_old, 
+             y=views,
+             color = category)) +
+  geom_point(alpha = .7) +
+  labs(title = "Do Love is Blind and Too Hot Too Handle Have Any Staying Power?",
+       x = "Weeks Old",
+       y = "Views")
+#there is not different staying power for old vs new shows when comparing the love is blind series and too hot too handle 
+
+#newer seems to dominate 
 
 ```

@@ -13,6 +13,7 @@ library(dplyr)
 library(psych)
 library(qgraph)
 library(visdat)
+library(RColorBrewer)
 library(corrr)
 library(GGally) #[Found it here](https://r-graph-gallery.com/correlogram.html)
 Data <- read_sav("~/Documents/GitHub/Data-Science-for-Psych-Portfolio/OnlinePsychologySurveyData.sav")
@@ -357,7 +358,8 @@ vis_cor(
   df_scales,
   cor_method = "pearson",
   na_action = "pairwise.complete.obs"
-)
+) +
+  labs(title = "Correlations Among OnlinePsychologySurvey Scales")
 #go back in and add labels 
 
 ```
@@ -376,6 +378,8 @@ df_scales_subset <- df_scales %>%
   select(,c("SCscale","RSEscale","FNEscale","RCIscale","SWLscale"))
 ggpairs(df_scales_subset) #its still more condensed than I would like, the dots are too big
 
+plot(df_scales_subset , pch=20 , cex=1.5 , col="#69b3a2")
+#https://r-graph-gallery.com/98-basic-scatterplot-matrix.html
 
 ```
 
@@ -394,7 +398,9 @@ new_religiosity <-Data[,c("RCI3","RCI4","RCI5",
                   "RCI7","RCI8","RCI9","RCI10")]
 new_religion_cor_matrix <- cor(new_religiosity)
 
-network_plot(new_religion_cor_matrix, min_cor = 0)
+network_plot(new_religion_cor_matrix, min_cor = 0) +
+  labs(title = "Network Plot of Religious Commitment Inventory Items",
+       subtitle = "Here is where I would list what each of the items is roughly about")
 #this is pretty dense, as you would expect 
 ```
 
@@ -422,12 +428,31 @@ vis_cor(
   FNE_RSE,
   cor_method = "pearson",
   na_action = "pairwise.complete.obs"
-)
+) 
 #this is very cool and it makes sense - self esteem looks quite to fear of negative evaluation 
 #lets filter and make the network plot 
 new_FNE_RSE<-Data[,c("RSE1","RRSE2","RSE3","RSE4","RRSE5","RRSE6","RSE7","RRSE8","RRSE9","RSE10","FNE1","RFNE2","FNE3","RFNE4","FNE5",  "RFNE7","FNE8","FNE9","RFNE10","FNE11")]
 new_FNE_RSE_matrix <- cor(new_FNE_RSE)
-network_plot(new_FNE_RSE_matrix, min_cor = 0)
+network_plot(new_FNE_RSE_matrix, min_cor = 0) +
+  labs(title = "Relationships among self esteem and fear of negative evaluation survey items")
 #this reveals four different clusters of items, which would suggest that they are each capturing something a little bit different, but still very related, about self esteem and FNE. 
+```
+Also going to play with this, from:https://r-graph-gallery.com/201-levelplot-with-latticeextra.html
+
+This is pretty but really tells us nothing. 
+```{r}
+#play around and try to figure out what this all means and how to apply it to my own stuff 
+# library
+library(latticeExtra) 
+# showing data points on the same color scale 
+levelplot(FNEscale ~ RSEscale * SCscale, df_3numvar, 
+          panel = panel.levelplot.points, cex = 1.2
+    ) + 
+    layer_(panel.2dsmoother(..., n = 200)) 
+     #  x="Self-Esteem",
+      # y= "Self-Control")
+#adding the labels is throwing NULL for some reason 
+  #this is pretty but it isn't really telling me anything, not tremendously interpretable
+  
 ```
 

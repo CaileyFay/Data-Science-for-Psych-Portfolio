@@ -17,6 +17,7 @@ library(janitor)
 library(dplyr)
 library(tidyr)
 library(gsheet)
+library(ggplot2)
 
 source("/Users/caileyfay/Documents/GitHub/Data-Science-for-Psych-Portfolio/P4_ESM/cleaning_ESM.r")
 
@@ -34,20 +35,20 @@ source("/Users/caileyfay/Documents/GitHub/Data-Science-for-Psych-Portfolio/P4_ES
 #I also want plots of the time of day vs the level of the trait 
 #to help me get a concrete sense before I code something more generalized in the interactive graph: 
 ESM %>%
-  filter(who_are_you ="Cailey") %>%
+  filter(who_are_you =="Cailey") %>%
 ggplot(aes(x=hour, y=Extraversion)) +
   geom_point() +
-  geom_line(method = "lm") #making a scatter plot of the time of day and level of trait 
+  geom_line() #making a scatter plot of the time of day and level of trait 
 
 ESM %>%
-  filter(who_are_you ="Cailey") %>%
+  filter(who_are_you =="Cailey") %>%
 ggplot(aes(x=Extraversion)) +
   geom_histogram() #density distribution for one of the traits? 
 
 ESM %>%
   ggplot(mapping = aes(x=Extraversion),
-       color = "who_are_you",
-       fill = "who_are_you") +
-  geom_density(alpha = 0.7) #comparing Cailey and Ethan density distributions for a given trait 
+       color = who_are_you,
+       fill = who_are_you) +
+  geom_density(alpha = 0.7) #comparing Cailey and Ethan density distributions for a given trait this doesn't work rn 
 #I would like to figure out how to facet it so that we get five of these 
 

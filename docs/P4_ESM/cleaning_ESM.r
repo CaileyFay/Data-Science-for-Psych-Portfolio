@@ -27,7 +27,7 @@ ESM <- ESM %>%
          Agreeableness = in_the_last_30_minutes_how_agreeable_have_you_felt,
          Conscientiousness = in_the_last_30_minutes_how_conscientious_have_you_felt,
          Emotional_Stability = in_the_last_30_minutes_how_emotionally_stable_have_you_felt,
-         Openness = in_the_last_30_minutes_how_open_have_you_felt)
+         Openness = in_the_last_30_minutes_how_creative_have_you_felt)
 
 #now I am dropping the duplicated names
 ESM <- ESM %>%
