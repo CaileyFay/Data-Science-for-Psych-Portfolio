@@ -10,26 +10,26 @@ I was once again inspired by something we talked about in Will's Personality Sem
 
 To get started with the Shiny app, I used this tutorial https://www.youtube.com/watch?v=VTI84Pqk3SI&t=1s by Grace Thompkins that was super helpful. 
 
-First, of course, I will load up my packages like always. In a separate file, I created the link between my google form responses and then cleaned it up a little bit. this is the document I am sourcing. It just makes life easier for when I am trying to set up the app. 
+First, of course, I will load up my packages like always. In a separate file, I created the link between my google form responses and then cleaned up the data a little bit and sourced it. 
+
 ```{r}
 library(shiny)
-library(googlesheets4)
+library(googlesheets4) #in love with this
 library(janitor)
 library(dplyr)
 library(tidyr)
 library(gsheet)
 library(ggplot2)
-library(synthpop)
+library(synthpop) #also in love with this - very cool discovery 
 
 source("/Users/caileyfay/Documents/LabsD4P/Data-Science-for-Psych-Portfolio/P4_ESM/cleaning_ESM.r")
 
 ```
 
 
-
+Thinking about my wishlist and starting to execute it here. When its pretty it gets moved to its own chunk.
 ```{r}
 #playing around with the bones of the graph I will create
-
 #I want to be able to click to see the profile of mine vs ethans, seperately 
 #I want a graph of mine mapped over his for one of the traits, or a faceted chart that shows ours stacked on top of each other for each of the five traits 
 #I want people to be able to select the personalty characteristic of interest 
@@ -37,37 +37,25 @@ source("/Users/caileyfay/Documents/LabsD4P/Data-Science-for-Psych-Portfolio/P4_E
 #I also want plots of the time of day vs the level of the trait 
 #to help me get a concrete sense before I code something more generalized in the interactive graph: 
 #initial plots with the real data
-ESM %>%
-  filter(who_are_you =="Cailey") %>%
-ggplot(aes(x=hour, y=Extraversion)) +
-  geom_point() +
-  geom_line() #making a scatter plot of the time of day and level of trait 
-
-ESM %>%
-  filter(who_are_you =="Cailey") %>%
-ggplot(aes(x=Extraversion)) +
-  geom_histogram() #density distribution for one of the traits? 
-
-ESM %>%
-  ggplot(mapping = aes(x=Extraversion),
-       color = who_are_you,
-       fill = who_are_you) +
-  geom_density(alpha = 0.7) #comparing Cailey and Ethan density distributions for a given trait this doesn't work rn 
-#I would like to figure out how to facet it so that we get five of these 
 ```
-```{r}
-#generating synthetic data so I have more points to work with 
-#trying out snythpop from: https://www.synthpop.org.uk/get-started.html
+
+Now I generate lots of data using the synthpop package, which I learned about here:
+
+https://www.synthpop.org.uk/get-started.html
+
+```{r warning=FALSE}
 synthetic_dataset <- syn(ESM, k=1000)
 write.syn(synthetic_dataset, filename = "my_synthetic_data", filetype = "csv")
  syn_data <- read_csv("my_synthetic_data.csv")
 ```
+
+Now I make some fun charts to see how my synthetic data turned out: 
 ```{r}
-#revisualizing 
- syn_data %>%
-  filter(who_are_you =="Cailey") %>%
-ggplot(aes(x=hour, y=Extraversion)) +
-  geom_point()  #making a scatter plot of the time of day and level of trait 
+#line is weird with this data, but lets try bar for extraversion and time of day 
+
+syn_data %>%
+  ggplot(mapping = aes(x=hour, y=Extraversion, fill = who_are_you)) +
+  geom_col()
 
 #Histograms 
 syn_data %>%
