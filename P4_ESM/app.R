@@ -11,12 +11,20 @@ library(shiny)
 library(ggplot2)
 library(tidyverse)
 library(googlesheets4)
+library(bslib)
 
 source("/Users/caileyfay/Documents/LabsD4P/Data-Science-for-Psych-Portfolio/P4_ESM/cleaning_ESM.r")
 
 # Define UI for application
+ui <- library(shiny)
+library(bslib)
+
 ui <- fluidPage(
     titlePanel("ESM Personality Data"),
+
+    page_navbar(
+      theme = bs_theme(version = 5, bootswatch = "minty")
+    ), #I got this theme and code from https://shiny.posit.co/r/articles/build/themes/
 
     sidebarLayout(
       sidebarPanel(
@@ -42,16 +50,15 @@ server <- function(input, output) {
 
       syn_data %>%
      filter(hour >= input$hour[1],
-           hour <= input$hour[2]) %>%
-       #      who_are_you == input$who_are_you,  ------------------this part of the code breaks the figure
-        #    selected_trait == input$selected_trait) %>% ------------and this part
+           hour <= input$hour[2],
+       who_are_you == input$who_are_you) %>%
+  # selected_trait == input$selected_trait) %>%
 
-         ggplot(mapping = aes(x=hour, y=Extraversion, fill = who_are_you)) +
-      geom_col() +
-      labs(title = "Extraversion at Different Times of Day, For Different Subjects",
+         ggplot(mapping = aes(x=hour, y=.data[[input$selected_trait]])) + #I got the y variable thing from Gemini because It was taking forever to figure out
+      geom_col(fill = "tan") +
+      labs(title = "Personality State Levels at Different Times of Day, For Different Subjects",
            x = "Time of Day, in Military Time",
-           y = "Extraversion Level",
-           fill = "Subject") +
+           y = "Personality State Level") +
       theme_classic()
   })
 }
