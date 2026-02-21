@@ -28,21 +28,12 @@ library(ACEsimFit)
 ```
 
 ```{r}
-
-source("data/KidsDemographics/KidsDemographics.R")
-source("data/79Demographics/79Demographics.R")
-source("data/79Demographics/79Demographics.R")
+source("/Users/caileyfay/Documents/Research/GitHub/risky_gambling/risky_gambling_reapproach/data/KidsDemographics/KidsDemographics.R", echo = TRUE)
+source("/Users/caileyfay/Documents/Research/GitHub/risky_gambling/risky_gambling_reapproach/data/79Demographics/79Demographics.R")
+source("/Users/caileyfay/Documents/Research/GitHub/risky_gambling/risky_gambling_reapproach/data/79Demographics/79Demographics.R")
 recode_missing_values <- FALSE
+source("/Users/caileyfay/Documents/Research/GitHub/risky_gambling/risky_gambling_reapproach/data/Drugs79/Drugs79.R")
 
-source("data/Drugs79/Drugs79.R")
-
-#Next I am going to create a variable that just selects age at the 1st year anyone tried anything 
-
-#  new_data[new_data == -1] <- NA  # Refused
-#  new_data[new_data == -2] <- NA  # Dont know
-#  new_data[new_data == -3] <- NA  # Invalid missing
-#  new_data[new_data == -4] <- NA  # Valid missing
-#  new_data[new_data == -5] <- NA  # Non-interview
 
 df_Drugs79 <- df_Drugs79 %>%
   mutate(did_interview = ifelse(
@@ -74,16 +65,6 @@ df_Drugs79 <- df_Drugs79 %>%
         U1_Coke,
         U1_Crack, na.rm = TRUE
     ))
-#summary(df_Drugs79)
-
-#Also just because 
-hist(df_Drugs79$First_Try)
-hist(df_Drugs79$Any_Drug_Use)
-
-#make this ordinal now 
-#less than 10 will be our early users -- they will be class 1 
-#10-12 -2, 12-14 -3, 14-16 -4, 16-18 -5, 18-20 -6, 20-22 -7, 22+ -8, never -9
-#higher scores = earlier use 
 
 df_Drugs79 <- df_Drugs79 %>%
   mutate(FU_Ord = case_when(
@@ -101,13 +82,6 @@ df_Drugs79 <- df_Drugs79 %>%
 
 hist(df_Drugs79$FU_Ord)
 
-#subset that looks at first age trying weed 
-table(df_Drugs79$U1_Weed)
-summary(df_Drugs79$U1_Weed)
-hist(df_Drugs79$U1_Weed)
-count(!is.na(df_Drugs79$U1_Weed))
-
-
 df_Drugs79 <- df_Drugs79 %>%
   mutate(Weed_Ord = case_when(
     U1_Weed <= 10 ~ 1,
@@ -123,9 +97,8 @@ df_Drugs79 <- df_Drugs79 %>%
   ))
 
 hist(df_Drugs79$Weed_Ord)
-#repeating a similar process with the child onset data 
-#Shoutout to Emma and Holland for the future kid onset data I will be using to guide my #variable search.
-source("data/KidDrugs/KidDrugs.R")
+
+source("/Users/caileyfay/Documents/Research/GitHub/risky_gambling/risky_gambling_reapproach/data/KidDrugs/KidDrugs.R")
 anyDuplicated(df_KidsDrugs)
 df_KidsDrugs <- df_KidsDrugs %>%
   select(-ends_with("_oops"))
@@ -135,7 +108,6 @@ df_KidsDrugs <- df_KidsDrugs %>%
   mutate(First_Try = min(c_across(starts_with("1U_")), na.rm = TRUE)) %>%
   ungroup() 
 
-#need to turn the Inf values into NAs 
 df_KidsDrugs <- df_KidsDrugs %>%
   mutate(First_Try = if_else(is.infinite(First_Try), NA_real_, First_Try))
 
@@ -174,6 +146,9 @@ df_KidsDrugs <- df_KidsDrugs %>%
       is.na(First_Try),
       0,
       1))
+
+```
+```{r}
 library(knitr)
 library(dplyr)
 library(survival)
@@ -193,7 +168,7 @@ str(s1)
 
 survfit2(Surv(First_Try, Any_Drug_Use) ~ 1, data = df_Drugs79) |> 
   ggsurvfit() +
-  labs(
+  labs(title ="Survival Analysis of NLSY Drug Initation Data on the '79 Cohort and Their Kids",
     x = "Years",
     y = "Overall survival probability") +
   add_confidence_interval() +
@@ -227,15 +202,15 @@ survdiff(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny)
 survfit(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny)
 survfit2(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |> 
   ggsurvfit() +
-  labs(
+  labs(title ="Survival Analysis of NLSY Drug Initation Data on the '79 Cohort and Their Kids",
     x = "Years",
     y = "Overall survival probability") +
   add_confidence_interval() +
-  add_risktable() +
-  labs(title ="Survival Analysis of NLSY Drug Initation Data on the '79 Cohort and Their Kids")
+  add_risktable() 
+
 
 #I don't know what this means but the helpful tutorial said to do it 
 coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |> 
  tbl_regression(exp = TRUE) 
-#summary(df_GeneralRisk79)
+
 ```
