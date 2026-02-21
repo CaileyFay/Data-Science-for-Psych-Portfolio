@@ -6,6 +6,7 @@ I was once again inspired by something we talked about in Will's Personality Sem
 - [ ] I want to learn how to make an interactive dashboard with the Shiny App. This is how I will visualize mr. boyfriends data. 
 - [ ] I also wanted to learn how to do a survey in such a way that it can be imported straight into r as it updates, and it turns out it was shockingly easy! Spoiler alert: I consider myself a qualtrics girly but google forms and some random post on stackoverflow did me a real solid. 
 - [ ] I wanted to test out the density distribution method on a real person I actually know. I am aware it's not empirical, but I thought it would be fun. 
+- [ ] My last learning objective is figuring out how to generate lots of data points based on a smaller number of real, existing datapoints. Me and mr. boyfriend filled out the survey around 5-10 times each, and from that I generated 1000 datapoints for each of the big 5 traits. 
 
 To get started with the Shiny app, I used this tutorial https://www.youtube.com/watch?v=VTI84Pqk3SI&t=1s by Grace Thompkins that was super helpful. 
 
@@ -18,8 +19,9 @@ library(dplyr)
 library(tidyr)
 library(gsheet)
 library(ggplot2)
+library(synthpop)
 
-source("/Users/caileyfay/Documents/GitHub/Data-Science-for-Psych-Portfolio/P4_ESM/cleaning_ESM.r")
+source("/Users/caileyfay/Documents/LabsD4P/Data-Science-for-Psych-Portfolio/P4_ESM/cleaning_ESM.r")
 
 ```
 
@@ -34,6 +36,7 @@ source("/Users/caileyfay/Documents/GitHub/Data-Science-for-Psych-Portfolio/P4_ES
 #the density thing is going to be a histogram for a trait
 #I also want plots of the time of day vs the level of the trait 
 #to help me get a concrete sense before I code something more generalized in the interactive graph: 
+#initial plots with the real data
 ESM %>%
   filter(who_are_you =="Cailey") %>%
 ggplot(aes(x=hour, y=Extraversion)) +
@@ -51,4 +54,75 @@ ESM %>%
        fill = who_are_you) +
   geom_density(alpha = 0.7) #comparing Cailey and Ethan density distributions for a given trait this doesn't work rn 
 #I would like to figure out how to facet it so that we get five of these 
+```
+```{r}
+#generating synthetic data so I have more points to work with 
+#trying out snythpop from: https://www.synthpop.org.uk/get-started.html
+synthetic_dataset <- syn(ESM, k=1000)
+write.syn(synthetic_dataset, filename = "my_synthetic_data", filetype = "csv")
+ syn_data <- read_csv("my_synthetic_data.csv")
+```
+```{r}
+#revisualizing 
+ syn_data %>%
+  filter(who_are_you =="Cailey") %>%
+ggplot(aes(x=hour, y=Extraversion)) +
+  geom_point()  #making a scatter plot of the time of day and level of trait 
+
+#Histograms 
+syn_data %>%
+  filter(who_are_you =="Cailey") %>%
+ggplot(aes(x=Extraversion)) +
+  geom_histogram() +
+  labs(title = "Cailey's Extraversion Distribution")#density distribution for one of the traits? 
+
+syn_data %>%
+  filter(who_are_you =="Ethan") %>%
+ggplot(aes(x=Extraversion)) +
+  geom_histogram()  +
+  labs(title = "Ethan's Extraversion Distribution")
+
+#Overlapping Density Distributions For Each Trait 
+syn_data %>%
+  ggplot(mapping = aes(x=Extraversion, fill= who_are_you)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Ethan and Cailey's Extraversion Density Distributions",
+       y = "Density",
+       fill = "Subject") +
+  theme_minimal()
+
+syn_data %>%
+  ggplot(mapping = aes(x=Agreeableness, fill= who_are_you)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Ethan and Cailey's Agreeableness Density Distributions",
+       y = "Density",
+       fill = "Subject") +
+  theme_minimal()
+
+syn_data %>%
+  ggplot(mapping = aes(x=Conscientiousness, fill= who_are_you)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Ethan and Cailey's Conscientiousness Density Distributions",
+       y = "Density",
+       fill = "Subject") +
+  theme_minimal()
+
+syn_data %>%
+  ggplot(mapping = aes(x=Emotional_Stability, fill= who_are_you)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Ethan and Cailey's Emotional Stability Density Distributions",
+       y = "Density",
+       fill = "Subject") +
+  theme_minimal()
+
+syn_data %>%
+  ggplot(mapping = aes(x=Openness, fill= who_are_you)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Ethan and Cailey's Openness to New Experiences Density Distributions",
+       y = "Density",
+       fill = "Subject") +
+  theme_minimal()
+#I also want to do these so you get the density of all of the traits but for one person on the graph - probably needs to happen with faceting but we shall see 
+
+```
 

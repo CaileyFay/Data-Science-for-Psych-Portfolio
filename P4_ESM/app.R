@@ -12,7 +12,7 @@ library(ggplot2)
 library(tidyverse)
 library(googlesheets4)
 
-source("/Users/caileyfay/Documents/GitHub/Data-Science-for-Psych-Portfolio/P4_ESM/cleaning_ESM.r")
+source("/Users/caileyfay/Documents/LabsD4P/Data-Science-for-Psych-Portfolio/P4_ESM/cleaning_ESM.r")
 
 # Define UI for application
 ui <- fluidPage(
@@ -27,7 +27,7 @@ ui <- fluidPage(
                    selected = "deaths")),
       mainPanel(plotOutput("coolplot"),
                 tableOutput("cooltable"))
-      ))
+      )))
 
 # Define server logic
 server <- function(input, output) {
