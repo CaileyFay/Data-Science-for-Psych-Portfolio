@@ -1,58 +1,131 @@
 ---
-title: "Squirelle Pedigree Practice?"
+title: "Automating the Hermine Interval ACE proceedure"
 ---
 
-From tutorial: 
+Loading packages and sourcing my BG helpers 
 ```{r message=FALSE}
 library(BGmisc)
 library(ggplot2)
 library(ggpedigree)
-# Load the red squirrels datasets
-data(redsquirrels)
-data(redsquirrels_full)
+library(OpenMx)
+library(EasyMx)
+library(ACEsimFit)
+library(tidyr)
+library(dplyr)
+library(purrr)
 
-# View the structure of the dataset(s)
-str(redsquirrels)
-str(redsquirrels_full)
-
-# Plot a pedigree for a single family
-if (requireNamespace("ggplot2", quietly = TRUE)) {
-  # Select one family to plot
-  family_data <- subset(redsquirrels, famID == 160)
-
-  # Create a pedigree plot
-  ggPedigree(family_data,
-    personID = "personID",
-    momID = "momID",
-    dadID = "dadID",
-    sex = "sex",
-    config = list(
-      add_phantoms = TRUE,
-      code_male = "M"
-    )
-  )
-}
+source("/Users/caileyfay/Documents/Research/Github/risky_gambling/helpers.R")
+source("/Users/caileyfay/Documents/Research/Github/risky_gambling/EasyMx/R/emxBehaviorGenetics.R")
+source("/Users/caileyfay/Documents/Research/Github/risky_gambling/data/miFunctions.R")
 ```
 
-Making the relatedness matrix and plotting it  
-```{r}
-ped_add_partial_complete <- ped2com(family_data,
-  isChild_method = "partial",
-  component = "additive",
-  adjacency_method = "direct",
-  sparse = TRUE
+First I create some simulated data to work on 
+```{r} 
+sim <- Sim_Fit(
+  GroupNames = c("KinPair1", "KinPair2"),
+  GroupSizes = c(2000, 2000),
+  nIter = 10,
+  SSeed = 2,
+  GroupRel = c(.5, 0.25),
+  GroupR_c = c(1, 1),
+  mu = c(15, 15), #can I assume that the means for both groups are the same, even though they are slightly different in reality 
+  ace1 = c(.3, .2, .5),
+  ace2 = c(.3, .2, .5),
+  ifComb = FALSE,
+  lbound = FALSE,
+  saveRaw = TRUE
 )
 
-#not enough ram to do this one :( but it thought about it for a long time 
-ggRelatednessMatrix(as.matrix(ped_add_partial_complete),
-  config = list(title = "Additive component - Partial method"))
+# Convert the results element to a dataframe
+# sim_df1 <- as.data.frame(sim$Iteration1$data)
+# sim_df2 <- as.data.frame(sim$Iteration2$data)
+# sim_df3 <- as.data.frame(sim$Iteration3$data)
+# sim_df4 <- as.data.frame(sim$Iteration4$data)
+# sim_df5 <- as.data.frame(sim$Iteration5$data)
+# sim_df6 <- as.data.frame(sim$Iteration6$data)
+# sim_df7 <- as.data.frame(sim$Iteration7$data)
+# sim_df8 <- as.data.frame(sim$Iteration8$data)
+# sim_df9 <- as.data.frame(sim$Iteration9$data)
+# sim_df10 <- as.data.frame(sim$Iteration10$data)
+
+#figuring out how to do it more efficiently, less copy paste nonesense 
+#nah this is annoying 
+#sim is a list. I want it to do something so its for every iteration in the sim list, create a data frame and label it sim_df1 .... sim_dfi 
+#ok turns out its not that hard with the map function 
+
+df_list <- map(sim, ~ as.data.frame(.x$data))
+#list2env(df_list, envir = .GlobalEnv)
+
+
+```
+
+The next step is to make it plausible for drug initation data - that means some people need to have NAs to represent non-use. I also have to make this into a loop or something more efficient. The goal is to scale it up so that when I do the bigger simulations for the BGA poster I have tricks to save myself work 
+```{r}
+for (i in 1:length(df_list)) {
+  
+  df_list[[i]] <- df_list[[i]] %>%
+
+ mutate(y1 = case_when(
+    R == .5 ~ ifelse(runif(n()) < 0.20, NA, y1), 
+     R == .25 ~ ifelse(runif(n()) < 0.10, NA, y1)))  %>%
+    
+  mutate(y2 = case_when(
+    is.na(y1) ~ NA, 
+    TRUE ~ y2
+  )) %>%
+  mutate(Ord_1 = case_when(
+    y1 <= 14 ~ 1,
+  y1 <= 15 ~ 2,
+  y1 <= 16 ~ 3,
+  y1 >= 17 ~ 4,
+  is.na(y1) ~ 4,
+  ),
+  Ord_2 = case_when(
+    y2 <= 14 ~ 1,
+  y2 <= 15 ~ 2,
+  y2 <= 16 ~ 3,
+  y2 >= 17 ~ 4,
+ is.na(y2) ~ 4,
+  )) %>%
+  mutate(RCoef = R)
+}
+
+list2env(df_list, envir = .GlobalEnv)
+```
+
+Traditional way of getting an Ordinal Ace from sim_df
+```{r}
+sim_df <- Iteration1 #relic of past naming convention but too much work to change across files at this point 
+source("/Users/caileyfay/Documents/Research/Github/risky_gambling/sim_df_ordinal_ACE.r")
+sumACE
+table(sim_df$Ord_1)
+table(sim_df$Ord_2)
+histogram(sim_df$Ord_1)
+histogram(sim_df$y1)
+```
+
+Interval Ace 
+```{r}
+source("sim_df_interval_ACE.r")
+sumACE
+```
+
+ACE with easymx - emxTwinModel function already modified 
+```{r}
+model <- emxTwinModel(model="Cholesky", relatedness ='RCoef', data=Iteration1, run=TRUE, use=c('y1','y2'), name='model', components='ACE')
+sumACE
+```
+
+Need to do the ordinal with easyMx - will need to modify the function 
+```{}
+Making the relatedness matrix and plotting it  
+```{r}
+
 ```
 
 Trying out this function 
 ```{r}
-calculateRelatedness(generations = 1, full = TRUE)
-calculateRelatedness(generations = 2, full = TRUE)
-calculateRelatedness(generations = 3, full = TRUE)
+
 
 
 ```
