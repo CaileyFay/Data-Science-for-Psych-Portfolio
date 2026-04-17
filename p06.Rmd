@@ -42,7 +42,7 @@ efa_21 <- factanal(x = bye_2, factors = 2)
 efa_21
 
 ```
-In a shocking turn of events, the one factor structure also looks fine. Cool. At least among these few types of risk taking items, they are maybe capturing the same thing. I wish that the kids and parents answered the same items, so you could see if the structure differs by age cohort - is the nature of different types of risk taking something that varies by age group? 
+In a shocking turn of events, the one factor structure also looks fine. The two structure does not. Cool. At least among these few types of risk taking items, they are maybe capturing the same thing. I wish that the kids and parents answered the same items, so you could see if the structure differs by age cohort - is the nature of different types of risk taking something that varies by age group? 
 
 --------------------------------------------------------------------------------------------------------------
 
@@ -55,7 +55,7 @@ efa.model <- 'efa("efa")*f1 =~ RDriving_2010 + RFinancial_2010 + ROccupation_201
 fit <- cfa(efa.model, data = parentFA_2010)
 summary(fit, standardized = TRUE)
 ```
-The new tutorial I tried out that has the ESEM stuff showed me a different function to use, so the missingness is less of a problem! yey. It looks like this efa function just used the complete cases, so the sample ends up being the same as the na.omit route, but I don't have to to the deletion, which I like. 
+The new tutorial showed me a different function to use, so the missingness is less of a problem! yey. It looks like this efa function just used the complete cases, so the sample ends up being the same as the na.omit route, but I don't have to to the deletion, which I like. 
 
 Its also interesting to see that the factor loadings are strong (st.all I think) but the model fit is significant, which is no bueno in this context? Heres the scree plot: 
 
@@ -67,3 +67,5 @@ This is a one factor structure all right - which my scale is only 8 items so its
 --------------------------------------------------------------------------------------------------------------
 
 Now that I have it a little more figured it out, I am going to add in a little more complexity. I want to take individuals scores on the variables when they were 12, and those are the scale years that will go into the FA. Not sure if its possible but it would make the most sense to be doing the analysis in such a way that ages are a little more consistent 
+
+Or can I just put everything in and see what happens? 
