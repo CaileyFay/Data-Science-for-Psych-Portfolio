@@ -113,12 +113,94 @@ sumACE
 ACE with easymx - emxTwinModel function already modified 
 ```{r}
 model <- emxTwinModel(model="Cholesky", relatedness ='RCoef', data=Iteration1, run=TRUE, use=c('y1','y2'), name='model', components='ACE')
-sumACE
+summary(model)
 ```
 
+Now I want to repeat this for the other 9 iterations 
+```{r}
+run_int <- function(df) {
+ 
+   model <- emxTwinModel(model="Cholesky", relatedness ='RCoef', data=df, run=TRUE, use=c('y1','y2'), name='model', components='ACE')
+   
+}
+
+results <- lapply(df_list, run_int)
+
+#now I have a big list of model outputs, but I can't do anything with it. I want means, parameters 
+R1 <- summary(results$Iteration1)
+estimates_df1 <- R1$algebra
+
+#now scale it up so I don't have to repeat manually ten times 
+#can't figure it out yet with lapply so I am going to for loop it 
+
+estimates_list <- lapply(model_results_list, function(fit) {
+  s <- summary(fit)
+  return(s$parameters) 
+})
+
+#fuck it 
+R1 <- summary(results$Iteration1)
+estimates_df1 <- R1$parameters
+R2 <- summary(results$Iteration2)
+estimates_df2 <- R2$parameters
+R3 <- summary(results$Iteration3)
+estimates_df3 <- R3$parameters
+R4 <- summary(results$Iteration4)
+estimates_df4 <- R4$parameters
+R5 <- summary(results$Iteration5)
+estimates_df5 <- R5$parameters
+R6 <- summary(results$Iteration6)
+estimates_df6 <- R6$parameters
+R7 <- summary(results$Iteration7)
+estimates_df7 <- R7$parameters
+R8 <- summary(results$Iteration8)
+estimates_df8 <- R8$parameters
+R9 <- summary(results$Iteration9)
+estimates_df9 <- R9$parameters
+R10 <- summary(results$Iteration10)
+estimates_df10 <- R10$parameters
+
+#just in case I want to do something with this 
+eh <- rbind(estimates_df1,estimates_df2, estimates_df3, estimates_df4, estimates_df5, estimates_df6, estimates_df7, estimates_df8, estimates_df9, estimates_df10)
+eh <- eh %>%
+  mutate(It = rep(1:10, each = 4))
+
+A <- eh %>%
+  filter(name == "sqrtA11") #these need to be transformed so that they are actually the A ( or C or E ) so I atually probably need to approach this diffrently 
+
+C <-eh %>%
+  filter(name == "sqrtC11")
+
+E <- eh %>%
+  filter(name == "sqrtE11")
+```
+
+
+now that the parameters are workable, I want to graph them as 3 overlapping density distributions 
+```{r}
+ggplot(A, mapping = aes(x=Estimate)) +
+  geom_density() +
+  xlim(0, 1)
+
+ggplot(C, mapping = aes(x=Estimate)) +
+  geom_density() +
+  xlim(0, 1)
+
+ggplot(E, mapping = aes(x=Estimate)) +
+  geom_density() +
+  xlim(0, 1)
+
+#Dubious 
+ggplot(eh, mapping = aes(x = Estimate, fill = name)) +
+  geom_density() +
+  xlim(0,1) +
+  scale_fill_brewer() +
+  theme_minimal()
+
+```
+
+
 Need to do the ordinal with easyMx - will need to modify the function 
-```{}
-Making the relatedness matrix and plotting it  
 ```{r}
 
 ```

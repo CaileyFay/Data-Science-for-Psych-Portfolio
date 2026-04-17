@@ -1,5 +1,69 @@
 ---
-title: "Portfolio 6"
+title: "Do the parent and child risk-taking variables in the NLSY have similar structures?"
 ---
 
-> The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
+factor analysis probably isn't appropriate for answering this question, but I am going to do it anyways. At the very least, it would be interesting to see if the parent risk variables have a similar structure as the kid ones. I will be following this tutorial to learn how to do factor analysis in R: https://bookdown.org/sz_psyc490/r4psychometics/factor-analysis.html but of course I will be applying this to my own data. 
+
+First I need to get my NLSY data loaded into here. Its already been cleaned and prepped in these scripts.  
+```{r}
+library(dplyr)
+library(psych)
+library(lavaan)
+
+source('~/Documents/Research/GitHub/risky_gambling/data/CBRandYBR/CBRandYBR.R')
+source('~/Documents/Research/GitHub/risky_gambling/data/GeneralRisk79/GeneralRisk79.R')
+```
+
+I am first going to do an EFA with the kid risk variables for one year - lets take 2010. This probably isnt enough items.  
+```{r}
+
+kidFA_2010 <- df_CRBandYRB %>% select(c("CRB1_2010","CRB2_2010","CRB3_2010","CRB4_2010","CRB5_2010", "CRB6_2010"))
+
+#efa_1 <- factanal(x = kidFA_2010, factors = 1) this doesn't work 
+```
+
+This does not run because I have a lot of missingness, and this particular function I am using doesn't like it. I'm going to be brave and do na.omit and see what happens. Good news! I still have 428 observations. I'm fine with these consequences. 
+```{r}
+bye <- na.omit(kidFA_2010)
+efa_1 <- factanal(x = bye, factors = 1)
+efa_1
+```
+These results suggest that the one factor structure is OK, which is nice. CRB1 and CRB3 aren't so good but I am ok with this. Next, I repeat with the parent risk. Does this also have a one-factor structure? 
+
+```{r}
+parentFA_2010 <- df_GeneralRisk79 %>% select(c("RDriving_2010","RFinancial_2010","ROccupation_2010","RHealth_2010","RTrust_2010","RRomantic_2010","RLifeChanges_2010","RBets_2010"))
+
+bye_2 <- na.omit(parentFA_2010) #this one has 6,988 still, which is nice. 
+
+efa_2 <- factanal(x = bye_2, factors = 1)
+efa_2
+
+efa_21 <- factanal(x = bye_2, factors = 2)
+efa_21
+
+```
+In a shocking turn of events, the one factor structure also looks fine. Cool. At least among these few types of risk taking items, they are maybe capturing the same thing. I wish that the kids and parents answered the same items, so you could see if the structure differs by age cohort - is the nature of different types of risk taking something that varies by age group? 
+
+--------------------------------------------------------------------------------------------------------------
+
+I learned you can use the Lavaan package to do this with SEM, which is another way to get around the missingness issue, but it wants me to propose a structure, which I didn't have before. Now though, I am going to give it a go. I am using this tutorial to help me figure out how to apply it to my own variables:  https://lavaan.ugent.be/tutorial/efa.html
+
+```{r}
+#not SEM
+efa.model <- 'efa("efa")*f1 =~ RDriving_2010 + RFinancial_2010 + ROccupation_2010 + RHealth_2010 + RTrust_2010 + RRomantic_2010 + RLifeChanges_2010 + RBets_2010'
+
+fit <- cfa(efa.model, data = parentFA_2010)
+summary(fit, standardized = TRUE)
+```
+The new tutorial I tried out that has the ESEM stuff showed me a different function to use, so the missingness is less of a problem! yey. It looks like this efa function just used the complete cases, so the sample ends up being the same as the na.omit route, but I don't have to to the deletion, which I like. 
+
+Its also interesting to see that the factor loadings are strong (st.all I think) but the model fit is significant, which is no bueno in this context? Heres the scree plot: 
+
+```{r}
+scree(parentFA_2010)
+```
+This is a one factor structure all right - which my scale is only 8 items so its not that surprising - not that many possible options. However, risk taking in romantic relationships versus driving versus gambling seem like they could be different. Therefore, I am entertained by this. 
+
+--------------------------------------------------------------------------------------------------------------
+
+Now that I have it a little more figured it out, I am going to add in a little more complexity. I want to take individuals scores on the variables when they were 12, and those are the scale years that will go into the FA. Not sure if its possible but it would make the most sense to be doing the analysis in such a way that ages are a little more consistent 
