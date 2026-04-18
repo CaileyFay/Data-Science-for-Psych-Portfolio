@@ -1,14 +1,17 @@
 ---
-title: "Do the parent and child risk-taking variables in the NLSY have similar structures?"
+title: "Factor analysis with my NLSY variables"
 ---
 
-factor analysis probably isn't appropriate for answering this question, but I am going to do it anyways. At the very least, it would be interesting to see if the parent risk variables have a similar structure as the kid ones. I will be following this tutorial to learn how to do factor analysis in R: https://bookdown.org/sz_psyc490/r4psychometics/factor-analysis.html but of course I will be applying this to my own data. 
+ I will be following this tutorial to learn how to do factor analysis in R: https://bookdown.org/sz_psyc490/r4psychometics/factor-analysis.html but of course I will be applying this to my own data. I want to know about the factor structure of the kid and parent risk variables that I informally created scales for (and then used in some of my ACE models - scary). Probably helpful to know about the potential consequences of those decisions, even though the Drug initiation stuff that I am currently using isn't subject to the same concerns. 
 
 First I need to get my NLSY data loaded into here. Its already been cleaned and prepped in these scripts.  
 ```{r}
 library(dplyr)
 library(psych)
 library(lavaan)
+library(corrplot)
+library(semPlot)
+library(ggplot2)
 
 source('~/Documents/Research/GitHub/risky_gambling/data/CBRandYBR/CBRandYBR.R')
 source('~/Documents/Research/GitHub/risky_gambling/data/GeneralRisk79/GeneralRisk79.R')
@@ -61,11 +64,135 @@ Its also interesting to see that the factor loadings are strong (st.all I think)
 
 ```{r}
 scree(parentFA_2010)
+scree(kidFA_2010)
 ```
-This is a one factor structure all right - which my scale is only 8 items so its not that surprising - not that many possible options. However, risk taking in romantic relationships versus driving versus gambling seem like they could be different. Therefore, I am entertained by this. 
-
+This is a one factor structure all right - which my scale is only 8 items so its not that surprising - not that many possible options. However, risk taking in romantic relationships versus driving versus gambling seem like they could be different. I am entertained by this. 
 --------------------------------------------------------------------------------------------------------------
 
-Now that I have it a little more figured it out, I am going to add in a little more complexity. I want to take individuals scores on the variables when they were 12, and those are the scale years that will go into the FA. Not sure if its possible but it would make the most sense to be doing the analysis in such a way that ages are a little more consistent 
+Now that I have it sort of figured it out, I am going to add in a little more complexity. I want to take individuals scores on the variables when they were 12, and those are the scale years that will go into the FA. Not sure if its possible but it would make the most sense to be doing the analysis in such a way that ages are a little more consistent 
+
+Revisting this later - I like the parent risk vars much better and it helps that there are more of them. 
+```{#r}
+kidFA <- df_CRBandYRB %>% select(-c("CASEID","MCASEID","Race","Sex","CBirthYear","TargetRisk","Age","Year12")) %>% select(-contains("scale")) 
+
+#kidFA[] <- lapply(kidFA, as.numeric(kidFA))
+
+kidFA <- na.omit(kidFA)
+
+factanal(x = kidFA, factors = 1)
+```
 
 Or can I just put everything in and see what happens? 
+
+Turns out there is a thing called Longitudinal CFA, which asks: is the scale measuring the same thing across time? This tutorial looks promising for learning how to do it, so that's where I will start. Note: I am modeling my analysis after the steps they outline, but I am applying it to my own data. Hope this is an ok strategy and not cheating: 
+https://quantdev.ssri.psu.edu/sites/qdev/files/LongitudinalMeasurementInvariance_2017_1108.html
+
+There are three different years of general risk variables, and I am going to select these and make a new frame. 
+```{r}
+LCFA_vars <- df_GeneralRisk79 %>% select(-c("CASEID","Cohort","Race","Sex", "GenRisk2012","GenRisk2010","GenRisk2014","Age1B_2022"))
+
+describe(LCFA_vars)
+
+#interesting thing I had noticed before - we have lots of respondents for 2010 and then a sharp drop off for 2012 and 2014. I hate the NLSY. This is probably going to be a problem. 
+
+cor(LCFA_vars, use = "pairwise.complete.obs")
+```
+
+Absolutely ridiculous. I am going to go out on a whim and say that no one was given this set of risk questions for more than one year. Not giving up yet - I have depression variables to work with 
+```{r}
+source('~/Documents/Research/GitHub/risky_gambling/data/depression79/depression79.R')
+
+depLFA <- depression79 %>% select(-c("CASEID_1979"))
+
+describe(depLFA)
+cor(depLFA, use = "pairwise.complete.obs") #this looks better at least 
+#making a pretty plot because why not
+corrplot(cor(depLFA, use = "pairwise.complete.obs"), order = "original", tl.col='black', tl.cex=.75)
+
+#the sample size is feasible but this group is not very depressed at all 
+#for example - this is so right skewed its not even funny
+ggplot(depLFA, mapping = aes(x=Q2_2020)) + geom_histogram()
+
+
+```
+
+Now that I have found some longitudinal data that checks out, I can start modeling. Starting with a Configural Invariance Model - I gather this is looking at: do we have the same factor structure for each group (or in this case, the group is the year). Is the 2020 factor structure reasonably similar to the 2022 factor structure? 
+```{r}
+configural <- '
+# Define the latent factors.
+#the lamba and the NA stuff is saying not to fix the first factor loading to one. 
+f1 =~ NA*Q1_2020 + lambda1*Q1_2020 + Q2_2020 + Q3_2020 + Q4_2020 + Q5_2020 + Q6_2020 + Q7_2020 + Q8_2020
+f2 =~ NA*Q1_2022 + lambda1*Q1_2022 + Q2_2022 + Q3_2022 + Q4_2022 + Q5_2022 + Q6_2022 + Q7_2022 + Q8_2022
+
+# Intercepts
+Q1_2020 ~ i1*1
+Q2_2020 ~ 1
+Q3_2020 ~ 1
+Q4_2020 ~ 1
+Q5_2020 ~ 1
+Q6_2020 ~ 1
+Q7_2020 ~ 1
+Q8_2020 ~ 1
+Q1_2022 ~ i2*1
+Q2_2022 ~ 1
+Q3_2022 ~ 1
+Q4_2022 ~ 1
+Q5_2022 ~ 1
+Q6_2022 ~ 1
+Q7_2022 ~ 1
+Q8_2022 ~ 1
+
+# Unique Variances #still a little confused about what this code is accomplishing 
+Q1_2020 ~~ Q1_2020
+Q2_2020 ~~ Q2_2020
+Q3_2020 ~~ Q3_2020
+Q4_2020 ~~ Q4_2020
+Q5_2020 ~~ Q5_2020
+Q6_2020 ~~ Q6_2020
+Q7_2020 ~~ Q7_2020
+Q8_2020 ~~ Q8_2020
+Q1_2022 ~~ Q1_2022
+Q2_2022 ~~ Q2_2022
+Q3_2022 ~~ Q3_2022
+Q4_2022 ~~ Q4_2022
+Q5_2022 ~~ Q5_2022
+Q6_2022 ~~ Q6_2022
+Q7_2022 ~~ Q7_2022
+Q8_2022 ~~ Q8_2022
+
+
+# Latent Variable Means
+f1 ~ 0*1 #factor at time 1 is fixed to zero to be a baseline 
+f2 ~ 1
+
+# Latent Variable Variances and Covariance
+f1 ~~ 1*f1
+f2 ~~ f2
+f1 ~~ f2 #correlation between the latent var at time 1 and time 2 
+'
+
+#Model fitting
+fit_configural <- cfa(configural, data = depLFA, mimic = "mplus")
+summary(fit_configural, fit.measures = TRUE)
+
+```
+
+It ran! I don't know what it did, so now I need to figure out what it means / accomplishes in this first step. 
+
+New plotting technique
+```{r}
+#Model Diagram 
+semPaths(fit_configural, what="est", 
+         sizeLat = 7, sizeMan = 7, edge.label.cex = .75)
+
+
+```
+Now to try to make sense of these results: I think I see
+ [] the latent variable depression at time one and time two are correlated at .57. people who tend to be more depressed at time 1 are also usually more depressed at time 2. 
+ [] there are similar factor loadings at time one and time two 
+ [] the configural thing that I just ran is looking to see if the factor structure is the same across time 
+ [] it looks like there are lots of other types (i.e. weak and strong invariance models) that can compare factor loadings, latent variable means, etc at different times 
+ []its a little weird - there is plenty of info online for getting the syntax, but not for interpretting what the output means - I don't think Mike is going to be teaching us about this so I am on my own 
+ [] CESD is a really solid measure, so I was expecting clean results and it looks like I got them. At this point I am not going to get into interpretting the inferential stuff and the model fit. the diagram is fairly informative for my currently level of understanding. 
+ 
+ 
