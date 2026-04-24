@@ -2,6 +2,8 @@
 title: "Factor analysis with my NLSY variables"
 ---
 
+So far I've done it w lavaan, but I will also go back and try it with OpenMx
+
  I will be following this tutorial to learn how to do factor analysis in R: https://bookdown.org/sz_psyc490/r4psychometics/factor-analysis.html but of course I will be applying this to my own data. I want to know about the factor structure of the kid and parent risk variables that I informally created scales for (and then used in some of my ACE models - scary). Probably helpful to know about the potential consequences of those decisions, even though the Drug initiation stuff that I am currently using isn't subject to the same concerns. 
 
 First I need to get my NLSY data loaded into here. Its already been cleaned and prepped in these scripts.  
@@ -123,6 +125,8 @@ configural <- '
 #the lamba and the NA stuff is saying not to fix the first factor loading to one. 
 f1 =~ NA*Q1_2020 + lambda1*Q1_2020 + Q2_2020 + Q3_2020 + Q4_2020 + Q5_2020 + Q6_2020 + Q7_2020 + Q8_2020
 f2 =~ NA*Q1_2022 + lambda1*Q1_2022 + Q2_2022 + Q3_2022 + Q4_2022 + Q5_2022 + Q6_2022 + Q7_2022 + Q8_2022
+
+#I think there is a one factor structure for CESD and I think time1 and time2 will have the same one-factor structure, so thats what the stuff above is saying. I know this is not an exciting hypothesis by any means, its just practice 
 
 # Intercepts
 Q1_2020 ~ i1*1

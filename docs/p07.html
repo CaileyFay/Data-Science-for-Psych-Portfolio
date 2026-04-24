@@ -308,17 +308,818 @@ library(ggpedigree)
 library(tidyr)
 library(dplyr)
 library(stringr)
-library(forcats)</code></pre>
+library(forcats)
+library(psych)
+library(polycor)
+library(tidyverse)
+library(devtools)
+library(remotes)
+library(NlsyLinks)
+library(parameters)
+library(gtsummary)
+library(discord)
+library(janitor)
+library(lm.beta)
+library(matrixStats)
+library(gt)
+library(OpenMx)
+library(ACEsimFit)
+#stuff for survival analysis 
+library(knitr)
+library(survival)
+library(ggplot2)
+library(tibble)
+library(lubridate)
+library(ggsurvfit)
+library(gtsummary)
+library(tidycmprsk)
+library(condSURV)
+library(viridis) 
+library(mets)
+
+# Helper functions
+source(&quot;~/Documents/Research/Github/risky_gambling/data/miFunctions.R&quot;)
+
+#data and cleaning scripts 
+source(&quot;~/Documents/Research/Github/risky_gambling/data/RiskTaking79/RiskTaking79.R&quot;)
+#summary(df_RiskTaking79)
+source(&quot;~/Documents/Research/Github/risky_gambling/data/79Demographics/79Demographics.R&quot;)
+source(&quot;~/Documents/Research/Github/risky_gambling/data/GeneralRisk79/GeneralRisk79.R&quot;)
+#summary(df_GeneralRisk79)
+source(&quot;~/Documents/Research/Github/risky_gambling/data/KidRiskBehavior/KidRiskBehavior.R&quot;)
+#summary(df_KidRiskBehavior)
+source(&quot;~/Documents/Research/Github/risky_gambling/data/KidsDemographics/KidsDemographics.R&quot;)
+#summary(df_KidsDemographics)
+source(&#39;~/Documents/Research/Github/risky_gambling/data/CBRandYBR/CBRandYBR.R&#39;)
+source(&#39;~/Documents/Research/Github/risky_gambling/data/sexID/sexID.R&#39;)
+source(&#39;~/Documents/Research/Github/risky_gambling/data/kidsexID/kidsexID.R&#39;)
+ID_sex &lt;- rbind(parent_sex, kid_sex)
+recode_missing_values &lt;- FALSE
+source(&quot;~/Documents/Research/Github/risky_gambling/data/Drugs79/Drugs79.R&quot;)</code></pre>
+<p><img src="p07_files/figure-html/unnamed-chunk-1-1.png" width="672" /><img src="p07_files/figure-html/unnamed-chunk-1-2.png" width="672" /><img src="p07_files/figure-html/unnamed-chunk-1-3.png" width="672" /><img src="p07_files/figure-html/unnamed-chunk-1-4.png" width="672" /><img src="p07_files/figure-html/unnamed-chunk-1-5.png" width="672" /></p>
+<pre class="r"><code>source(&quot;~/Documents/Research/Github/risky_gambling/data/KidDrugs/KidDrugs.R&quot;)</code></pre>
+<p><img src="p07_files/figure-html/unnamed-chunk-1-6.png" width="672" /></p>
+<pre class="r"><code>source(&#39;~/Documents/Research/Github/risky_gambling/data/age/age.R&#39;)
+source(&#39;~/Documents/Research/Github/risky_gambling/merging_harmonizing_selecting.r&#39;)
+source(&#39;~/Documents/Research/Github/risky_gambling/boring_surv.r&#39;)</code></pre>
+<pre><code>## List of 18
+##  $ n        : int 6254
+##  $ time     : num [1:39] 0 1 2 3 4 5 6 7 8 9 ...
+##  $ n.risk   : num [1:39] 6254 6093 6086 6079 6078 ...
+##  $ n.event  : num [1:39] 161 7 7 1 1 4 4 2 17 14 ...
+##  $ n.censor : num [1:39] 0 0 0 0 0 0 0 0 0 0 ...
+##  $ surv     : num [1:39] 0.974 0.973 0.972 0.972 0.972 ...
+##  $ std.err  : num [1:39] 0.00206 0.0021 0.00215 0.00215 0.00216 ...
+##  $ cumhaz   : num [1:39] 0.0257 0.0269 0.028 0.0282 0.0284 ...
+##  $ std.chaz : num [1:39] 0.00203 0.00207 0.00212 0.00213 0.00213 ...
+##  $ type     : chr &quot;right&quot;
+##  $ logse    : logi TRUE
+##  $ conf.int : num 0.95
+##  $ conf.type: chr &quot;log&quot;
+##  $ lower    : num [1:39] 0.97 0.969 0.968 0.968 0.968 ...
+##  $ upper    : num [1:39] 0.978 0.977 0.976 0.976 0.976 ...
+##  $ t0       : num 0
+##  $ na.action: &#39;omit&#39; Named int [1:6432] 1 2 5 11 12 15 19 23 24 29 ...
+##   ..- attr(*, &quot;names&quot;)= chr [1:6432] &quot;1&quot; &quot;2&quot; &quot;5&quot; &quot;11&quot; ...
+##  $ call     : language survfit(formula = Surv(First_Try, Any_Drug_Use) ~ 1, data = df_Drugs79)
+##  - attr(*, &quot;class&quot;)= chr &quot;survfit&quot;</code></pre>
+<pre class="r"><code>source(&#39;~/Documents/Research/Github/risky_gambling/NLSY_family_creation.r&#39;)
+source(&#39;~/Documents/Research/Github/risky_gambling/BigNLSY_creation.r&#39;)</code></pre>
 <div id="part-1-pedigree-of-family-820." class="section level2">
 <h2>Part 1: Pedigree of Family 820.</h2>
 <p>I picked family 820 because it is one of the larger families
 available in the data.</p>
+<pre class="r"><code>nlsy_ped &lt;- BigNLSY |&gt;
+  transmute(
+    ID = as.integer(ID),
+    momID = as.integer(momID),
+    dadID = as.integer(dadID),
+    sex = sex,
+    famID = as.integer(famID),
+    lrs = First_Try) #I think lrs is the phenotype so thats what I&#39;m gonna do 
+
+cat(&quot;KRSP pedigree:&quot;, nrow(nlsy_ped), &quot;individuals,&quot;,
+  n_distinct(nlsy_ped$famID), &quot;grids\n&quot;)</code></pre>
+<pre><code>## KRSP pedigree: 35736 individuals, 5077 grids</code></pre>
+<pre class="r"><code>summarizeFamilies(nlsy_ped, famID = &quot;famID&quot;)$family_summary |&gt; arrange(desc(count))</code></pre>
+<pre><code>##       famID count   sex_mean sex_median sex_min sex_max     sex_sd  lrs_mean lrs_median lrs_min lrs_max     lrs_sd
+##       &lt;int&gt; &lt;int&gt;      &lt;num&gt;      &lt;num&gt;   &lt;num&gt;   &lt;num&gt;      &lt;num&gt;     &lt;num&gt;      &lt;num&gt;   &lt;num&gt;   &lt;num&gt;      &lt;num&gt;
+##    1:    28    51 0.54901961        1.0       0       1 0.50254256 28.000000         16      15      95 28.4604989
+##    2:    48    35 0.45714286        0.0       0       1 0.50543267 13.700000         15       0      19  5.3135048
+##    3:     2    33 0.48484848        0.0       0       1 0.50751922 15.368421         14      10      21  3.7890269
+##    4:    32    32 0.50000000        0.5       0       1 0.50800051 16.555556         16       0      29  6.2799609
+##    5:     4    31 0.41935484        0.0       0       1 0.50161031 15.777778         15      13      21  2.2636658
+##   ---                                                                                                             
+## 5073:  4960     3 0.33333333        0.0       0       1 0.57735027 15.000000         15      15      15         NA
+## 5074:  4963     3 0.66666667        1.0       0       1 0.57735027       NaN         NA      NA      NA         NA
+## 5075:  4976     3 0.66666667        1.0       0       1 0.57735027       NaN         NA      NA      NA         NA
+## 5076:  4982     3 0.66666667        1.0       0       1 0.57735027 13.000000         13      13      13  0.0000000
+## 5077:  4987     3 0.66666667        1.0       0       1 0.57735027 16.000000         16      16      16  0.0000000</code></pre>
+<pre class="r"><code>fam_820 &lt;- nlsy_ped %&gt;%
+  filter(famID == 820)
+
+mat_820 &lt;- ped2add(fam_820, isChild_method = &quot;partialparent&quot;, sparse = FALSE)
+
+ggpedigree::ggpedigree(fam_820,
+  personID = &quot;ID&quot;,
+    config = list(
+    code_male = 1, # Here, 1 = male, 0 = female
+    sex_color_include = TRUE,
+   sex_color_palette = c(&quot;black&quot;, &quot;#CFB53B&quot;)
+  ))</code></pre>
+<p><img src="p07_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<pre class="r"><code>fam_521 &lt;- nlsy_ped %&gt;%
+  filter(famID == 521) 
+
+fam_711 &lt;- nlsy_ped %&gt;%
+  filter(famID == 711) 
+
+df_ped_all &lt;- rbind(fam_820, fam_521, fam_711)
+
+
+ggpedigree::ggpedigree(df_ped_all,
+  personID = &quot;ID&quot;,
+  famID = &quot;famID&quot;,
+  config = list(
+    code_male = 1, # Here, 1 = male, 0 = female
+    sex_color_include = TRUE,
+   sex_color_palette = c(&quot;black&quot;, &quot;#CFB53B&quot;)
+  ),
+  code_male = 1
+) +
+  facet_wrap(~famID, scales = &quot;free&quot;) #+</code></pre>
+<p><img src="p07_files/figure-html/unnamed-chunk-2-2.png" width="672" /></p>
+<pre class="r"><code>#  theme_dark() +
+#  theme_minimal()
+
+#this is also sick but I can&#39;t get the color settings I want 
+plot_820 &lt;- ggRelatednessMatrix(
+  mat_820,
+  interactive = TRUE,
+  config = list(
+  #  color_palette = c(&quot;white&quot;, &quot;skyblue&quot;, &quot;darkblue&quot;),
+    scale_midpoint = 0.55,
+    cluster = TRUE,
+    title = &quot;Genetic Relatedness&quot;,
+   text_size = 6,
+    return_widget = TRUE
+  ))</code></pre>
+<pre><code>## Warning in buildPlotConfig(default_config = default_config, config = config, : The following config values are not
+## recognized by getDefaultPlotConfig(): scale_midpoint, cluster, title, text_size</code></pre>
+<p>This is cool, would like to try to run</p>
+<pre class="r"><code>fam_820 &lt;- fam_820 %&gt;%
+  rename(personID = &quot;ID&quot;)
+
+plot_820 &lt;- ggPedigree(fam_820,
+  famID = &quot;famID&quot;,
+  personID = &quot;personID&quot;,
+  config = list(
+    focal_fill_personID = 126752035,
+    focal_fill_include = TRUE,
+     focal_fill_high_color = &quot;gold&quot;,
+      focal_fill_mid_color = &quot;tan&quot;,
+      focal_fill_low_color = &quot;#F9F9F7&quot;,
+    focal_fill_force_zero = TRUE,
+    focal_fill_na_value = &quot;white&quot;,
+    focal_fill_scale_midpoint = 0.25,
+    focal_fill_component = &quot;additive&quot;,
+    focal_fill_method = &quot;gradient&quot;,
+    focal_fill_n_breaks = NULL,
+    focal_fill_legend_title = &quot;Relatedness&quot;,
+    # &quot;additive&quot;,
+    sex_color_include = FALSE,
+    sex_legend_show = FALSE,
+    segment_spouse_color = &quot;white&quot;, #I actually think I prefer the white lines 
+    segment_sibling_color = &quot;white&quot;,
+    segment_parent_color = &quot;white&quot;,
+    segment_offspring_color = &quot;white&quot;)) +
+  theme(
+    panel.background = element_rect(fill = &quot;transparent&quot;, color = NA),
+    plot.background = element_rect(fill = &quot;transparent&quot;, color = NA),
+    panel.grid = element_blank(),
+    legend.text = element_text(color = &quot;white&quot;),
+    legend.title = element_text(color = &quot;white&quot;))
+
+ggsave(&#39;plot820.PNG&#39;, plot_820, bg = &quot;transparent&quot;)</code></pre>
+<pre><code>## Saving 7 x 5 in image</code></pre>
 </div>
-<div id="part-2-survival-graph" class="section level2">
-<h2>Part 2: Survival graph</h2>
+<div id="part-2-relatedness-matrix-of-family-820"
+class="section level2">
+<h2>Part 2: Relatedness Matrix of Family 820</h2>
+<p>Trying to change the ggrelatedness matrix color settings. I went in
+and changed the settings in defaultPlotConfig.R and this made the plot
+into the wake forest theme. And then it was so ugly I changed it back.
+So in this step, I am going to change the defaults, run it, and then I
+am going to copy the script and revert it to the original defaults that
+look much better.</p>
+<ol style="list-style-type: decimal">
+<li>Wake theme, no transparent background though, so you can see
+it.</li>
+</ol>
+<pre class="r"><code>source(&quot;~/Documents/Research/Github/risky_gambling/buildPLotConfig.R&quot;)
+source(&quot;~/Documents/Research/Github/risky_gambling/ggRelatednessMatrix.R&quot;)
+source(&quot;~/Documents/Research/Github/risky_gambling/defaultPlotConfig_WF.R&quot;)
+
+#relate_820 &lt;- 
+  ggRelatednessMatrix(mat_820) +
+                 # config = default_config)
+                 # apply_default_theme == FALSE) +
+    theme(text = element_text(family = &quot;Baskerville&quot;, color = &quot;white&quot;, size = 20),
+    panel.background = element_rect(fill = &quot;black&quot;, color = NA),
+    plot.background = element_rect(fill = &quot;black&quot;, color = NA),
+    panel.grid = element_blank(),
+    legend.text = element_text(color = &quot;white&quot;),
+    legend.title = element_text(color = &quot;white&quot;),
+  #  axis.title = element_blank(),
+   # axis.text.x = element_blank(),
+   # axis.text.y = element_blank(),
+    axis.text.x = element_text(colour = &quot;white&quot;, size = 17),
+        axis.text.y = element_text(colour = &quot;white&quot;, size =17))</code></pre>
+<p><img src="p07_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>#ggsave(&#39;relate820.PNG&#39;, relate_820, bg = &#39;transparent&#39;, dpi = 300)</code></pre>
+<p>In the final version on the poster, the ID labels were too much, so I
+make them blank instead.</p>
+<pre class="r"><code>source(&quot;~/Documents/Research/Github/risky_gambling/defaultPlotConfig.R&quot;)
+#relate_820 &lt;- 
+  ggRelatednessMatrix(mat_820) +
+                 # config = default_config)
+                 # apply_default_theme == FALSE) +
+    theme(text = element_text(family = &quot;Baskerville&quot;, color = &quot;white&quot;, size = 20),
+    panel.background = element_rect(fill = &quot;transparent&quot;, color = NA),
+    plot.background = element_rect(fill = &quot;transparent&quot;, color = NA),
+    panel.grid = element_blank(),
+    legend.text = element_text(color = &quot;white&quot;),
+    legend.title = element_text(color = &quot;white&quot;),
+    plot.title = element_text(hjust = 0.5),
+  #  axis.title = element_blank(),
+ #   axis.text.x = element_blank(),
+   # axis.text.y = element_blank(),
+   axis.text.x = element_text(colour = &quot;white&quot;, size = 17),
+       axis.text.y = element_text(colour = &quot;white&quot;, size =17))</code></pre>
+<p><img src="p07_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code>#ggsave(&#39;relate820.PNG&#39;, relate_820, bg = &#39;transparent&#39;, dpi = 300)</code></pre>
 </div>
-<div id="part-3-kinship-links-visualization" class="section level2">
-<h2>Part 3: Kinship links visualization</h2>
+<div id="part-3-survival-graph" class="section level2">
+<h2>Part 3: Survival graph</h2>
+<pre class="r"><code>#Now I can run a survival analysis comparing groups 
+#median age for the 79ers and kids was 16 which is cool 
+#first I need to prep some new df format 
+df_KidsPairs &lt;- df_linkBigKids %&gt;%
+  select(c(&quot;First_Try_S1&quot;,&quot;First_Try_S2&quot;,&quot;Any_Drug_Use_S1&quot;,&quot;Any_Drug_Use_S2&quot;,&quot;FU_Ord_S1&quot;,&quot;FU_Ord_S2&quot;,
+           &quot;SubjectTag_S1&quot;,&quot;SubjectTag_S2&quot;,&quot;ExtendedID&quot;,&quot;R&quot;,&quot;Sex_S1&quot;,&quot;Sex_S2&quot;)) %&gt;%
+  mutate(Group = 1)
+
+df_79pairs &lt;- df_linkBigBoy79 %&gt;%
+  select(c(&quot;First_Try_S1&quot;,&quot;First_Try_S2&quot;,&quot;Any_Drug_Use_S1&quot;,&quot;Any_Drug_Use_S2&quot;,&quot;FU_Ord_S1&quot;,&quot;FU_Ord_S2&quot;,
+           &quot;SubjectTag_S1&quot;,&quot;SubjectTag_S2&quot;,&quot;ExtendedID&quot;,&quot;R&quot;,&quot;Sex_S1&quot;,&quot;Sex_S2&quot;)) %&gt;%
+  mutate(Group =2)
+
+df_linkDrugsSkinny &lt;- rbind(df_KidsPairs, df_79pairs) 
+
+#now I can run the surivval analysis 
+
+old_gold_pallete &lt;- c(&quot;#D4AF37&quot;, &quot;#D9C589&quot;, &quot;#9E7E38&quot;, &quot;#7D5F28&quot;, 
+                   &quot;#5C4018&quot;, &quot;#3B2A10&quot;, &quot;#B5A68C&quot;, &quot;#4A4E41&quot;)</code></pre>
+<pre class="r"><code>survdiff(Surv(First_Try_S1, Any_Drug_Use_S1) ~ R, data = df_linkDrugsSkinny)</code></pre>
+<pre><code>## Call:
+## survdiff(formula = Surv(First_Try_S1, Any_Drug_Use_S1) ~ R, data = df_linkDrugsSkinny)
+## 
+## n=9616, 6800 observations deleted due to missingness.
+## 
+##             N Observed Expected (O-E)^2/E (O-E)^2/V
+## R=0       274      274   220.90  12.76582  15.47336
+## R=0.0625   20       20    17.52   0.35137   0.41680
+## R=0.125    49       49    42.16   1.10799   1.32050
+## R=0.25   2724     2724  2634.52   3.03903   5.79528
+## R=0.375   111      111   103.02   0.61872   0.85560
+## R=0.5    6414     6414  6576.97   4.03817  17.41316
+## R=0.75      5        5     5.37   0.02544   0.03037
+## R=1        19       19    15.54   0.76911   0.96564
+## 
+##  Chisq= 28.3  on 7 degrees of freedom, p= 2e-04</code></pre>
+<pre class="r"><code>survfit(Surv(First_Try_S1, Any_Drug_Use_S1) ~ R, data = df_linkDrugsSkinny)</code></pre>
+<pre><code>## Call: survfit(formula = Surv(First_Try_S1, Any_Drug_Use_S1) ~ R, data = df_linkDrugsSkinny)
+## 
+##    6800 observations deleted due to missingness 
+##             n events median 0.95LCL 0.95UCL
+## R=0       274    274     16      16      17
+## R=0.0625   20     20     17      16      18
+## R=0.125    49     49     17      16      18
+## R=0.25   2724   2724     16      16      16
+## R=0.375   111    111     16      15      16
+## R=0.5    6414   6414     17      17      17
+## R=0.75      5      5     18      17      NA
+## R=1        19     19     16      15      18</code></pre>
+<pre class="r"><code>survfit2(Surv(First_Try_S1, Any_Drug_Use_S1) ~ R, data = df_linkDrugsSkinny) |&gt; 
+  ggsurvfit(palette = old_gold_pallete, size =1) +
+  labs(
+    x = &quot;Years&quot;,
+    y = &quot;Overall survival probability&quot;) +
+  add_confidence_interval() +
+#  add_risktable() +
+   coord_cartesian(xlim = c(0, 30)) +
+  theme(text = element_text(family = &quot;Baskerville&quot;, color = &quot;white&quot;, text.size = 15),
+        panel.background = element_rect(fill = &quot;black&quot;),
+    plot.background = element_rect(fill = &quot;black&quot;),
+    panel.grid = element_blank(),
+    legend.text = element_text(color = &quot;white&quot;, size =15),
+    legend.title = element_text(color = &quot;white&quot;, size =15),
+    axis.title.x = element_text(colour = &quot;black&quot;, size =15),
+    axis.text.x = element_text(colour = &quot;white&quot;, size =15),
+        axis.text.y = element_text(colour = &quot;white&quot;, size =15),
+    legend.background = element_rect(fill = &quot;black&quot;),
+    legend.position = &quot;left&quot;) +
+  scale_fill_manual(values = old_gold_pallete) +
+  scale_color_manual(values = old_gold_pallete)</code></pre>
+<pre><code>## Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+## ℹ Please use `linewidth` instead.
+## ℹ The deprecated feature was likely used in the ggsurvfit package.
+##   Please report the issue at &lt;https://github.com/pharmaverse/ggsurvfit/issues&gt;.
+## This warning is displayed once per session.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.</code></pre>
+<pre><code>## Warning in ggplot2::geom_step(ggplot2::aes(x = .data$time, y = .data$estimate, : Ignoring unknown parameters: `palette`</code></pre>
+<pre><code>## Warning in element_text(family = &quot;Baskerville&quot;, color = &quot;white&quot;, text.size = 15): `...` must be empty.
+## ✖ Problematic argument:
+## • text.size = 15</code></pre>
+<p><img src="p07_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<pre class="r"><code>#ggsave(&#39;kapcurves.PNG&#39;,plot, dpi = 300)
+
+coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt; 
+ tbl_regression(exp = TRUE) </code></pre>
+<div id="sakcdwpzyp" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#sakcdwpzyp table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#sakcdwpzyp thead, #sakcdwpzyp tbody, #sakcdwpzyp tfoot, #sakcdwpzyp tr, #sakcdwpzyp td, #sakcdwpzyp th {
+  border-style: none;
+}
+
+#sakcdwpzyp p {
+  margin: 0;
+  padding: 0;
+}
+
+#sakcdwpzyp .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#sakcdwpzyp .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#sakcdwpzyp .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#sakcdwpzyp .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#sakcdwpzyp .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#sakcdwpzyp .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#sakcdwpzyp .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#sakcdwpzyp .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#sakcdwpzyp .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#sakcdwpzyp .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#sakcdwpzyp .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#sakcdwpzyp .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#sakcdwpzyp .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#sakcdwpzyp .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#sakcdwpzyp .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#sakcdwpzyp .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#sakcdwpzyp .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#sakcdwpzyp .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#sakcdwpzyp .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#sakcdwpzyp .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#sakcdwpzyp .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#sakcdwpzyp .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#sakcdwpzyp .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#sakcdwpzyp .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#sakcdwpzyp .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#sakcdwpzyp .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#sakcdwpzyp .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#sakcdwpzyp .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#sakcdwpzyp .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#sakcdwpzyp .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#sakcdwpzyp .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#sakcdwpzyp .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#sakcdwpzyp .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#sakcdwpzyp .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#sakcdwpzyp .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#sakcdwpzyp .gt_left {
+  text-align: left;
+}
+
+#sakcdwpzyp .gt_center {
+  text-align: center;
+}
+
+#sakcdwpzyp .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#sakcdwpzyp .gt_font_normal {
+  font-weight: normal;
+}
+
+#sakcdwpzyp .gt_font_bold {
+  font-weight: bold;
+}
+
+#sakcdwpzyp .gt_font_italic {
+  font-style: italic;
+}
+
+#sakcdwpzyp .gt_super {
+  font-size: 65%;
+}
+
+#sakcdwpzyp .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#sakcdwpzyp .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#sakcdwpzyp .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#sakcdwpzyp .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#sakcdwpzyp .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#sakcdwpzyp .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#sakcdwpzyp .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#sakcdwpzyp .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#sakcdwpzyp div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+  <thead>
+    <tr class="gt_col_headings">
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="label"><span class='gt_from_md'><strong>Characteristic</strong></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="estimate"><span class='gt_from_md'><strong>HR</strong></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="conf.low"><span class='gt_from_md'><strong>95% CI</strong></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="p.value"><span class='gt_from_md'><strong>p-value</strong></span></th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td headers="label" class="gt_row gt_left">Group</td>
+<td headers="estimate" class="gt_row gt_center">1.23</td>
+<td headers="conf.low" class="gt_row gt_center">1.18, 1.27</td>
+<td headers="p.value" class="gt_row gt_center"><0.001</td></tr>
+  </tbody>
+  <tfoot>
+    <tr class="gt_sourcenotes">
+      <td class="gt_sourcenote" colspan="4"><span class='gt_from_md'>Abbreviations: CI = Confidence Interval, HR = Hazard Ratio</span></td>
+    </tr>
+  </tfoot>
+</table>
+</div>
+</div>
+<div id="part-4-kinship-links-visualization" class="section level2">
+<h2>Part 4: Kinship links visualization</h2>
 <p>First, here are the different relatedness values and their
 frequency</p>
 <pre class="r"><code>r &lt;- c(0, 0.015625,  0.03125,   0.0625,  0.09375, 0.125,   0.1875, 0.25,  0.375, 0.5, 0.75, 1 )
@@ -336,9 +1137,8 @@ relatedness &lt;- relatedness %&gt;%
     panel.grid = element_blank(),
     legend.text = element_text(color = &quot;white&quot;),
     legend.title = element_text(color = &quot;white&quot;))</code></pre>
-<pre><code>## Warning in geom_col(scale_fill_manual = c(&quot;gold&quot;)): Ignoring unknown
-## parameters: `scale_fill_manual`</code></pre>
-<p><img src="p07_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre><code>## Warning in geom_col(scale_fill_manual = c(&quot;gold&quot;)): Ignoring unknown parameters: `scale_fill_manual`</code></pre>
+<p><img src="p07_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
 <p>This makes it gold, transparent, and saves it directly to my computer
 so I can upload it into my poster:</p>
 <pre class="r"><code>plot &lt;- ggplot(relatedness, aes(x = reorder(r, -n), y = n)) +
@@ -372,13 +1172,7 @@ so I can upload it into my poster:</p>
 ggsave(&#39;plot.PNG&#39;, plot, bg = &#39;transparent&#39; )</code></pre>
 <pre><code>## Saving 7 x 5 in image</code></pre>
 <pre class="r"><code>plot</code></pre>
-<p><img src="p07_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
-</div>
-<div
-id="part-4-working-on-the-relatedness-matrix-and-getting-the-colors-right"
-class="section level2">
-<h2>Part 4: Working on the relatedness matrix and getting the colors
-right:</h2>
+<p><img src="p07_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
 </div>
 
 

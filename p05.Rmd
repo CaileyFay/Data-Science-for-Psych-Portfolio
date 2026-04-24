@@ -1,5 +1,5 @@
 ---
-title: "Survival Analysis"
+title: "Survival Analysis" wow this is currently a mess 
 ---
 This is from my FYP workflow - I ran a survival analysis with some of the drug intiation data. I haven't included the behavior-genetic component, it is just a plain old survival analysis. Nothing fancy but it works. 
 ```{r}
@@ -214,3 +214,5 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |>
  tbl_regression(exp = TRUE) 
 
 ```
+
+

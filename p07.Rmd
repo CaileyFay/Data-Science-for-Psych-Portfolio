@@ -13,27 +13,274 @@ library(tidyr)
 library(dplyr)
 library(stringr)
 library(forcats)
+library(psych)
+library(polycor)
+library(tidyverse)
+library(devtools)
+library(remotes)
+library(NlsyLinks)
+library(parameters)
+library(gtsummary)
+library(discord)
+library(janitor)
+library(lm.beta)
+library(matrixStats)
+library(gt)
+library(OpenMx)
+library(ACEsimFit)
+#stuff for survival analysis 
+library(knitr)
+library(survival)
+library(ggplot2)
+library(tibble)
+library(lubridate)
+library(ggsurvfit)
+library(gtsummary)
+library(tidycmprsk)
+library(condSURV)
+library(viridis) 
+library(mets)
+
+# Helper functions
+source("~/Documents/Research/Github/risky_gambling/data/miFunctions.R")
+
+#data and cleaning scripts 
+source("~/Documents/Research/Github/risky_gambling/data/RiskTaking79/RiskTaking79.R")
+#summary(df_RiskTaking79)
+source("~/Documents/Research/Github/risky_gambling/data/79Demographics/79Demographics.R")
+source("~/Documents/Research/Github/risky_gambling/data/GeneralRisk79/GeneralRisk79.R")
+#summary(df_GeneralRisk79)
+source("~/Documents/Research/Github/risky_gambling/data/KidRiskBehavior/KidRiskBehavior.R")
+#summary(df_KidRiskBehavior)
+source("~/Documents/Research/Github/risky_gambling/data/KidsDemographics/KidsDemographics.R")
+#summary(df_KidsDemographics)
+source('~/Documents/Research/Github/risky_gambling/data/CBRandYBR/CBRandYBR.R')
+source('~/Documents/Research/Github/risky_gambling/data/sexID/sexID.R')
+source('~/Documents/Research/Github/risky_gambling/data/kidsexID/kidsexID.R')
+ID_sex <- rbind(parent_sex, kid_sex)
+recode_missing_values <- FALSE
+source("~/Documents/Research/Github/risky_gambling/data/Drugs79/Drugs79.R")
+source("~/Documents/Research/Github/risky_gambling/data/KidDrugs/KidDrugs.R")
+source('~/Documents/Research/Github/risky_gambling/data/age/age.R')
+source('~/Documents/Research/Github/risky_gambling/merging_harmonizing_selecting.r')
+source('~/Documents/Research/Github/risky_gambling/boring_surv.r')
+source('~/Documents/Research/Github/risky_gambling/NLSY_family_creation.r')
+source('~/Documents/Research/Github/risky_gambling/BigNLSY_creation.r')
 ```
 
 ## Part 1:  Pedigree of Family 820. 
 I picked family 820 because it is one of the larger families available in the data. 
 ```{r}
+nlsy_ped <- BigNLSY |>
+  transmute(
+    ID = as.integer(ID),
+    momID = as.integer(momID),
+    dadID = as.integer(dadID),
+    sex = sex,
+    famID = as.integer(famID),
+    lrs = First_Try) #I think lrs is the phenotype so thats what I'm gonna do 
+
+cat("KRSP pedigree:", nrow(nlsy_ped), "individuals,",
+  n_distinct(nlsy_ped$famID), "grids\n")
+
+summarizeFamilies(nlsy_ped, famID = "famID")$family_summary |> arrange(desc(count))
+
+fam_820 <- nlsy_ped %>%
+  filter(famID == 820)
+
+mat_820 <- ped2add(fam_820, isChild_method = "partialparent", sparse = FALSE)
+
+ggpedigree::ggpedigree(fam_820,
+  personID = "ID",
+    config = list(
+    code_male = 1, # Here, 1 = male, 0 = female
+    sex_color_include = TRUE,
+   sex_color_palette = c("black", "#CFB53B")
+  ))
 
 
+fam_521 <- nlsy_ped %>%
+  filter(famID == 521) 
+
+fam_711 <- nlsy_ped %>%
+  filter(famID == 711) 
+
+df_ped_all <- rbind(fam_820, fam_521, fam_711)
 
 
+ggpedigree::ggpedigree(df_ped_all,
+  personID = "ID",
+  famID = "famID",
+  config = list(
+    code_male = 1, # Here, 1 = male, 0 = female
+    sex_color_include = TRUE,
+   sex_color_palette = c("black", "#CFB53B")
+  ),
+  code_male = 1
+) +
+  facet_wrap(~famID, scales = "free") #+
+#  theme_dark() +
+#  theme_minimal()
+
+#this is also sick but I can't get the color settings I want 
+plot_820 <- ggRelatednessMatrix(
+  mat_820,
+  interactive = TRUE,
+  config = list(
+  #  color_palette = c("white", "skyblue", "darkblue"),
+    scale_midpoint = 0.55,
+    cluster = TRUE,
+    title = "Genetic Relatedness",
+   text_size = 6,
+    return_widget = TRUE
+  ))
 ```
 
-## Part 2: Survival graph 
+This is cool, would like to try to run 
 ```{r}
+fam_820 <- fam_820 %>%
+  rename(personID = "ID")
 
+plot_820 <- ggPedigree(fam_820,
+  famID = "famID",
+  personID = "personID",
+  config = list(
+    focal_fill_personID = 126752035,
+    focal_fill_include = TRUE,
+     focal_fill_high_color = "gold",
+      focal_fill_mid_color = "tan",
+      focal_fill_low_color = "#F9F9F7",
+    focal_fill_force_zero = TRUE,
+    focal_fill_na_value = "white",
+    focal_fill_scale_midpoint = 0.25,
+    focal_fill_component = "additive",
+    focal_fill_method = "gradient",
+    focal_fill_n_breaks = NULL,
+    focal_fill_legend_title = "Relatedness",
+    # "additive",
+    sex_color_include = FALSE,
+    sex_legend_show = FALSE,
+    segment_spouse_color = "white", #I actually think I prefer the white lines 
+    segment_sibling_color = "white",
+    segment_parent_color = "white",
+    segment_offspring_color = "white")) +
+  theme(
+    panel.background = element_rect(fill = "transparent", color = NA),
+    plot.background = element_rect(fill = "transparent", color = NA),
+    panel.grid = element_blank(),
+    legend.text = element_text(color = "white"),
+    legend.title = element_text(color = "white"))
 
-
-
+ggsave('plot820.PNG', plot_820, bg = "transparent")
 
 ```
 
-## Part 3: Kinship links visualization 
+## Part 2: Relatedness Matrix of Family 820
+
+Trying to change the ggrelatedness matrix color settings. I went in and changed the settings in defaultPlotConfig.R and this made the plot into the wake forest theme. And then it was so ugly I changed it back. So in this step, I am going to change the defaults, run it, and then I am going to copy the script and revert it to the original defaults that look much better. 
+
+1) Wake theme, no transparent background though, so you can see it. 
+```{r}
+source("~/Documents/Research/Github/risky_gambling/buildPLotConfig.R")
+source("~/Documents/Research/Github/risky_gambling/ggRelatednessMatrix.R")
+source("~/Documents/Research/Github/risky_gambling/defaultPlotConfig_WF.R")
+
+#relate_820 <- 
+  ggRelatednessMatrix(mat_820) +
+                 # config = default_config)
+                 # apply_default_theme == FALSE) +
+    theme(text = element_text(family = "Baskerville", color = "white", size = 20),
+    panel.background = element_rect(fill = "black", color = NA),
+    plot.background = element_rect(fill = "black", color = NA),
+    panel.grid = element_blank(),
+    legend.text = element_text(color = "white"),
+    legend.title = element_text(color = "white"),
+  #  axis.title = element_blank(),
+   # axis.text.x = element_blank(),
+   # axis.text.y = element_blank(),
+    axis.text.x = element_text(colour = "white", size = 17),
+        axis.text.y = element_text(colour = "white", size =17))
+
+#ggsave('relate820.PNG', relate_820, bg = 'transparent', dpi = 300)
+```
+
+In the final version on the poster, the ID labels were too much, so I make them blank instead. 
+```{r}
+source("~/Documents/Research/Github/risky_gambling/defaultPlotConfig.R")
+#relate_820 <- 
+  ggRelatednessMatrix(mat_820) +
+                 # config = default_config)
+                 # apply_default_theme == FALSE) +
+    theme(text = element_text(family = "Baskerville", color = "white", size = 20),
+    panel.background = element_rect(fill = "transparent", color = NA),
+    plot.background = element_rect(fill = "transparent", color = NA),
+    panel.grid = element_blank(),
+    legend.text = element_text(color = "white"),
+    legend.title = element_text(color = "white"),
+    plot.title = element_text(hjust = 0.5),
+  #  axis.title = element_blank(),
+ #   axis.text.x = element_blank(),
+   # axis.text.y = element_blank(),
+   axis.text.x = element_text(colour = "white", size = 17),
+       axis.text.y = element_text(colour = "white", size =17))
+
+#ggsave('relate820.PNG', relate_820, bg = 'transparent', dpi = 300)
+```
+
+## Part 3: Survival graph 
+```{r}
+#Now I can run a survival analysis comparing groups 
+#median age for the 79ers and kids was 16 which is cool 
+#first I need to prep some new df format 
+df_KidsPairs <- df_linkBigKids %>%
+  select(c("First_Try_S1","First_Try_S2","Any_Drug_Use_S1","Any_Drug_Use_S2","FU_Ord_S1","FU_Ord_S2",
+           "SubjectTag_S1","SubjectTag_S2","ExtendedID","R","Sex_S1","Sex_S2")) %>%
+  mutate(Group = 1)
+
+df_79pairs <- df_linkBigBoy79 %>%
+  select(c("First_Try_S1","First_Try_S2","Any_Drug_Use_S1","Any_Drug_Use_S2","FU_Ord_S1","FU_Ord_S2",
+           "SubjectTag_S1","SubjectTag_S2","ExtendedID","R","Sex_S1","Sex_S2")) %>%
+  mutate(Group =2)
+
+df_linkDrugsSkinny <- rbind(df_KidsPairs, df_79pairs) 
+
+#now I can run the surivval analysis 
+
+old_gold_pallete <- c("#D4AF37", "#D9C589", "#9E7E38", "#7D5F28", 
+                   "#5C4018", "#3B2A10", "#B5A68C", "#4A4E41")
+```
+```{r}
+survdiff(Surv(First_Try_S1, Any_Drug_Use_S1) ~ R, data = df_linkDrugsSkinny)
+survfit(Surv(First_Try_S1, Any_Drug_Use_S1) ~ R, data = df_linkDrugsSkinny)
+survfit2(Surv(First_Try_S1, Any_Drug_Use_S1) ~ R, data = df_linkDrugsSkinny) |> 
+  ggsurvfit(palette = old_gold_pallete, size =1) +
+  labs(
+    x = "Years",
+    y = "Overall survival probability") +
+  add_confidence_interval() +
+#  add_risktable() +
+   coord_cartesian(xlim = c(0, 30)) +
+  theme(text = element_text(family = "Baskerville", color = "white", text.size = 15),
+        panel.background = element_rect(fill = "black"),
+    plot.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    legend.text = element_text(color = "white", size =15),
+    legend.title = element_text(color = "white", size =15),
+    axis.title.x = element_text(colour = "white", size =15),
+    axis.text.x = element_text(colour = "white", size =15),
+        axis.text.y = element_text(colour = "white", size =15),
+    legend.background = element_rect(fill = "black"),
+    legend.position = "left") +
+  scale_fill_manual(values = old_gold_pallete) +
+  scale_color_manual(values = old_gold_pallete)
+
+#ggsave('kapcurves.PNG',plot, dpi = 300)
+
+coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |> 
+ tbl_regression(exp = TRUE) 
+```
+
+## Part 4: Kinship links visualization 
 
 First, here are the different relatedness values and their frequency
 ```{r}
@@ -92,8 +339,3 @@ plot
 
 ```
 
-## Part 4: Working on the relatedness matrix and getting the colors right: 
-```{r}
-
-
-```
