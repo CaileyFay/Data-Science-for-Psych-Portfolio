@@ -11,7 +11,7 @@
 
 
 
-<title>Do the parent and child risk-taking variables in the NLSY have similar structures?</title>
+<title>Factor analysis with my NLSY variables</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -290,166 +290,272 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Do the parent and child risk-taking
-variables in the NLSY have similar structures?</h1>
+<h1 class="title toc-ignore">Factor analysis with my NLSY variables</h1>
 
 </div>
 
 
-<p>factor analysis probably isn’t appropriate for answering this
-question, but I am going to do it anyways. At the very least, it would
-be interesting to see if the parent risk variables have a similar
-structure as the kid ones. I will be following this tutorial to learn
-how to do factor analysis in R: <a
+<p>I will be following this tutorial to learn how to do factor analysis
+in R: <a
 href="https://bookdown.org/sz_psyc490/r4psychometics/factor-analysis.html"
-class="uri">https://bookdown.org/sz_psyc490/r4psychometics/factor-analysis.html</a>
-but of course I will be applying this to my own data.</p>
-<p>First I need to get my NLSY data loaded into here. Its already been
-cleaned and prepped in these scripts.</p>
-<pre class="r"><code>library(dplyr)</code></pre>
-<pre><code>## Warning: package &#39;dplyr&#39; was built under R version 4.5.2</code></pre>
-<pre><code>## 
-## Attaching package: &#39;dplyr&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:stats&#39;:
-## 
-##     filter, lag</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     intersect, setdiff, setequal, union</code></pre>
-<pre class="r"><code>library(psych)
-library(lavaan)</code></pre>
-<pre><code>## This is lavaan 0.6-20
-## lavaan is FREE software! Please report any bugs.</code></pre>
-<pre><code>## 
-## Attaching package: &#39;lavaan&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:psych&#39;:
-## 
-##     cor2cov</code></pre>
-<pre class="r"><code>source(&#39;~/Documents/Research/GitHub/risky_gambling/data/CBRandYBR/CBRandYBR.R&#39;)
-source(&#39;~/Documents/Research/GitHub/risky_gambling/data/GeneralRisk79/GeneralRisk79.R&#39;)</code></pre>
-<p>I am first going to do an EFA with the kid risk variables for one
-year - lets take 2010. This probably isnt enough items.</p>
-<pre class="r"><code>kidFA_2010 &lt;- df_CRBandYRB %&gt;% select(c(&quot;CRB1_2010&quot;,&quot;CRB2_2010&quot;,&quot;CRB3_2010&quot;,&quot;CRB4_2010&quot;,&quot;CRB5_2010&quot;, &quot;CRB6_2010&quot;))
-
-#efa_1 &lt;- factanal(x = kidFA_2010, factors = 1) this doesn&#39;t work </code></pre>
-<p>This does not run because I have a lot of missingness, and this
-particular function I am using doesn’t like it. I’m going to be brave
-and do na.omit and see what happens. Good news! I still have 428
-observations. I’m fine with these consequences.</p>
-<pre class="r"><code>bye &lt;- na.omit(kidFA_2010)
-efa_1 &lt;- factanal(x = bye, factors = 1)
-efa_1</code></pre>
-<pre><code>## 
-## Call:
-## factanal(x = bye, factors = 1)
-## 
-## Uniquenesses:
-## CRB1_2010 CRB2_2010 CRB3_2010 CRB4_2010 CRB5_2010 CRB6_2010 
-##     0.932     0.848     0.972     0.373     0.722     0.512 
-## 
-## Loadings:
-##           Factor1
-## CRB1_2010 0.260  
-## CRB2_2010 0.391  
-## CRB3_2010 0.169  
-## CRB4_2010 0.792  
-## CRB5_2010 0.528  
-## CRB6_2010 0.699  
-## 
-##                Factor1
-## SS loadings      1.642
-## Proportion Var   0.274
-## 
-## Test of the hypothesis that 1 factor is sufficient.
-## The chi square statistic is 21.32 on 9 degrees of freedom.
-## The p-value is 0.0113</code></pre>
-<p>These results suggest that the one factor structure is OK, which is
-nice. CRB1 and CRB3 aren’t so good but I am ok with this. Next, I repeat
-with the parent risk. Does this also have a one-factor structure?</p>
-<pre class="r"><code>parentFA_2010 &lt;- df_GeneralRisk79 %&gt;% select(c(&quot;RDriving_2010&quot;,&quot;RFinancial_2010&quot;,&quot;ROccupation_2010&quot;,&quot;RHealth_2010&quot;,&quot;RTrust_2010&quot;,&quot;RRomantic_2010&quot;,&quot;RLifeChanges_2010&quot;,&quot;RBets_2010&quot;))
-
-bye_2 &lt;- na.omit(parentFA_2010) #this one has 6,988 still, which is nice. 
-
-efa_2 &lt;- factanal(x = bye_2, factors = 1)
-efa_2</code></pre>
-<pre><code>## 
-## Call:
-## factanal(x = bye_2, factors = 1)
-## 
-## Uniquenesses:
-##     RDriving_2010   RFinancial_2010  ROccupation_2010      RHealth_2010 
-##             0.633             0.476             0.455             0.667 
-##       RTrust_2010    RRomantic_2010 RLifeChanges_2010        RBets_2010 
-##             0.694             0.674             0.549             0.774 
-## 
-## Loadings:
-##                   Factor1
-## RDriving_2010     0.606  
-## RFinancial_2010   0.724  
-## ROccupation_2010  0.738  
-## RHealth_2010      0.577  
-## RTrust_2010       0.553  
-## RRomantic_2010    0.571  
-## RLifeChanges_2010 0.672  
-## RBets_2010        0.476  
-## 
-##                Factor1
-## SS loadings      3.078
-## Proportion Var   0.385
-## 
-## Test of the hypothesis that 1 factor is sufficient.
-## The chi square statistic is 1102.36 on 20 degrees of freedom.
-## The p-value is 5.55e-221</code></pre>
-<pre class="r"><code>efa_21 &lt;- factanal(x = bye_2, factors = 2)
-efa_21</code></pre>
-<pre><code>## 
-## Call:
-## factanal(x = bye_2, factors = 2)
-## 
-## Uniquenesses:
-##     RDriving_2010   RFinancial_2010  ROccupation_2010      RHealth_2010 
-##             0.390             0.489             0.472             0.580 
-##       RTrust_2010    RRomantic_2010 RLifeChanges_2010        RBets_2010 
-##             0.684             0.648             0.466             0.767 
-## 
-## Loadings:
-##                   Factor1 Factor2
-## RDriving_2010     0.250   0.740  
-## RFinancial_2010   0.594   0.398  
-## ROccupation_2010  0.589   0.425  
-## RHealth_2010      0.305   0.572  
-## RTrust_2010       0.508   0.242  
-## RRomantic_2010    0.543   0.237  
-## RLifeChanges_2010 0.698   0.215  
-## RBets_2010        0.437   0.205  
-## 
-##                Factor1 Factor2
-## SS loadings      2.087   1.417
-## Proportion Var   0.261   0.177
-## Cumulative Var   0.261   0.438
-## 
-## Test of the hypothesis that 2 factors are sufficient.
-## The chi square statistic is 442.91 on 13 degrees of freedom.
-## The p-value is 1.88e-86</code></pre>
-<p>In a shocking turn of events, the one factor structure also looks
-fine. Cool. At least among these few types of risk taking items, they
-are maybe capturing the same thing. I wish that the kids and parents
-answered the same items, so you could see if the structure differs by
-age cohort - is the nature of different types of risk taking something
-that varies by age group?</p>
-<hr />
+class="uri">https://bookdown.org/sz_psyc490/r4psychometics/factor-analysis.html</a>.
+This tutorial uses factanala() from the built in stats package. Later in
+this portfolio, I follow a tutorial that uses lavaan. If time allows, I
+will also try to figure it out with OpenMx.</p>
+<p>I want to know about the factor structure of the kid and parent risk
+variables from the NLSY. I will also try out a longitudinal CFA on
+depression of the NLSY79 in 2020 and 2022.</p>
+<div id="efa-for-the-child-risk-behavior-index." class="section level2">
+<h2>EFA For the Child Risk Behavior Index.</h2>
+<p>I am first going to do an EFA with the child risk behavior index for
+2010.</p>
+<p>I use the factanal() function to see what the one-factor structure
+looks like. This function requires complete cases, so I used na.ommit,
+which yielded 428 observations.</p>
+<p><img src="p06_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>The following table shows the items, variance unexplained by common
+factors (uniqueness), and their factor loadings (fl1).</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">variable</th>
+<th align="right">uniqueness</th>
+<th align="right">fl1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">CRB1_2010</td>
+<td align="right">0.9322127</td>
+<td align="right">0.2603588</td>
+</tr>
+<tr class="even">
+<td align="left">CRB2_2010</td>
+<td align="right">0.8475028</td>
+<td align="right">0.3905085</td>
+</tr>
+<tr class="odd">
+<td align="left">CRB3_2010</td>
+<td align="right">0.9715314</td>
+<td align="right">0.1687234</td>
+</tr>
+<tr class="even">
+<td align="left">CRB4_2010</td>
+<td align="right">0.3730465</td>
+<td align="right">0.7918040</td>
+</tr>
+<tr class="odd">
+<td align="left">CRB5_2010</td>
+<td align="right">0.7216003</td>
+<td align="right">0.5276349</td>
+</tr>
+<tr class="even">
+<td align="left">CRB6_2010</td>
+<td align="right">0.5120041</td>
+<td align="right">0.6985672</td>
+</tr>
+</tbody>
+</table>
+<p>These results suggest that the one factor structure isn’t amazing.
+Next, we see how a 2 factor structure looks. It doesn’t look any
+better.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">variable</th>
+<th align="right">uniqueness</th>
+<th align="right">fl1</th>
+<th align="right">fl2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">CRB1_2010</td>
+<td align="right">0.8667609</td>
+<td align="right">0.1952270</td>
+<td align="right">0.3084365</td>
+</tr>
+<tr class="even">
+<td align="left">CRB2_2010</td>
+<td align="right">0.8351340</td>
+<td align="right">0.3543065</td>
+<td align="right">0.1983340</td>
+</tr>
+<tr class="odd">
+<td align="left">CRB3_2010</td>
+<td align="right">0.6685911</td>
+<td align="right">0.0439324</td>
+<td align="right">0.5740059</td>
+</tr>
+<tr class="even">
+<td align="left">CRB4_2010</td>
+<td align="right">0.3713216</td>
+<td align="right">0.7798145</td>
+<td align="right">0.1434199</td>
+</tr>
+<tr class="odd">
+<td align="left">CRB5_2010</td>
+<td align="right">0.7224030</td>
+<td align="right">0.5023954</td>
+<td align="right">0.1587326</td>
+</tr>
+<tr class="even">
+<td align="left">CRB6_2010</td>
+<td align="right">0.4986154</td>
+<td align="right">0.7027632</td>
+<td align="right">0.0866156</td>
+</tr>
+</tbody>
+</table>
+<p>Since the parallel analysis suggested four factors, I tried to test
+that out, but it isn’t possible with 6 items.</p>
+<p>For the sake of time, I am not going to get into the interpretation,
+and I am going to focus on learning + visualzing how to conduct these.
+Mike is currently covering EFA and CFA right now in class.</p>
+</div>
+<div id="efa-for-the-nlsy79-general-risk-variables"
+class="section level2">
+<h2>EFA for the NLSY79 General Risk Variables</h2>
+<p>There are 8 risk domains measured in the NLSY79 in 2010, 2012, and
+2014. They are all measured on a 1-10 scale for behaviors such as
+financial, romantic, and health related risk-taking.</p>
+<p>I selected the 8 items from 2010 and cleared out all incomplete
+observations. There were 6,988 observations remaining. First I checked
+out the scree plot and parallel analysis.</p>
+<p><img src="p06_files/figure-html/unnamed-chunk-8-1.png" width="672" /><img src="p06_files/figure-html/unnamed-chunk-8-2.png" width="672" /></p>
+<pre><code>## Parallel analysis suggests that the number of factors =  4  and the number of components =  1</code></pre>
+<p>Next I test the one factor structure:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">variable</th>
+<th align="right">uniqueness</th>
+<th align="right">fl1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">RDriving_2010</td>
+<td align="right">0.6330292</td>
+<td align="right">0.6057815</td>
+</tr>
+<tr class="even">
+<td align="left">RFinancial_2010</td>
+<td align="right">0.4761266</td>
+<td align="right">0.7237916</td>
+</tr>
+<tr class="odd">
+<td align="left">ROccupation_2010</td>
+<td align="right">0.4551830</td>
+<td align="right">0.7381168</td>
+</tr>
+<tr class="even">
+<td align="left">RHealth_2010</td>
+<td align="right">0.6673840</td>
+<td align="right">0.5767285</td>
+</tr>
+<tr class="odd">
+<td align="left">RTrust_2010</td>
+<td align="right">0.6941312</td>
+<td align="right">0.5530537</td>
+</tr>
+<tr class="even">
+<td align="left">RRomantic_2010</td>
+<td align="right">0.6737242</td>
+<td align="right">0.5712054</td>
+</tr>
+<tr class="odd">
+<td align="left">RLifeChanges_2010</td>
+<td align="right">0.5489602</td>
+<td align="right">0.6715955</td>
+</tr>
+<tr class="even">
+<td align="left">RBets_2010</td>
+<td align="right">0.7735307</td>
+<td align="right">0.4758878</td>
+</tr>
+</tbody>
+</table>
+<p>The two factor structure:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">variable</th>
+<th align="right">uniqueness</th>
+<th align="right">fl1</th>
+<th align="right">fl2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">RDriving_2010</td>
+<td align="right">0.3899182</td>
+<td align="right">0.2502765</td>
+<td align="right">0.7398942</td>
+</tr>
+<tr class="even">
+<td align="left">RFinancial_2010</td>
+<td align="right">0.4893248</td>
+<td align="right">0.5936351</td>
+<td align="right">0.3978359</td>
+</tr>
+<tr class="odd">
+<td align="left">ROccupation_2010</td>
+<td align="right">0.4716371</td>
+<td align="right">0.5894652</td>
+<td align="right">0.4253177</td>
+</tr>
+<tr class="even">
+<td align="left">RHealth_2010</td>
+<td align="right">0.5795787</td>
+<td align="right">0.3052926</td>
+<td align="right">0.5720302</td>
+</tr>
+<tr class="odd">
+<td align="left">RTrust_2010</td>
+<td align="right">0.6837619</td>
+<td align="right">0.5076094</td>
+<td align="right">0.2420199</td>
+</tr>
+<tr class="even">
+<td align="left">RRomantic_2010</td>
+<td align="right">0.6483498</td>
+<td align="right">0.5434146</td>
+<td align="right">0.2373721</td>
+</tr>
+<tr class="odd">
+<td align="left">RLifeChanges_2010</td>
+<td align="right">0.4662878</td>
+<td align="right">0.6983235</td>
+<td align="right">0.2146053</td>
+</tr>
+<tr class="even">
+<td align="left">RBets_2010</td>
+<td align="right">0.7671463</td>
+<td align="right">0.4367579</td>
+<td align="right">0.2051907</td>
+</tr>
+</tbody>
+</table>
+<p>The one factor structure wins. <em>report sig stuff</em> These
+results provide some evidence that there is a latent risk-taking
+variable that influences many different domains of behavior.</p>
+</div>
+<div id="cfa-in-lavaan" class="section level2">
+<h2>CFA in Lavaan</h2>
 <p>I learned you can use the Lavaan package to do this with SEM, which
 is another way to get around the missingness issue, but it wants me to
-propose a structure, which I didn’t have before. Now though, I am going
-to give it a go. I am using this tutorial to help me figure out how to
-apply it to my own variables: <a
+propose a structure, which I didn’t have before. I am using this
+tutorial to help me figure out how to apply it to my own variables: <a
 href="https://lavaan.ugent.be/tutorial/efa.html"
 class="uri">https://lavaan.ugent.be/tutorial/efa.html</a></p>
-<pre class="r"><code>#not SEM
-efa.model &lt;- &#39;efa(&quot;efa&quot;)*f1 =~ RDriving_2010 + RFinancial_2010 + ROccupation_2010 + RHealth_2010 + RTrust_2010 + RRomantic_2010 + RLifeChanges_2010 + RBets_2010&#39;
-
-fit &lt;- cfa(efa.model, data = parentFA_2010)
-summary(fit, standardized = TRUE)</code></pre>
+<p>Before doing SEM stuff though, I tried out the cfa function on the
+same parent risk taking variables from 2010. I know you are supposed to
+do the cfa on a different sample than the efa, but in this case it’s
+just practice, so I will go ahead and give it a whirl.</p>
+<p>The cfa function just used the complete cases, so the sample ends up
+being the same as the na.omit route, but I don’t have to manually do the
+deletion, which I like.</p>
 <pre><code>## lavaan 0.6-20 ended normally after 1 iteration
 ## 
 ##   Estimator                                         ML
@@ -500,28 +606,178 @@ summary(fit, standardized = TRUE)</code></pre>
 ##    .RLifChngs_2010    4.678    0.094   50.005    0.000    4.678    0.549
 ##    .RBets_2010        8.062    0.144   55.897    0.000    8.062    0.774
 ##     f1                1.000                               1.000    1.000</code></pre>
-<p>The new tutorial I tried out that has the ESEM stuff showed me a
-different function to use, so the missingness is less of a problem! yey.
-It looks like this efa function just used the complete cases, so the
-sample ends up being the same as the na.omit route, but I don’t have to
-to the deletion, which I like.</p>
 <p>Its also interesting to see that the factor loadings are strong
 (st.all I think) but the model fit is significant, which is no bueno in
-this context? Heres the scree plot:</p>
-<pre class="r"><code>scree(parentFA_2010)</code></pre>
-<p><img src="p06_files/figure-html/unnamed-chunk-6-1.png" width="672" />
-This is a one factor structure all right - which my scale is only 8
+this context?</p>
+<p>This is a one factor structure all right - which my scale is only 8
 items so its not that surprising - not that many possible options.
 However, risk taking in romantic relationships versus driving versus
-gambling seem like they could be different. Therefore, I am entertained
-by this.</p>
-<hr />
-<p>Now that I have it a little more figured it out, I am going to add in
-a little more complexity. I want to take individuals scores on the
-variables when they were 12, and those are the scale years that will go
-into the FA. Not sure if its possible but it would make the most sense
-to be doing the analysis in such a way that ages are a little more
-consistent</p>
+gambling seem like they could be different. I am entertained by
+this.</p>
+</div>
+<div id="longitudinal-cfa-with-the-cesd" class="section level2">
+<h2>Longitudinal CFA with the CESD</h2>
+<p>Turns out there is a thing called Longitudinal CFA, which asks: is
+the factor structure of the scale the same across time? This tutorial
+looks promising for learning how to do it, so that’s where I will start.
+Hope this is an ok strategy and not cheating:</p>
+<p><a
+href="https://quantdev.ssri.psu.edu/sites/qdev/files/LongitudinalMeasurementInvariance_2017_1108.html"
+class="uri">https://quantdev.ssri.psu.edu/sites/qdev/files/LongitudinalMeasurementInvariance_2017_1108.html</a></p>
+<p>There are three different years of general risk variables, and I am
+going to select these and make a new frame.
+<img src="p06_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p>From this, I learned that there were no complete observations. This
+suggests that perhaps most people were asked in 2010, and if they didn’t
+answer in 2010, they were asked in 2012 or 2014.</p>
+<p>I will pivot to NLSY79 depression variables (CESD items) which have
+better coverage.</p>
+<p><img src="p06_files/figure-html/unnamed-chunk-13-1.png" width="672" /><img src="p06_files/figure-html/unnamed-chunk-13-2.png" width="672" /></p>
+<p>Now that I have found some longitudinal data that checks out, I can
+start modeling. Starting with a Configural Invariance Model - I gather
+this is looking at: do we have the same factor structure for each group
+(or in this case, the group is the year). Is the 2020 factor structure
+reasonably similar to the 2022 factor structure?</p>
+<pre><code>## lavaan 0.6-20 ended normally after 64 iterations
+## 
+##   Estimator                                         ML
+##   Optimization method                           NLMINB
+##   Number of model parameters                        51
+##   Number of equality constraints                     1
+## 
+##                                                   Used       Total
+##   Number of observations                          6931       12686
+##   Number of missing patterns                        41            
+## 
+## Model Test User Model:
+##                                                       
+##   Test statistic                              4637.129
+##   Degrees of freedom                               102
+##   P-value (Chi-square)                           0.000
+## 
+## Model Test Baseline Model:
+## 
+##   Test statistic                             51621.391
+##   Degrees of freedom                               120
+##   P-value                                        0.000
+## 
+## User Model versus Baseline Model:
+## 
+##   Comparative Fit Index (CFI)                    0.912
+##   Tucker-Lewis Index (TLI)                       0.896
+##                                                       
+##   Robust Comparative Fit Index (CFI)             0.908
+##   Robust Tucker-Lewis Index (TLI)                0.891
+## 
+## Loglikelihood and Information Criteria:
+## 
+##   Loglikelihood user model (H0)            -104924.341
+##   Loglikelihood unrestricted model (H1)    -102605.776
+##                                                       
+##   Akaike (AIC)                              209948.682
+##   Bayesian (BIC)                            210290.869
+##   Sample-size adjusted Bayesian (SABIC)     210131.981
+## 
+## Root Mean Square Error of Approximation:
+## 
+##   RMSEA                                          0.080
+##   90 Percent confidence interval - lower         0.078
+##   90 Percent confidence interval - upper         0.082
+##   P-value H_0: RMSEA &lt;= 0.050                    0.000
+##   P-value H_0: RMSEA &gt;= 0.080                    0.534
+##                                                       
+##   Robust RMSEA                                   0.086
+##   90 Percent confidence interval - lower         0.084
+##   90 Percent confidence interval - upper         0.088
+##   P-value H_0: Robust RMSEA &lt;= 0.050             0.000
+##   P-value H_0: Robust RMSEA &gt;= 0.080             1.000
+## 
+## Standardized Root Mean Square Residual:
+## 
+##   SRMR                                           0.048
+## 
+## Parameter Estimates:
+## 
+##   Standard errors                             Standard
+##   Information                                 Observed
+##   Observed information based on                Hessian
+## 
+## Latent Variables:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)   Std.lv  Std.all
+##   f1 =~                                                                 
+##     Q1_2020 (lmb1)    0.351    0.009   40.123    0.000    0.351    0.488
+##     Q2_2020           0.545    0.008   72.373    0.000    0.545    0.777
+##     Q3_2020           0.578    0.010   60.466    0.000    0.578    0.683
+##     Q4_2020           0.720    0.008   85.194    0.000    0.720    0.863
+##     Q5_2020           0.615    0.012   52.679    0.000    0.615    0.614
+##     Q6_2020           0.585    0.013   44.454    0.000    0.585    0.532
+##     Q7_2020           0.601    0.009   65.947    0.000    0.601    0.727
+##     Q8_2020           0.715    0.009   78.950    0.000    0.715    0.823
+##   f2 =~                                                                 
+##     Q1_2022 (lmb1)    0.351    0.009   40.123    0.000    0.306    0.443
+##     Q2_2022           0.628    0.024   26.441    0.000    0.548    0.802
+##     Q3_2022           0.659    0.026   25.562    0.000    0.576    0.680
+##     Q4_2022           0.795    0.030   26.716    0.000    0.694    0.875
+##     Q5_2022           0.670    0.027   24.658    0.000    0.585    0.596
+##     Q6_2022           0.641    0.027   23.322    0.000    0.559    0.502
+##     Q7_2022           0.607    0.024   25.657    0.000    0.530    0.701
+##     Q8_2022           0.788    0.030   26.453    0.000    0.688    0.823
+## 
+## Covariances:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)   Std.lv  Std.all
+##   f1 ~~                                                                 
+##     f2                0.572    0.022   25.503    0.000    0.655    0.655
+## 
+## Intercepts:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)   Std.lv  Std.all
+##    .Q1_2020   (i1)    0.354    0.009   39.817    0.000    0.354    0.492
+##    .Q2_2020           0.315    0.009   36.541    0.000    0.315    0.449
+##    .Q3_2020           0.503    0.010   48.207    0.000    0.503    0.594
+##    .Q4_2020           0.447    0.010   43.694    0.000    0.447    0.536
+##    .Q5_2020           0.605    0.012   49.012    0.000    0.605    0.605
+##    .Q6_2020           0.991    0.014   73.075    0.000    0.991    0.902
+##    .Q7_2020           0.396    0.010   38.951    0.000    0.396    0.479
+##    .Q8_2020           0.525    0.011   49.227    0.000    0.525    0.605
+##    .Q1_2022   (i2)    0.327    0.008   42.656    0.000    0.327    0.473
+##    .Q2_2022           0.276    0.005   52.336    0.000    0.276    0.404
+##    .Q3_2022           0.447    0.007   60.092    0.000    0.447    0.528
+##    .Q4_2022           0.372    0.005   71.928    0.000    0.372    0.468
+##    .Q5_2022           0.536    0.009   58.240    0.000    0.536    0.546
+##    .Q6_2022           0.930    0.011   83.177    0.000    0.930    0.834
+##    .Q7_2022           0.311    0.007   46.981    0.000    0.311    0.411
+##    .Q8_2022           0.446    0.006   74.966    0.000    0.446    0.534
+##     f1                0.000                               0.000    0.000
+##     f2               -0.002    0.009   -0.206    0.837   -0.002   -0.002
+## 
+## Variances:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)   Std.lv  Std.all
+##    .Q1_2020           0.394    0.007   55.287    0.000    0.394    0.762
+##    .Q2_2020           0.195    0.004   48.474    0.000    0.195    0.396
+##    .Q3_2020           0.383    0.007   52.061    0.000    0.383    0.534
+##    .Q4_2020           0.178    0.004   40.749    0.000    0.178    0.255
+##    .Q5_2020           0.623    0.012   53.593    0.000    0.623    0.622
+##    .Q6_2020           0.865    0.016   54.863    0.000    0.865    0.717
+##    .Q7_2020           0.321    0.006   50.744    0.000    0.321    0.471
+##    .Q8_2020           0.244    0.005   45.274    0.000    0.244    0.323
+##    .Q1_2022           0.385    0.007   55.194    0.000    0.385    0.804
+##    .Q2_2022           0.167    0.004   46.778    0.000    0.167    0.357
+##    .Q3_2022           0.384    0.007   51.791    0.000    0.384    0.537
+##    .Q4_2022           0.148    0.004   38.855    0.000    0.148    0.235
+##    .Q5_2022           0.621    0.012   53.515    0.000    0.621    0.644
+##    .Q6_2022           0.929    0.017   54.698    0.000    0.929    0.748
+##    .Q7_2022           0.291    0.006   51.206    0.000    0.291    0.509
+##    .Q8_2022           0.226    0.005   45.077    0.000    0.226    0.323
+##     f1                1.000                               1.000    1.000
+##     f2                0.763    0.056   13.603    0.000    1.000    1.000</code></pre>
+<p>It ran! I don’t know what it did, so now I need to figure out what it
+means / accomplishes in this first step.</p>
+<p>Finally, I tried out a new plotting technique, semPaths.
+<img src="p06_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<p>The correlation between the latent variable depression at time 1 and
+time 2 is .66, and they appear to have the same factor structure. This
+makes sense because the CESD is a really good measure of depression, and
+time 1 and time 2 are only two years apart.</p>
+</div>
 
 
 

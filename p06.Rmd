@@ -1,102 +1,129 @@
 ---
 title: "Factor analysis with my NLSY variables"
-#output: 
-#  html_document:
- # theme: lumen  # Options: cerulean, flatly, spacelab, yeti, etc.
- #   highlight: tango # Options: pygments, kate, zenburn, etc.
- 
- #circle back to figure out how to do a fun theme 
 ---
 
-So far I've done it w lavaan, but I will also go back and try it with OpenMx
+I will be following this tutorial to learn how to do factor analysis in R: https://bookdown.org/sz_psyc490/r4psychometics/factor-analysis.html. This tutorial uses factanala() from the built in stats package. Later in this portfolio,  I follow a tutorial that uses lavaan. If time allows, I will also try to figure it out with OpenMx. 
+ 
+I want to know about the factor structure of the kid and parent risk variables from the NLSY. I will also try out a longitudinal CFA on depression of the NLSY79 in 2020 and 2022. 
 
- I will be following this tutorial to learn how to do factor analysis in R: https://bookdown.org/sz_psyc490/r4psychometics/factor-analysis.html but of course I will be applying this to my own data. I want to know about the factor structure of the kid and parent risk variables that I informally created scales for (and then used in some of my ACE models - scary). Probably helpful to know about the potential consequences of those decisions, even though the Drug initiation stuff that I am currently using isn't subject to the same concerns. 
-
-First I need to get my NLSY data loaded into here. Its already been cleaned and prepped in these scripts.  
-```{r}
+```{r include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+```{r include=FALSE}
 library(dplyr)
 library(psych)
 library(lavaan)
 library(corrplot)
 library(semPlot)
 library(ggplot2)
+library(broom) #to present my FA results a little cleaner 
+library(knitr)
+library(kableExtra)
 
 source('~/Documents/Research/GitHub/risky_gambling/data/CBRandYBR/CBRandYBR.R')
 source('~/Documents/Research/GitHub/risky_gambling/data/GeneralRisk79/GeneralRisk79.R')
 ```
 
-I am first going to do an EFA with the kid risk variables for one year - lets take 2010. This probably isnt enough items.  
-```{r}
+## EFA For the Child Risk Behavior Index. 
 
+I am first going to do an EFA with the child risk behavior index for 2010. 
+
+I use the factanal() function to see what the one-factor structure looks like. This function requires complete cases, so I used na.ommit, which yielded 428 observations. 
+
+```{r echo=FALSE}
 kidFA_2010 <- df_CRBandYRB %>% select(c("CRB1_2010","CRB2_2010","CRB3_2010","CRB4_2010","CRB5_2010", "CRB6_2010"))
+scree(kidFA_2010)
+```
 
+```{r include=FALSE}
 #efa_1 <- factanal(x = kidFA_2010, factors = 1) this doesn't work 
 ```
 
-This does not run because I have a lot of missingness, and this particular function I am using doesn't like it. I'm going to be brave and do na.omit and see what happens. Good news! I still have 428 observations. I'm fine with these consequences. 
-```{r}
+The following table shows the items, variance unexplained by common factors (uniqueness), and their factor loadings (fl1).
+
+```{r echo=FALSE}
 bye <- na.omit(kidFA_2010)
 efa_1 <- factanal(x = bye, factors = 1)
-efa_1
+output <- tidy(efa_1)
+kable(output)
 ```
-These results suggest that the one factor structure is OK, which is nice. CRB1 and CRB3 aren't so good but I am ok with this. Next, I repeat with the parent risk. Does this also have a one-factor structure? 
 
-```{r}
+These results suggest that the one factor structure isn't amazing. Next, we see how a 2 factor structure looks. It doesn't look any better. 
+
+```{r echo=FALSE}
+bye <- na.omit(kidFA_2010)
+efa_15 <- factanal(x = bye, factors = 2)
+output <- tidy(efa_15)
+kable(output)
+```
+
+Since the parallel analysis suggested four factors, I tried to test that out, but it isn't possible with 6 items. 
+```{r echo=FALSE}
+#bye <- na.omit(kidFA_2010)
+#efa_14 <- factanal(x = bye, factors = 4)
+#kable(tidy(efa_14))
+```
+
+For the sake of time, I am not going to get into the interpretation, and I am going to focus on learning + visualzing how to conduct these. Mike is currently covering EFA and CFA right now in class. 
+
+
+## EFA for the NLSY79 General Risk Variables 
+
+There are 8 risk domains measured in the NLSY79 in 2010, 2012, and 2014. They are all measured on a 1-10 scale for behaviors such as financial, romantic, and health related risk-taking. 
+
+I selected the 8 items from 2010 and cleared out all incomplete observations. There were 6,988 observations remaining. First I checked out the scree plot and parallel analysis. 
+
+```{r echo=FALSE}
 parentFA_2010 <- df_GeneralRisk79 %>% select(c("RDriving_2010","RFinancial_2010","ROccupation_2010","RHealth_2010","RTrust_2010","RRomantic_2010","RLifeChanges_2010","RBets_2010"))
-
-bye_2 <- na.omit(parentFA_2010) #this one has 6,988 still, which is nice. 
-
-efa_2 <- factanal(x = bye_2, factors = 1)
-efa_2
-
-efa_21 <- factanal(x = bye_2, factors = 2)
-efa_21
-
+scree(parentFA_2010)
+fa.parallel(parentFA_2010)
 ```
-In a shocking turn of events, the one factor structure also looks fine. The two structure does not. Cool. At least among these few types of risk taking items, they are maybe capturing the same thing. I wish that the kids and parents answered the same items, so you could see if the structure differs by age cohort - is the nature of different types of risk taking something that varies by age group? 
 
---------------------------------------------------------------------------------------------------------------
+Next I test the one factor structure: 
+```{r echo=FALSE}
+bye_2 <- na.omit(parentFA_2010) #this one has 6,988 still, which is nice. 
+efa_2 <- factanal(x = bye_2, factors = 1)
+kable(tidy(efa_2))
+```
 
-I learned you can use the Lavaan package to do this with SEM, which is another way to get around the missingness issue, but it wants me to propose a structure, which I didn't have before. Now though, I am going to give it a go. I am using this tutorial to help me figure out how to apply it to my own variables:  https://lavaan.ugent.be/tutorial/efa.html
+The two factor structure: 
+```{r echo=FALSE}
+efa_21 <- factanal(x = bye_2, factors = 2)
+kable(tidy(efa_21))
+```
 
-```{r}
+The one factor structure wins. *report sig stuff* These results provide some evidence that there is a latent risk-taking variable that influences many different domains of behavior.
+
+## CFA in Lavaan 
+
+I learned you can use the Lavaan package to do this with SEM, which is another way to get around the missingness issue, but it wants me to propose a structure, which I didn't have before. I am using this tutorial to help me figure out how to apply it to my own variables:  https://lavaan.ugent.be/tutorial/efa.html
+
+Before doing SEM stuff though, I tried out the cfa function on the same parent risk taking variables from 2010. I know you are supposed to do the cfa on a different sample than the efa, but in this case it's just practice, so I will go ahead and give it a whirl. 
+
+The cfa function just used the complete cases, so the sample ends up being the same as the na.omit route, but I don't have to manually do the deletion, which I like. 
+
+```{r echo=FALSE}
 #not SEM
 efa.model <- 'efa("efa")*f1 =~ RDriving_2010 + RFinancial_2010 + ROccupation_2010 + RHealth_2010 + RTrust_2010 + RRomantic_2010 + RLifeChanges_2010 + RBets_2010'
 
 fit <- cfa(efa.model, data = parentFA_2010)
 summary(fit, standardized = TRUE)
+#kable(tidy(fit)) #does work as well with FA output. Think about alternate presentations. 
 ```
-The new tutorial showed me a different function to use, so the missingness is less of a problem! yey. It looks like this efa function just used the complete cases, so the sample ends up being the same as the na.omit route, but I don't have to to the deletion, which I like. 
 
-Its also interesting to see that the factor loadings are strong (st.all I think) but the model fit is significant, which is no bueno in this context? Heres the scree plot: 
 
-```{r}
-scree(parentFA_2010)
-scree(kidFA_2010)
-```
+Its also interesting to see that the factor loadings are strong (st.all I think) but the model fit is significant, which is no bueno in this context? 
+
 This is a one factor structure all right - which my scale is only 8 items so its not that surprising - not that many possible options. However, risk taking in romantic relationships versus driving versus gambling seem like they could be different. I am entertained by this. 
---------------------------------------------------------------------------------------------------------------
 
-Now that I have it sort of figured it out, I am going to add in a little more complexity. I want to take individuals scores on the variables when they were 12, and those are the scale years that will go into the FA. Not sure if its possible but it would make the most sense to be doing the analysis in such a way that ages are a little more consistent 
+## Longitudinal CFA with the CESD 
 
-Revisting this later - I like the parent risk vars much better and it helps that there are more of them. 
-```{#r}
-kidFA <- df_CRBandYRB %>% select(-c("CASEID","MCASEID","Race","Sex","CBirthYear","TargetRisk","Age","Year12")) %>% select(-contains("scale")) 
+Turns out there is a thing called Longitudinal CFA, which asks: is the factor structure of the scale the same across time? This tutorial looks promising for learning how to do it, so that's where I will start. Hope this is an ok strategy and not cheating: 
 
-#kidFA[] <- lapply(kidFA, as.numeric(kidFA))
-
-kidFA <- na.omit(kidFA)
-
-factanal(x = kidFA, factors = 1)
-```
-
-Or can I just put everything in and see what happens? 
-
-Turns out there is a thing called Longitudinal CFA, which asks: is the scale measuring the same thing across time? This tutorial looks promising for learning how to do it, so that's where I will start. Note: I am modeling my analysis after the steps they outline, but I am applying it to my own data. Hope this is an ok strategy and not cheating: 
 https://quantdev.ssri.psu.edu/sites/qdev/files/LongitudinalMeasurementInvariance_2017_1108.html
 
 There are three different years of general risk variables, and I am going to select these and make a new frame. 
-```{r}
+```{r echo=FALSE, results='hide'}
 LCFA_vars <- df_GeneralRisk79 %>% select(-c("CASEID","Cohort","Race","Sex", "GenRisk2012","GenRisk2010","GenRisk2014","Age1B_2022"))
 
 describe(LCFA_vars)
@@ -104,10 +131,17 @@ describe(LCFA_vars)
 #interesting thing I had noticed before - we have lots of respondents for 2010 and then a sharp drop off for 2012 and 2014. I hate the NLSY. This is probably going to be a problem. 
 
 cor(LCFA_vars, use = "pairwise.complete.obs")
+corrplot(cor(LCFA_vars, use = "pairwise.complete.obs"), order = "original", tl.col='black', tl.cex=.75) +
+  labs(title="Correlations Among Risk Taking Variables in 2010, 2012, and 2014",
+       subtitle="No participant answered these items for all three years")
 ```
 
-Absolutely ridiculous. I am going to go out on a whim and say that no one was given this set of risk questions for more than one year. Not giving up yet - I have depression variables to work with 
-```{r}
+From this, I learned that there were no complete observations. This suggests that perhaps most people were asked in 2010, and if they didn't answer in 2010, they were asked in 2012 or 2014. 
+
+
+I will pivot to NLSY79 depression variables (CESD items) which have better coverage. 
+
+```{r echo=FALSE, results='hide'}
 source('~/Documents/Research/GitHub/risky_gambling/data/depression79/depression79.R')
 
 depLFA <- depression79 %>% select(-c("CASEID_1979"))
@@ -119,13 +153,17 @@ corrplot(cor(depLFA, use = "pairwise.complete.obs"), order = "original", tl.col=
 
 #the sample size is feasible but this group is not very depressed at all 
 #for example - this is so right skewed its not even funny
-ggplot(depLFA, mapping = aes(x=Q2_2020)) + geom_histogram()
-
-
+ggplot(depLFA, mapping = aes(x=Q3_2020)) + geom_histogram() + theme_classic() + 
+  labs(title="The NLSY is Not Very Depressed", 
+       subtitle = "Example: Responses to 'I felt that I couldn't shake off the blues even with help from my family and friends'",
+       x="Statements Rated from 'Rarely(0)' to 'Most of the Time(3)'",
+       y="Frequency")
 ```
 
+
 Now that I have found some longitudinal data that checks out, I can start modeling. Starting with a Configural Invariance Model - I gather this is looking at: do we have the same factor structure for each group (or in this case, the group is the year). Is the 2020 factor structure reasonably similar to the 2022 factor structure? 
-```{r}
+
+```{r echo=FALSE}
 configural <- '
 # Define the latent factors.
 #the lamba and the NA stuff is saying not to fix the first factor loading to one. 
@@ -184,13 +222,12 @@ f1 ~~ f2 #correlation between the latent var at time 1 and time 2
 #Model fitting
 fit_configural <- cfa(configural, data = depLFA, mimic = "mplus")
 summary(fit_configural, fit.measures = TRUE, standardize = TRUE)
-
 ```
 
 It ran! I don't know what it did, so now I need to figure out what it means / accomplishes in this first step. 
 
-New plotting technique
-```{r}
+Finally, I tried out a new plotting technique, semPaths. 
+```{r echo=FALSE}
 #Model Diagram 
 semPaths(fit_configural, what="std", 
          sizeLat = 7, sizeMan = 7, edge.label.cex = .75,
@@ -198,12 +235,16 @@ semPaths(fit_configural, what="std",
 
 #trying to figure out what settings make the EV circles (I guess triangles here) proportional to how much unexplained var there is - but perhaps doesn't work w this data bc generaly EV is mostly similar 
 ```
-Now to try to make sense of these results: I think I see
- [] the latent variable depression at time one and time two are correlated at .57. people who tend to be more depressed at time 1 are also usually more depressed at time 2. 
- [] there are similar factor loadings at time one and time two 
- [] the configural thing that I just ran is looking to see if the factor structure is the same across time 
- [] it looks like there are lots of other types (i.e. weak and strong invariance models) that can compare factor loadings, latent variable means, etc at different times 
- []its a little weird - there is plenty of info online for getting the syntax, but not for interpretting what the output means - I don't think Mike is going to be teaching us about this so I am on my own 
- [] CESD is a really solid measure, so I was expecting clean results and it looks like I got them. At this point I am not going to get into interpretting the inferential stuff and the model fit. the diagram is fairly informative for my currently level of understanding. 
+
+The correlation between the latent variable depression at time 1 and time 2 is .66, and they appear to have the same factor structure. This makes sense because the CESD is a really good measure of depression, and time 1 and time 2 are only two years apart. 
+```{r echo=FALSE} 
+# Now to try to make sense of these results: I think I see
+#  [] the latent variable depression at time one and time two are correlated at .57. people who tend to be more depressed at time 1 are also usually more depressed at time 2. 
+#  [] there are similar factor loadings at time one and time two 
+#  [] the configural thing that I just ran is looking to see if the factor structure is the same across time 
+#  [] it looks like there are lots of other types (i.e. weak and strong invariance models) that can compare factor loadings, latent variable means, etc at different times 
+#  []its a little weird - there is plenty of info online for getting the syntax, but not for interpretting what the output means - I don't think Mike is going to be teaching us about this so I am on my own 
+#  [] CESD is a really solid measure, so I was expecting clean results and it looks like I got them. At this point I am not going to get into interpretting the inferential stuff and the model fit. the diagram is fairly informative for my currently level of understanding. 
+```
  
  
