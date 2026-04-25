@@ -1,5 +1,11 @@
 ---
 title: "Factor analysis with my NLSY variables"
+#output: 
+#  html_document:
+ # theme: lumen  # Options: cerulean, flatly, spacelab, yeti, etc.
+ #   highlight: tango # Options: pygments, kate, zenburn, etc.
+ 
+ #circle back to figure out how to do a fun theme 
 ---
 
 So far I've done it w lavaan, but I will also go back and try it with OpenMx
@@ -106,7 +112,7 @@ source('~/Documents/Research/GitHub/risky_gambling/data/depression79/depression7
 
 depLFA <- depression79 %>% select(-c("CASEID_1979"))
 
-describe(depLFA)
+#describe(depLFA)
 cor(depLFA, use = "pairwise.complete.obs") #this looks better at least 
 #making a pretty plot because why not
 corrplot(cor(depLFA, use = "pairwise.complete.obs"), order = "original", tl.col='black', tl.cex=.75)
@@ -177,7 +183,7 @@ f1 ~~ f2 #correlation between the latent var at time 1 and time 2
 
 #Model fitting
 fit_configural <- cfa(configural, data = depLFA, mimic = "mplus")
-summary(fit_configural, fit.measures = TRUE)
+summary(fit_configural, fit.measures = TRUE, standardize = TRUE)
 
 ```
 
@@ -186,10 +192,11 @@ It ran! I don't know what it did, so now I need to figure out what it means / ac
 New plotting technique
 ```{r}
 #Model Diagram 
-semPaths(fit_configural, what="est", 
-         sizeLat = 7, sizeMan = 7, edge.label.cex = .75)
+semPaths(fit_configural, what="std", 
+         sizeLat = 7, sizeMan = 7, edge.label.cex = .75,
+         style = "lisrel")
 
-
+#trying to figure out what settings make the EV circles (I guess triangles here) proportional to how much unexplained var there is - but perhaps doesn't work w this data bc generaly EV is mostly similar 
 ```
 Now to try to make sense of these results: I think I see
  [] the latent variable depression at time one and time two are correlated at .57. people who tend to be more depressed at time 1 are also usually more depressed at time 2. 

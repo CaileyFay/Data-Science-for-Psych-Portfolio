@@ -2,9 +2,9 @@
 title: "Making FYP Poster Figures "
 ---
 
-I am going to make a pedigree, relatedness matrix, interactive relatedness matrix, and fancy survival graph, and then try to get the figure to match my poster color theme. I am also going to try out some cool visualizations of the different kinship links available in the NLSY (though in the poster I end up just using a table for a cleaner look)
+I am going to make a pedigree, relatedness matrix, interactive relatedness matrix, and fancy survival graph, and then try to get the figure to match my poster color theme. I am also going to try out some cool visualizations of the different kinship links available in the NLSY.
 
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, include=FALSE}
 library(NlsyLinks)
 library(ggplot2)
 library(BGmisc)
@@ -40,6 +40,8 @@ library(tidycmprsk)
 library(condSURV)
 library(viridis) 
 library(mets)
+#new fun package I learned about
+library(kableExtra)
 
 # Helper functions
 source("~/Documents/Research/Github/risky_gambling/data/miFunctions.R")
@@ -68,9 +70,11 @@ source('~/Documents/Research/Github/risky_gambling/NLSY_family_creation.r')
 source('~/Documents/Research/Github/risky_gambling/BigNLSY_creation.r')
 ```
 
+
 ## Part 1:  Pedigree of Family 820. 
 I picked family 820 because it is one of the larger families available in the data. 
-```{r}
+
+```{r include=FALSE}
 nlsy_ped <- BigNLSY |>
   transmute(
     ID = as.integer(ID),
@@ -83,11 +87,19 @@ nlsy_ped <- BigNLSY |>
 cat("KRSP pedigree:", nrow(nlsy_ped), "individuals,",
   n_distinct(nlsy_ped$famID), "grids\n")
 
-summarizeFamilies(nlsy_ped, famID = "famID")$family_summary |> arrange(desc(count))
+families<- summarizeFamilies(nlsy_ped, famID = "famID")$family_summary |> arrange(desc(count))
+```
 
+```{r echo=FALSE}
 fam_820 <- nlsy_ped %>%
   filter(famID == 820)
+kable(fam_820)
+```
 
+
+To visualize the family, I use the ggpedigree function. I also tried out putting multiple pedigrees next to each other in the same plot. 
+
+```{r echo=FALSE}
 mat_820 <- ped2add(fam_820, isChild_method = "partialparent", sparse = FALSE)
 
 ggpedigree::ggpedigree(fam_820,
@@ -97,7 +109,6 @@ ggpedigree::ggpedigree(fam_820,
     sex_color_include = TRUE,
    sex_color_palette = c("black", "#CFB53B")
   ))
-
 
 fam_521 <- nlsy_ped %>%
   filter(famID == 521) 
@@ -121,27 +132,17 @@ ggpedigree::ggpedigree(df_ped_all,
   facet_wrap(~famID, scales = "free") #+
 #  theme_dark() +
 #  theme_minimal()
-
-#this is also sick but I can't get the color settings I want 
-plot_820 <- ggRelatednessMatrix(
-  mat_820,
-  interactive = TRUE,
-  config = list(
-  #  color_palette = c("white", "skyblue", "darkblue"),
-    scale_midpoint = 0.55,
-    cluster = TRUE,
-    title = "Genetic Relatedness",
-   text_size = 6,
-    return_widget = TRUE
-  ))
 ```
 
-This is cool, would like to try to run 
-```{r}
+
+For the final poster, I wanted my plot to have a transparent background, and white text, so it pops on my dark background. Then I use ggsave to download it with extra good quality so it doesn't get fuzzy on me. In this case, I am commenting out ggsave so you can see the final thing!
+
+```{r echo = FALSE}
 fam_820 <- fam_820 %>%
   rename(personID = "ID")
 
-plot_820 <- ggPedigree(fam_820,
+#plot_820 <- 
+  ggPedigree(fam_820,
   famID = "famID",
   personID = "personID",
   config = list(
@@ -171,16 +172,33 @@ plot_820 <- ggPedigree(fam_820,
     legend.text = element_text(color = "white"),
     legend.title = element_text(color = "white"))
 
-ggsave('plot820.PNG', plot_820, bg = "transparent")
+#ggsave('plot820.PNG', plot_820, bg = "transparent", dpi = 300)
 
 ```
 
+
+
 ## Part 2: Relatedness Matrix of Family 820
 
-Trying to change the ggrelatedness matrix color settings. I went in and changed the settings in defaultPlotConfig.R and this made the plot into the wake forest theme. And then it was so ugly I changed it back. So in this step, I am going to change the defaults, run it, and then I am going to copy the script and revert it to the original defaults that look much better. 
+First I made an interactive heat map with the default color scheme. 
+```{r echo=FALSE, warning=FALSE}
+ggRelatednessMatrix(
+  mat_820,
+  interactive = TRUE,
+  config = list(
+  #  color_palette = c("white", "skyblue", "darkblue"),
+    scale_midpoint = 0.55,
+    cluster = TRUE,
+    title = "Genetic Relatedness",
+   text_size = 6,
+    return_widget = TRUE))
+```
 
-1) Wake theme, no transparent background though, so you can see it. 
-```{r}
+
+
+Next, I manually changed the default settings to get a Wake themed pallete. In the poster, the background is transparent, but that part is commented out here so its more visible here. 
+
+```{r echo=FALSE, warning=FALSE}
 source("~/Documents/Research/Github/risky_gambling/buildPLotConfig.R")
 source("~/Documents/Research/Github/risky_gambling/ggRelatednessMatrix.R")
 source("~/Documents/Research/Github/risky_gambling/defaultPlotConfig_WF.R")
@@ -204,10 +222,12 @@ source("~/Documents/Research/Github/risky_gambling/defaultPlotConfig_WF.R")
 #ggsave('relate820.PNG', relate_820, bg = 'transparent', dpi = 300)
 ```
 
-In the final version on the poster, the ID labels were too much, so I make them blank instead. 
-```{r}
+
+The Wake theme was not very visually appealing, so I returned to the default colors, and removed the ID axis labels, because they were dominating the visual. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 source("~/Documents/Research/Github/risky_gambling/defaultPlotConfig.R")
-#relate_820 <- 
+relate_820 <- 
   ggRelatednessMatrix(mat_820) +
                  # config = default_config)
                  # apply_default_theme == FALSE) +
@@ -217,18 +237,23 @@ source("~/Documents/Research/Github/risky_gambling/defaultPlotConfig.R")
     panel.grid = element_blank(),
     legend.text = element_text(color = "white"),
     legend.title = element_text(color = "white"),
-    plot.title = element_text(hjust = 0.5),
+    plot.title.position = "plot", #this doesn't work,neither did trying h adjust with plot.title
   #  axis.title = element_blank(),
  #   axis.text.x = element_blank(),
    # axis.text.y = element_blank(),
    axis.text.x = element_text(colour = "white", size = 17),
        axis.text.y = element_text(colour = "white", size =17))
 
-#ggsave('relate820.PNG', relate_820, bg = 'transparent', dpi = 300)
+ggsave('relate820.PNG', relate_820, bg = 'transparent', dpi = 300)
 ```
 
+
+
 ## Part 3: Survival graph 
-```{r}
+
+I ran a survival analysis and plotted by relatedness group. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
 #Now I can run a survival analysis comparing groups 
 #median age for the 79ers and kids was 16 which is cool 
 #first I need to prep some new df format 
@@ -248,8 +273,7 @@ df_linkDrugsSkinny <- rbind(df_KidsPairs, df_79pairs)
 
 old_gold_pallete <- c("#D4AF37", "#D9C589", "#9E7E38", "#7D5F28", 
                    "#5C4018", "#3B2A10", "#B5A68C", "#4A4E41")
-```
-```{r}
+
 survdiff(Surv(First_Try_S1, Any_Drug_Use_S1) ~ R, data = df_linkDrugsSkinny)
 survfit(Surv(First_Try_S1, Any_Drug_Use_S1) ~ R, data = df_linkDrugsSkinny)
 survfit2(Surv(First_Try_S1, Any_Drug_Use_S1) ~ R, data = df_linkDrugsSkinny) |> 
@@ -280,20 +304,28 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |>
  tbl_regression(exp = TRUE) 
 ```
 
+
+
+
+
 ## Part 4: Kinship links visualization 
 
-First, here are the different relatedness values and their frequency
-```{r}
+First, here are the different relatedness values (r) and their frequency (n).
+```{r warning=FALSE, include=FALSE}
 r <- c(0, 0.015625,  0.03125,   0.0625,  0.09375, 0.125,   0.1875, 0.25,  0.375, 0.5, 0.75, 1 )
 n <- c(1925, 55, 291, 604, 12, 4629, 24,  11294, 647, 22545, 24, 38) 
 relatedness <- data.frame(r,n)
-
+```
+```{r echo=FALSE, warning=FALSE}
+kable(relatedness) %>% kable_styling(full_width = FALSE)
+```
+```{r warning=FALSE, include=FALSE}
 relatedness <- relatedness %>%
   mutate(r = as.factor(r))
 ```
 
-Here is the first crack at it: 
-```{r}
+Here is the first crack at it. Its fine but the colors are blah, the background is black, and the text font doesn't match my poster.   
+```{r echo=FALSE, warning=FALSE}
 ggplot(relatedness, aes(x=reorder(r, -n), y=n)) +
          geom_col(scale_fill_manual = c("gold")) + 
   theme(
@@ -305,7 +337,7 @@ ggplot(relatedness, aes(x=reorder(r, -n), y=n)) +
 ```
 
 This makes it gold, transparent, and saves it directly to my computer so I can upload it into my poster: 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 plot <- ggplot(relatedness, aes(x = reorder(r, -n), y = n)) +
   geom_col(fill = "#9E7E38") +
   # Add the text labels on top of the bars
@@ -339,3 +371,5 @@ plot
 
 ```
 
+### Conclusion
+In this portfolio, I've applied various graphical techniques to illustrate some of the sample characteristics and results from my study. Thank you for tuning in! 
