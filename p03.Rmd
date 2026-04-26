@@ -3,7 +3,7 @@ title: "Automating the Hermine Interval ACE procedure"
 ---
 
 Loading packages and sourcing my BG helpers 
-```{r message=FALSE}
+```{r message=FALSE, warning=FALSE}
 library(BGmisc)
 library(ggplot2)
 library(ggpedigree)
@@ -15,14 +15,17 @@ library(dplyr)
 library(purrr)
 library(polycor)
 library(lattice)
+library(broom)
+library(knitr)
+library(kableExtra)
 
 source("/Users/caileyfay/Documents/Research/Github/risky_gambling/helpers.R")
 source("/Users/caileyfay/Documents/Research/Github/risky_gambling/EasyMx/R/emxBehaviorGenetics.R")
 source("/Users/caileyfay/Documents/Research/Github/risky_gambling/data/miFunctions.R")
 ```
 
-First I create some simulated data to work on 
-```{r} 
+First I create some simulated data to work on, and the I save all my results as a data frame.  
+```{r message=FALSE, warning=FALSE, results='hide'}
 sim <- Sim_Fit(
   GroupNames = c("KinPair1", "KinPair2"),
   GroupSizes = c(2000, 2000),
@@ -30,39 +33,20 @@ sim <- Sim_Fit(
   SSeed = 2,
   GroupRel = c(.5, 0.25),
   GroupR_c = c(1, 1),
-  mu = c(15, 15), #can I assume that the means for both groups are the same, even though they are slightly different in reality 
+  mu = c(15, 15), 
   ace1 = c(.3, .2, .5),
   ace2 = c(.3, .2, .5),
   ifComb = FALSE,
   lbound = FALSE,
-  saveRaw = TRUE
-)
-
-# Convert the results element to a dataframe
-# sim_df1 <- as.data.frame(sim$Iteration1$data)
-# sim_df2 <- as.data.frame(sim$Iteration2$data)
-# sim_df3 <- as.data.frame(sim$Iteration3$data)
-# sim_df4 <- as.data.frame(sim$Iteration4$data)
-# sim_df5 <- as.data.frame(sim$Iteration5$data)
-# sim_df6 <- as.data.frame(sim$Iteration6$data)
-# sim_df7 <- as.data.frame(sim$Iteration7$data)
-# sim_df8 <- as.data.frame(sim$Iteration8$data)
-# sim_df9 <- as.data.frame(sim$Iteration9$data)
-# sim_df10 <- as.data.frame(sim$Iteration10$data)
-
-#figuring out how to do it more efficiently, less copy paste nonesense 
-#nah this is annoying 
-#sim is a list. I want it to do something so its for every iteration in the sim list, create a data frame and label it sim_df1 .... sim_dfi 
-#ok turns out its not that hard with the map function 
+  saveRaw = TRUE)
 
 df_list <- map(sim, ~ as.data.frame(.x$data))
-#list2env(df_list, envir = .GlobalEnv)
-
-
+list2env(df_list, envir = .GlobalEnv)
 ```
 
-The next step is to make it plausible for drug initation data - that means some people need to have NAs to represent non-use. I also have to make this into a loop or something more efficient. The goal is to scale it up so that when I do the bigger simulations for the BGA poster I have tricks to save myself work 
-```{r}
+The next step is to make it plausible for drug initation data - that means some people need to have NAs to represent non-use. I also have to make this into a loop or use the map function to scale it up to handle all the iterations. 
+
+```{r message=FALSE, warning=FALSE, results='hide'}
 for (i in 1:length(df_list)) {
   
   df_list[[i]] <- df_list[[i]] %>%
@@ -95,27 +79,121 @@ for (i in 1:length(df_list)) {
 list2env(df_list, envir = .GlobalEnv)
 ```
 
-Traditional way of getting an Ordinal Ace from sim_df
-```{r}
+## ACE modeling (Hermine's Method) with Iteration 1
+
+### Ordinal Results 
+
+```{r include=FALSE, message=FALSE, warning=FALSE}
 sim_df <- Iteration1 #relic of past naming convention but too much work to change across files at this point 
 source("/Users/caileyfay/Documents/Research/Github/risky_gambling/sim_df_ordinal_ACE.r")
 sumACE
-table(sim_df$Ord_1)
-table(sim_df$Ord_2)
-histogram(sim_df$Ord_1)
-histogram(sim_df$y1)
+summary(fitACE, verbose=TRUE)
+LL_ACE #ACE log liklihood
+#plot(fitACE, std=TRUE)
+#omxGraphviz(modelACE, dotFilename="model_plot.dot")
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+rownames(estACE) <- c("Unstandardized", "Standardized")
+colnames(estACE) <- c("A","C","E")
+kable(estACE, caption="Ordinal ACE Model Estimates") 
 ```
 
-Interval Ace 
-```{r}
+### Interval Results 
+
+```{r include=FALSE}
 source("~/Documents/Research/Github/risky_gambling/sim_df_interval_ACE.r")
 sumACE
 ```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+rownames(estACE) <- c("Unstandardized", "Standardized")
+colnames(estACE) <- c("A","C","E")
+kable(estACE, caption = "Interval ACE Model Estimates")
+```
 
-ACE with easymx - emxTwinModel function already modified 
+I got mad trying to plot a path diagram with the openMx functions (they are totally useless and don't work with my mxobjects, which is ironic). So I asked Gemini how it would do this, given an openMx ACE output. For your entertainment, this is what it gave me. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(DiagrammeR)
+
+# Create the diagram using the values calculated above
+DiagrammeR::grViz(paste0("
+digraph ACE_Model {
+  graph [layout = neato, overlap = FALSE, outputorder = edgesfirst]
+  
+  # Latent Variables
+  node [shape = circle, fixedsize = true, width = 0.8]
+  A [label = 'A']; C [label = 'C']; E [label = 'E']
+  
+  # Observed Variable
+  node [shape = box, fixedsize = true, width = 1.2]
+  Trait [label = 'Observed\nTrait']
+  
+  # Paths and Labels
+  A -> Trait [label = '", round(a2, 2), "']
+  C -> Trait [label = '", round(c2, 2), "']
+  E -> Trait [label = '", round(e2, 2), "']
+}
+"))
+```
+
+It reminds me of the graphing equivalent to this gem. 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics("funny_embed.jpeg")
+```
+
+
+### Descriptives: Interval ACE uses the first variable, Ordinal uses the second. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(sim_df, mapping=aes(x=y1)) +
+ geom_histogram(fill="lightblue") + 
+  theme_minimal() + 
+  labs(title="Sibling 1 Distribution of Age at Drug Initation",
+       x="Age",
+       y="Frequency")
+                                                
+ggplot(sim_df, mapping=aes(x=Ord_1)) +
+ geom_histogram(fill="lightblue") + 
+  theme_minimal() + 
+  labs(title="Distribution of Age at Drug Initation",
+       x="Sibling 1 Age Bracket",
+       y="Frequency")
+
+```
+
+```{r include=FALSE}
+#I want to note that the way I am pulling out the estimates from my results is this: 
+# Generate & Print Output
+# additive genetic variance, a^2
+#A  <- mxEval(VA11*VA11, fitACE)
+# shared environmental variance, c^2
+#C  <- mxEval(VC11*VC11, fitACE)
+# unique environmental variance, e^2
+#E  <- mxEval(VE11*VE11, fitACE)
+# total variance
+#V  <- (A+C+E)
+# standardized A
+#a2 <- A/V
+# standardized C
+#c2 <- C/V
+# standardized E
+#e2 <- E/V
+# table of estimates
+#estACE <- rbind(cbind(A,C,E),cbind(a2,c2,e2))
+# likelihood of ACE model
+#LL_ACE <- mxEval(fitfunction, fitACE)
+
+# *find it tucked in at the bottom of the hermine scripts
+# It provides me a with a data frame with two rows and three columns - row 1 is unstandardized ACE, row 2 is standardized. I got this method from https://openmx.ssri.psu.edu/docs/OpenMx/2.5.1/GeneticEpi_Path.html and just renamed a few things to get it working for Hermine scripts. I feel a little silly I didn't just do it by hand myself, because its actually not that hard, but either way, credit where credit is due. 
+```
+
+
+## Interval ACE with Easymx 
+
+emxTwinModel function already modified (sourced at the beginning). 
 ```{r}
 model <- emxTwinModel(model="Cholesky", relatedness ='RCoef', data=Iteration1, run=TRUE, use=c('y1','y2'), name='model', components='ACE')
-summary(model)
+sumACE
 ```
 
 Now I want to repeat this for the other 9 iterations 
@@ -127,8 +205,15 @@ run_int <- function(df) {
 }
 
 results <- lapply(df_list, run_int)
+```
 
-#now I have a big list of model outputs, but I can't do anything with it. I want means, parameters 
+### This is not so easy 
+
+Now I have a big list of model outputs, but I can't do anything with it. I want means, parameters, and I want it clean and easy like it was for the hermine scripts. 
+
+#### Option 1: Try to figure out a clean way of extracting parameters with EasyMx
+
+```{r}
 R1 <- summary(results$Iteration1)
 estimates_df1 <- R1$algebra
 
@@ -177,6 +262,11 @@ E <- eh %>%
   filter(name == "sqrtE11")
 ```
 
+#### Option 2: Try to build a function that passes each iteraction to the hermine method
+
+This seems hard. 
+
+### Phew, Time to Start Plotting 
 
 now that the parameters are workable, I want to graph them as 3 overlapping density distributions 
 ```{r}
@@ -200,7 +290,6 @@ ggplot(eh, mapping = aes(x = Estimate, fill = name)) +
   theme_minimal()
 
 ```
-
 
 Need to do the ordinal with easyMx - will need to modify the function 
 ```{r}

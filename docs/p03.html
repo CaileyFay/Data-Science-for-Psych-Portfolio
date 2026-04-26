@@ -32,6 +32,11 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet" />
+<script src="site_libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+<script src="site_libs/viz-1.8.2/viz.js"></script>
+<link href="site_libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet" />
+<script src="site_libs/grViz-binding-1.0.11/grViz.js"></script>
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -298,26 +303,25 @@ procedure</h1>
 
 <p>Loading packages and sourcing my BG helpers</p>
 <pre class="r"><code>library(BGmisc)
-library(ggplot2)</code></pre>
-<pre><code>## Warning: package &#39;ggplot2&#39; was built under R version 4.5.2</code></pre>
-<pre class="r"><code>library(ggpedigree)</code></pre>
-<pre><code>## Warning: package &#39;ggpedigree&#39; was built under R version 4.5.2</code></pre>
-<pre class="r"><code>library(OpenMx)
+library(ggplot2)
+library(ggpedigree)
+library(OpenMx)
 library(EasyMx)
 library(ACEsimFit)
-library(tidyr)</code></pre>
-<pre><code>## Warning: package &#39;tidyr&#39; was built under R version 4.5.2</code></pre>
-<pre class="r"><code>library(dplyr)</code></pre>
-<pre><code>## Warning: package &#39;dplyr&#39; was built under R version 4.5.2</code></pre>
-<pre class="r"><code>library(purrr)</code></pre>
-<pre><code>## Warning: package &#39;purrr&#39; was built under R version 4.5.2</code></pre>
-<pre class="r"><code>library(polycor)
+library(tidyr)
+library(dplyr)
+library(purrr)
+library(polycor)
 library(lattice)
+library(broom)
+library(knitr)
+library(kableExtra)
 
 source(&quot;/Users/caileyfay/Documents/Research/Github/risky_gambling/helpers.R&quot;)
 source(&quot;/Users/caileyfay/Documents/Research/Github/risky_gambling/EasyMx/R/emxBehaviorGenetics.R&quot;)
 source(&quot;/Users/caileyfay/Documents/Research/Github/risky_gambling/data/miFunctions.R&quot;)</code></pre>
-<p>First I create some simulated data to work on</p>
+<p>First I create some simulated data to work on, and the I save all my
+results as a data frame.</p>
 <pre class="r"><code>sim &lt;- Sim_Fit(
   GroupNames = c(&quot;KinPair1&quot;, &quot;KinPair2&quot;),
   GroupSizes = c(2000, 2000),
@@ -325,38 +329,19 @@ source(&quot;/Users/caileyfay/Documents/Research/Github/risky_gambling/data/miFu
   SSeed = 2,
   GroupRel = c(.5, 0.25),
   GroupR_c = c(1, 1),
-  mu = c(15, 15), #can I assume that the means for both groups are the same, even though they are slightly different in reality 
+  mu = c(15, 15), 
   ace1 = c(.3, .2, .5),
   ace2 = c(.3, .2, .5),
   ifComb = FALSE,
   lbound = FALSE,
-  saveRaw = TRUE
-)
-
-# Convert the results element to a dataframe
-# sim_df1 &lt;- as.data.frame(sim$Iteration1$data)
-# sim_df2 &lt;- as.data.frame(sim$Iteration2$data)
-# sim_df3 &lt;- as.data.frame(sim$Iteration3$data)
-# sim_df4 &lt;- as.data.frame(sim$Iteration4$data)
-# sim_df5 &lt;- as.data.frame(sim$Iteration5$data)
-# sim_df6 &lt;- as.data.frame(sim$Iteration6$data)
-# sim_df7 &lt;- as.data.frame(sim$Iteration7$data)
-# sim_df8 &lt;- as.data.frame(sim$Iteration8$data)
-# sim_df9 &lt;- as.data.frame(sim$Iteration9$data)
-# sim_df10 &lt;- as.data.frame(sim$Iteration10$data)
-
-#figuring out how to do it more efficiently, less copy paste nonesense 
-#nah this is annoying 
-#sim is a list. I want it to do something so its for every iteration in the sim list, create a data frame and label it sim_df1 .... sim_dfi 
-#ok turns out its not that hard with the map function 
+  saveRaw = TRUE)
 
 df_list &lt;- map(sim, ~ as.data.frame(.x$data))
-#list2env(df_list, envir = .GlobalEnv)</code></pre>
+list2env(df_list, envir = .GlobalEnv)</code></pre>
 <p>The next step is to make it plausible for drug initation data - that
 means some people need to have NAs to represent non-use. I also have to
-make this into a loop or something more efficient. The goal is to scale
-it up so that when I do the bigger simulations for the BGA poster I have
-tricks to save myself work</p>
+make this into a loop or use the map function to scale it up to handle
+all the iterations.</p>
 <pre class="r"><code>for (i in 1:length(df_list)) {
   
   df_list[[i]] &lt;- df_list[[i]] %&gt;%
@@ -387,134 +372,83 @@ tricks to save myself work</p>
 }
 
 list2env(df_list, envir = .GlobalEnv)</code></pre>
-<pre><code>## &lt;environment: R_GlobalEnv&gt;</code></pre>
-<p>Traditional way of getting an Ordinal Ace from sim_df</p>
-<pre class="r"><code>sim_df &lt;- Iteration1 #relic of past naming convention but too much work to change across files at this point 
-source(&quot;/Users/caileyfay/Documents/Research/Github/risky_gambling/sim_df_ordinal_ACE.r&quot;)</code></pre>
-<pre><code>## Running oneACEvo with 11 parameters</code></pre>
-<pre><code>## 
-## Beginning initial fit attempt</code></pre>
-<pre><code>## Running oneACEvo with 11 parameters</code></pre>
-<pre><code>## 
-##  Lowest minimum so far:  90714.0446590803</code></pre>
-<pre><code>## 
-## Beginning fit attempt 1 of at maximum 10 extra tries</code></pre>
-<pre><code>## Running oneACEvo with 11 parameters</code></pre>
-<pre><code>## 
-##  Lowest minimum so far:  17156.5514226255</code></pre>
-<pre><code>## 
-## Beginning fit attempt 2 of at maximum 10 extra tries</code></pre>
-<pre><code>## Running oneACEvo with 11 parameters</code></pre>
-<pre><code>## 
-##  Fit attempt worse than current best:  17156.5514440417 vs 17156.5514226255</code></pre>
-<pre><code>## 
-## Beginning fit attempt 3 of at maximum 10 extra tries</code></pre>
-<pre><code>## Running oneACEvo with 11 parameters</code></pre>
-<pre><code>## 
-##  Fit attempt worse than current best:  17156.5514472358 vs 17156.5514226255</code></pre>
-<pre><code>## 
-## Beginning fit attempt 4 of at maximum 10 extra tries</code></pre>
-<pre><code>## Running oneACEvo with 11 parameters</code></pre>
-<pre><code>## 
-## Beginning fit attempt 5 of at maximum 10 extra tries</code></pre>
-<pre><code>## Running oneACEvo with 11 parameters</code></pre>
-<pre><code>## 
-##  Lowest minimum so far:  17156.551422582</code></pre>
-<pre><code>## 
-## Beginning fit attempt 6 of at maximum 10 extra tries</code></pre>
-<pre><code>## Running oneACEvo with 11 parameters</code></pre>
-<pre><code>## 
-##  Fit attempt worse than current best:  17156.5514552245 vs 17156.551422582</code></pre>
-<pre><code>## 
-## Beginning fit attempt 7 of at maximum 10 extra tries</code></pre>
-<pre><code>## Running oneACEvo with 11 parameters</code></pre>
-<pre><code>## 
-## Beginning fit attempt 8 of at maximum 10 extra tries</code></pre>
-<pre><code>## Running oneACEvo with 11 parameters</code></pre>
-<pre><code>## 
-## Beginning fit attempt 9 of at maximum 10 extra tries</code></pre>
-<pre><code>## Running oneACEvo with 11 parameters</code></pre>
-<pre><code>## 
-## Beginning fit attempt 10 of at maximum 10 extra tries</code></pre>
-<pre><code>## Running oneACEvo with 11 parameters</code></pre>
-<pre><code>## 
-## Retry limit reached</code></pre>
-<pre><code>## 
-## Solution found</code></pre>
-<pre><code>## Final run, for Hessian and/or standard errors and/or confidence intervals</code></pre>
-<pre><code>## Running oneACEvo with 11 parameters</code></pre>
-<pre><code>## 
-##  Solution found!  Final fit=17156.551 (started at 4280366)  (11 attempt(s): 11 valid, 0 errors)</code></pre>
-<pre><code>##  Start values from best fit:</code></pre>
-<pre><code>## -3,2.02415892915944,0.857688905622028,0.993097986029548,5.96049294897963,2.07890250137363,1.08964739207514,0.458139149749931,0.569315392612889,0.464550462230366,-0.0338658548432549</code></pre>
-<pre><code>## Mx:oneACEvo  os=6983  ns=4000   ep=11   co=1  df=6972  ll=17156.5514  cpu=0.2046  opt=SLSQP  ver=2.22.10  stc=0
-##  t1thFU  t2thFU  t3thFU  t4thFU  t5thFU  t6thFU  t7thFU  t8thFU    VA11    VC11    VE11 
-## -3.0000  2.0242  0.8577  0.9931  5.9605  2.0789  1.0896  0.4581  0.5693  0.4646 -0.0339 
-##                  lbound estimate ubound
-## oneACEvo.US[1,1]     NA   0.5693     NA
-## oneACEvo.US[1,2]     NA   0.4646     NA
-## oneACEvo.US[1,3]     NA  -0.0339     NA</code></pre>
-<pre class="r"><code>sumACE</code></pre>
-<pre><code>## Summary of oneACEvo 
-##  
-## free parameters:
-##      name matrix row col     Estimate   Std.Error A lbound ubound
-## 1  t1thFU  thinG   1   1 -3.000000000 0.089970300 !    -3!       
-## 2  t2thFU  thinG   2   1  2.024158929 0.089347716    0.001       
-## 3  t3thFU  thinG   3   1  0.857688906 0.016733587    0.001       
-## 4  t4thFU  thinG   4   1  0.993097986 0.017842567    0.001       
-## 5  t5thFU  thinG   5   1  5.960492949 0.142867020    0.001       
-## 6  t6thFU  thinG   6   1  2.078902501 0.049829134    0.001       
-## 7  t7thFU  thinG   7   1  1.089647392 0.026117717    0.001       
-## 8  t8thFU  thinG   8   1  0.458139150 0.023968962    0.001       
-## 9    VA11     VA   1   1  0.569315393 0.050035512 !              
-## 10   VC11     VC   1   1  0.464550462 0.024188526 !              
-## 11   VE11     VE   1   1 -0.033865855 0.030275944 !              
-## 
-## confidence intervals:
-##                  lbound     estimate ubound note
-## oneACEvo.US[1,1]     NA  0.569315393     NA  !!!
-## oneACEvo.US[1,2]     NA  0.464550462     NA  !!!
-## oneACEvo.US[1,3]     NA -0.033875855     NA  !!!
-##   To investigate missing CIs, run summary() again, with verbose=T, to see CI details. 
-## 
-## Model Statistics: 
-##                |  Parameters  |  Degrees of Freedom  |  Fit (-2lnL units)
-##        Model:             11                   6972             17156.551
-##    Saturated:             NA                     NA                    NA
-## Independence:             NA                     NA                    NA
-## Number of observations/statistics: 4000/6983
-## 
-## Constraint &#39;Var1&#39; contributes 1 observed statistic. 
-## 
-## Information Criteria: 
-##       |  df Penalty  |  Parameters Penalty  |  Sample-Size Adjusted
-## AIC:      3212.5514              17178.551                17178.618
-## BIC:    -40669.5627              17247.786                17212.833
-## To get additional fit indices, see help(mxRefModels)
-## timestamp: 2026-04-26 11:44:09 
-## Wall clock time: 0.20461297 secs 
-## optimizer:  SLSQP 
-## OpenMx version number: 2.22.10 
-## Need help?  See help(mxSummary)</code></pre>
-<pre class="r"><code>table(sim_df$Ord_1)</code></pre>
-<pre><code>## 
-##    1    2    3    4 
-##  550 1134 1131  694</code></pre>
-<pre class="r"><code>table(sim_df$Ord_2)</code></pre>
-<pre><code>## 
-##    1    2    3    4 
-##  544 1110 1136  683</code></pre>
-<pre class="r"><code>histogram(sim_df$Ord_1)</code></pre>
-<p><img src="p03_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
-<pre class="r"><code>histogram(sim_df$y1)</code></pre>
-<p><img src="p03_files/figure-html/unnamed-chunk-4-2.png" width="672" /></p>
-<p>Interval Ace</p>
-<pre class="r"><code>source(&quot;~/Documents/Research/Github/risky_gambling/sim_df_interval_ACE.r&quot;)</code></pre>
-<pre><code>## Running uniACEvc_R_x with 5 parameters</code></pre>
-<pre><code>## Running uniAEvc with 4 parameters</code></pre>
-<pre><code>## Running uniCEvc_ with 4 parameters</code></pre>
-<pre><code>## Running uniEvc_ with 3 parameters</code></pre>
+<div id="ace-modeling-hermines-method-with-iteration-1"
+class="section level2">
+<h2>ACE modeling (Hermine’s Method) with Iteration 1</h2>
+<div id="ordinal-results" class="section level3">
+<h3>Ordinal Results</h3>
+<table>
+<caption>Ordinal ACE Model Estimates</caption>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">A</th>
+<th align="right">C</th>
+<th align="right">E</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Unstandardized</td>
+<td align="right">0.32412002</td>
+<td align="right">0.21580713</td>
+<td align="right">0.00114690</td>
+</tr>
+<tr class="even">
+<td align="left">Standardized</td>
+<td align="right">0.59903080</td>
+<td align="right">0.39884954</td>
+<td align="right">0.00211967</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="interval-results" class="section level3">
+<h3>Interval Results</h3>
+<table>
+<caption>Interval ACE Model Estimates</caption>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">A</th>
+<th align="right">C</th>
+<th align="right">E</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Unstandardized</td>
+<td align="right">0.22260689</td>
+<td align="right">0.02414238</td>
+<td align="right">0.16801825</td>
+</tr>
+<tr class="even">
+<td align="left">Standardized</td>
+<td align="right">0.53670280</td>
+<td align="right">0.05820701</td>
+<td align="right">0.40509019</td>
+</tr>
+</tbody>
+</table>
+<p>I got mad trying to plot a path diagram with the openMx functions
+(they are totally useless and don’t work with my mxobjects, which is
+ironic). So I asked Gemini how it would do this, given an openMx ACE
+output. For your entertainment, this is what it gave me.</p>
+<div class="grViz html-widget html-fill-item" id="htmlwidget-c85b3454dce0fe4dc731" style="width:672px;height:480px;"></div>
+<script type="application/json" data-for="htmlwidget-c85b3454dce0fe4dc731">{"x":{"diagram":"\ndigraph ACE_Model {\n  graph [layout = neato, overlap = FALSE, outputorder = edgesfirst]\n  \n  # Latent Variables\n  node [shape = circle, fixedsize = true, width = 0.8]\n  A [label = \"A\"]; C [label = \"C\"]; E [label = \"E\"]\n  \n  # Observed Variable\n  node [shape = box, fixedsize = true, width = 1.2]\n  Trait [label = \"Observed\nTrait\"]\n  \n  # Paths and Labels\n  A -> Trait [label = \"0.54\"]\n  C -> Trait [label = \"0.06\"]\n  E -> Trait [label = \"0.41\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<p>It reminds me of the graphing equivalent to this gem.</p>
+<pre class="r"><code>knitr::include_graphics(&quot;funny_embed.jpeg&quot;)</code></pre>
+<p><img src="funny_embed.jpeg" width="104" /> ### Descriptives: Interval
+ACE uses the first variable, Ordinal uses the second.</p>
+<p><img src="p03_files/figure-html/unnamed-chunk-10-1.png" width="672" /><img src="p03_files/figure-html/unnamed-chunk-10-2.png" width="672" /></p>
+</div>
+</div>
+<div id="interval-ace-with-easymx" class="section level2">
+<h2>Interval ACE with Easymx</h2>
+<p>emxTwinModel function already modified (sourced at the
+beginning).</p>
+<pre class="r"><code>model &lt;- emxTwinModel(model=&quot;Cholesky&quot;, relatedness =&#39;RCoef&#39;, data=Iteration1, run=TRUE, use=c(&#39;y1&#39;,&#39;y2&#39;), name=&#39;model&#39;, components=&#39;ACE&#39;)</code></pre>
+<pre><code>## Running model with 4 parameters</code></pre>
 <pre class="r"><code>sumACE</code></pre>
 <pre><code>## Summary of uniACEvc_R_x 
 ##  
@@ -544,38 +478,8 @@ source(&quot;/Users/caileyfay/Documents/Research/Github/risky_gambling/sim_df_or
 ## AIC:      5563.7002              19119.700                19119.718
 ## BIC:    -35943.2091              19150.342                19134.454
 ## To get additional fit indices, see help(mxRefModels)
-## timestamp: 2026-04-26 11:44:09 
-## Wall clock time: 0.041461945 secs 
-## optimizer:  SLSQP 
-## OpenMx version number: 2.22.10 
-## Need help?  See help(mxSummary)</code></pre>
-<p>ACE with easymx - emxTwinModel function already modified</p>
-<pre class="r"><code>model &lt;- emxTwinModel(model=&quot;Cholesky&quot;, relatedness =&#39;RCoef&#39;, data=Iteration1, run=TRUE, use=c(&#39;y1&#39;,&#39;y2&#39;), name=&#39;model&#39;, components=&#39;ACE&#39;)</code></pre>
-<pre><code>## Running model with 4 parameters</code></pre>
-<pre class="r"><code>summary(model)</code></pre>
-<pre><code>## Summary of model 
-##  
-## free parameters:
-##      name matrix row col    Estimate   Std.Error A lbound ubound
-## 1 sqrtA11  sqrtA   1   1  0.34482336 0.086009050    1e-06       
-## 2 sqrtC11  sqrtC   1   1  0.53500377 0.026356106    1e-06       
-## 3 sqrtE11  sqrtE   1   1  0.81377339 0.017196599    1e-06       
-## 4     My1  Means  y1   1 15.01422238 0.014197036                
-## 
-## Model Statistics: 
-##                |  Parameters  |  Degrees of Freedom  |  Fit (-2lnL units)
-##        Model:              4                   6774             19120.684
-##    Saturated:              5                   6773                    NA
-## Independence:              4                   6774                    NA
-## Number of observations/statistics: 4000/6778
-## 
-## Information Criteria: 
-##       |  df Penalty  |  Parameters Penalty  |  Sample-Size Adjusted
-## AIC:      5572.6839              19128.684                19128.694
-## BIC:    -37063.2084              19153.860                19141.150
-## To get additional fit indices, see help(mxRefModels)
-## timestamp: 2026-04-26 11:44:09 
-## Wall clock time: 0.017212152 secs 
+## timestamp: 2026-04-26 13:47:53 
+## Wall clock time: 0.037484884 secs 
 ## optimizer:  SLSQP 
 ## OpenMx version number: 2.22.10 
 ## Need help?  See help(mxSummary)</code></pre>
@@ -597,8 +501,17 @@ results &lt;- lapply(df_list, run_int)</code></pre>
 ## Running model with 4 parameters
 ## Running model with 4 parameters
 ## Running model with 4 parameters</code></pre>
-<pre class="r"><code>#now I have a big list of model outputs, but I can&#39;t do anything with it. I want means, parameters 
-R1 &lt;- summary(results$Iteration1)
+<div id="this-is-not-so-easy" class="section level3">
+<h3>This is not so easy</h3>
+<p>Now I have a big list of model outputs, but I can’t do anything with
+it. I want means, parameters, and I want it clean and easy like it was
+for the hermine scripts.</p>
+<div
+id="option-1-try-to-figure-out-a-clean-way-of-extracting-parameters-with-easymx"
+class="section level4">
+<h4>Option 1: Try to figure out a clean way of extracting parameters
+with EasyMx</h4>
+<pre class="r"><code>R1 &lt;- summary(results$Iteration1)
 estimates_df1 &lt;- R1$algebra
 
 #now scale it up so I don&#39;t have to repeat manually ten times 
@@ -644,20 +557,31 @@ C &lt;-eh %&gt;%
 
 E &lt;- eh %&gt;%
   filter(name == &quot;sqrtE11&quot;)</code></pre>
+</div>
+<div
+id="option-2-try-to-build-a-function-that-passes-each-iteraction-to-the-hermine-method"
+class="section level4">
+<h4>Option 2: Try to build a function that passes each iteraction to the
+hermine method</h4>
+<p>This seems hard.</p>
+</div>
+</div>
+<div id="phew-time-to-start-plotting" class="section level3">
+<h3>Phew, Time to Start Plotting</h3>
 <p>now that the parameters are workable, I want to graph them as 3
 overlapping density distributions</p>
 <pre class="r"><code>ggplot(A, mapping = aes(x=Estimate)) +
   geom_density() +
   xlim(0, 1)</code></pre>
-<p><img src="p03_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p><img src="p03_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
 <pre class="r"><code>ggplot(C, mapping = aes(x=Estimate)) +
   geom_density() +
   xlim(0, 1)</code></pre>
-<p><img src="p03_files/figure-html/unnamed-chunk-8-2.png" width="672" /></p>
+<p><img src="p03_files/figure-html/unnamed-chunk-15-2.png" width="672" /></p>
 <pre class="r"><code>ggplot(E, mapping = aes(x=Estimate)) +
   geom_density() +
   xlim(0, 1)</code></pre>
-<p><img src="p03_files/figure-html/unnamed-chunk-8-3.png" width="672" /></p>
+<p><img src="p03_files/figure-html/unnamed-chunk-15-3.png" width="672" /></p>
 <pre class="r"><code>#Dubious 
 ggplot(eh, mapping = aes(x = Estimate, fill = name)) +
   geom_density() +
@@ -665,10 +589,12 @@ ggplot(eh, mapping = aes(x = Estimate, fill = name)) +
   scale_fill_brewer() +
   theme_minimal()</code></pre>
 <pre><code>## Warning: Removed 10 rows containing non-finite outside the scale range (`stat_density()`).</code></pre>
-<p><img src="p03_files/figure-html/unnamed-chunk-8-4.png" width="672" /></p>
+<p><img src="p03_files/figure-html/unnamed-chunk-15-4.png" width="672" /></p>
 <p>Need to do the ordinal with easyMx - will need to modify the
 function</p>
 <p>Trying out this function</p>
+</div>
+</div>
 
 
 
