@@ -14,6 +14,7 @@ library(googlesheets4)
 library(bslib)
 
 source("/Users/caileyfay/Documents/LabsD4P/Data-Science-for-Psych-Portfolio/P4_ESM/cleaning_ESM.r")
+syn_data <- read.csv("my_synthetic_data.csv")
 
 # Define UI for application
 ui <- library(shiny)
