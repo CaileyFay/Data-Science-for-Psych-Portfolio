@@ -14,7 +14,7 @@ To get started with the Shiny app, I used this tutorial https://www.youtube.com/
 
 First, of course, I will load up my packages like always. In a separate file, I created the link between my google form responses and then cleaned up the data a little bit and sourced it. 
 
-```{r}
+```{r message=FALSE, warning=FALSE, results='hide'}
 library(shiny)
 library(googlesheets4) #in love with this
 library(janitor)
@@ -29,37 +29,46 @@ library(haven)
 source("/Users/caileyfay/Documents/LabsD4P/Data-Science-for-Psych-Portfolio/P4_ESM/cleaning_ESM.r")
 ```
 
-
-Now I generate lots of data using the synthpop package, which I learned about here:
+Next I generated lots of data using the synthpop package, which I learned about here:
 
 https://www.synthpop.org.uk/get-started.html
 
-```{r warning=FALSE}
-synthetic_dataset <- syn(ESM, k=1000)
-write.syn(synthetic_dataset, filename = "my_synthetic_data", filetype = "csv")
- syn_data <- read.csv("my_synthetic_data.csv")
-```
+You can find the code in the cleaning_ESM.r file. 
 
-Now I make some fun charts to see how my synthetic data turned out: 
-```{r}
+I made some fun charts to see how my synthetic data turned out. I start out super simple. 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 #line is weird with this data, but lets try bar for extraversion and time of day 
 
 syn_data %>%
   ggplot(mapping = aes(x=hour, y=Extraversion, fill = who_are_you)) +
-  geom_col()
+  geom_col() + 
+  scale_fill_manual(values =c("lightblue","#2A52BE")) +
+  labs(title = "Extraversion at Differnt Times of Day",
+       x = "Hour",
+       y= "Extraversion",
+       fill = "Person") +
+  theme_minimal()
 
 #Histograms 
 syn_data %>%
   filter(who_are_you =="Cailey") %>%
 ggplot(aes(x=Extraversion)) +
-  geom_histogram() +
-  labs(title = "Cailey's Extraversion Distribution")#density distribution for one of the traits? 
+  geom_histogram(fill="lightblue") +
+  theme_minimal() +
+  labs(title = "Cailey's Extraversion Distribution",
+       x="Extraversion Level",
+       y="Frequency")
 
 syn_data %>%
   filter(who_are_you =="Ethan") %>%
 ggplot(aes(x=Extraversion)) +
-  geom_histogram()  +
-  labs(title = "Ethan's Extraversion Distribution")
+  geom_histogram(fill="#2A52BE")  +
+  theme_minimal() + 
+  labs(title = "Ethan's Extraversion Distribution",
+        x="Extraversion Level",
+       y="Frequency")
 
 #Overlapping Density Distributions For Each Trait 
 syn_data %>%
@@ -68,7 +77,8 @@ syn_data %>%
   labs(title = "Ethan and Cailey's Extraversion Density Distributions",
        y = "Density",
        fill = "Subject") +
-  theme_minimal()
+  theme_minimal() +
+  scale_fill_manual(values =c("lightblue","#2A52BE"))
 
 syn_data %>%
   ggplot(mapping = aes(x=Agreeableness, fill= who_are_you)) +
@@ -76,7 +86,8 @@ syn_data %>%
   labs(title = "Ethan and Cailey's Agreeableness Density Distributions",
        y = "Density",
        fill = "Subject") +
-  theme_minimal()
+  theme_minimal() +
+   scale_fill_manual(values =c("lightblue","#2A52BE"))
 
 syn_data %>%
   ggplot(mapping = aes(x=Conscientiousness, fill= who_are_you)) +
@@ -84,7 +95,8 @@ syn_data %>%
   labs(title = "Ethan and Cailey's Conscientiousness Density Distributions",
        y = "Density",
        fill = "Subject") +
-  theme_minimal()
+  theme_minimal() +
+   scale_fill_manual(values =c("lightblue","#2A52BE"))
 
 syn_data %>%
   ggplot(mapping = aes(x=Emotional_Stability, fill= who_are_you)) +
@@ -92,7 +104,8 @@ syn_data %>%
   labs(title = "Ethan and Cailey's Emotional Stability Density Distributions",
        y = "Density",
        fill = "Subject") +
-  theme_minimal()
+  theme_minimal() +
+   scale_fill_manual(values =c("lightblue","#2A52BE"))
 
 syn_data %>%
   ggplot(mapping = aes(x=Openness, fill= who_are_you)) +
@@ -100,13 +113,20 @@ syn_data %>%
   labs(title = "Ethan and Cailey's Openness to New Experiences Density Distributions",
        y = "Density",
        fill = "Subject") +
-  theme_minimal()
+  theme_minimal() +
+   scale_fill_manual(values =c("lightblue","#2A52BE"))
 #I also want to do these so you get the density of all of the traits but for one person on the graph - probably needs to happen with faceting but we shall see 
 
 ```
 
-Finally, I made an interactive dashboard:
-```{r}
-shiny::shinyAppFile("P4_ESM/app.R")
+Nothing about the way I conducted this was foolproof, but this little snapshot makes it seem like we have fairly similar personality profiles. 
+
+Finally, I made an interactive dashboard. Its not very complex, but bonus points for it taking me forever to figure out??? 
+
+### GAHH I can't see to get rid of this ugly warning message 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+suppressWarnings(
+  suppressMessages(shiny::shinyAppFile("P4_ESM/app.R")))
 ```
 

@@ -7,6 +7,8 @@ library(gsheet)
 library(lubridate)
 library(synthpop)
 
+options(warn = -1)
+
 ESM <-gsheet2tbl('https://docs.google.com/spreadsheets/d/1grnrXPY2i8W73XHphScS3P0UcTvhw3BNEzlGYLVwJ4M/edit?resourcekey=&gid=698980028#gid=698980028')
 #this guy has a cool little way to import from sheets. I am completely in love with how easy this was
 # Source - https://stackoverflow.com/a/28986107
@@ -42,7 +44,9 @@ ESM <- ESM %>%
   mutate(hour = hour(date_time))
 #now I have a variable that takes the hour the data was collected from. This baby is good to go.
 
-synthetic_dataset <- syn(ESM, k=1000)
+
+  synthetic_dataset <- syn(ESM, k=1000)
 write.syn(synthetic_dataset, filename = "my_synthetic_data", filetype = "csv")
 syn_data <- read.csv("my_synthetic_data.csv")
+
 
