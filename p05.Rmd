@@ -1,12 +1,9 @@
 ---
-title: "Survival Analysis" wow this is currently a mess 
+title: "Survival Analysis" 
 ---
 This is from my FYP workflow - I ran a survival analysis with some of the drug intiation data. I haven't included the behavior-genetic component, it is just a plain old survival analysis. Nothing fancy but it works. 
-```{r}
-knitr::opts_chunk$set(echo = TRUE)
 
-# set seed
-set.seed(20200804)
+```{r include=FALSE, message=FALSE, warning=FALSE}
 
 library(psych)
 library(polycor)
@@ -25,130 +22,6 @@ library(matrixStats)
 library(gt)
 library(OpenMx)
 library(ACEsimFit)
-```
-
-```{r}
-source("/Users/caileyfay/Documents/Research/GitHub/risky_gambling/risky_gambling_reapproach/data/KidsDemographics/KidsDemographics.R", echo = TRUE)
-source("/Users/caileyfay/Documents/Research/GitHub/risky_gambling/risky_gambling_reapproach/data/79Demographics/79Demographics.R")
-source("/Users/caileyfay/Documents/Research/GitHub/risky_gambling/risky_gambling_reapproach/data/79Demographics/79Demographics.R")
-recode_missing_values <- FALSE
-source("/Users/caileyfay/Documents/Research/GitHub/risky_gambling/risky_gambling_reapproach/data/Drugs79/Drugs79.R")
-
-
-df_Drugs79 <- df_Drugs79 %>%
-  mutate(did_interview = ifelse(
-    if_all(c(U1_Amphet, U1_Sedative, U1_Tranq, U1_Psych, U1_Heroin, U1_Narc, U1_Inhale, U1_Weed, U1_Coke, U1_Crack), 
-           ~ . == -5), 0, 1))
-
-df_Drugs79[df_Drugs79== -1] <- NA  # Refused
-df_Drugs79[df_Drugs79== -2] <- NA  # Dont know
-df_Drugs79[df_Drugs79== -3] <- NA  # Invalid missing
-df_Drugs79[df_Drugs79== -4] <- NA  # Valid missing
-df_Drugs79[df_Drugs79== -5] <- NA  # Non-interview
-
-df_Drugs79 <- df_Drugs79 %>%
-   mutate(  
-    Any_Drug_Use = ifelse(
-      is.na(U1_Amphet) & is.na(U1_Sedative) & is.na(U1_Tranq) & is.na(U1_Psych) & is.na(U1_Heroin) & is.na(U1_Narc) & is.na(U1_Inhale) & is.na(U1_Weed) & is.na(U1_Coke) & is.na(U1_Crack),
-      0,
-      1),
-    Any_Drug_Use = ifelse(did_interview == 0, NA, Any_Drug_Use),
-    First_Try = pmin(
-        U1_Amphet,
-        U1_Sedative,
-        U1_Tranq,
-        U1_Psych,
-        U1_Heroin,
-        U1_Narc,
-        U1_Inhale,
-        U1_Weed,
-        U1_Coke,
-        U1_Crack, na.rm = TRUE
-    ))
-
-df_Drugs79 <- df_Drugs79 %>%
-  mutate(FU_Ord = case_when(
-    First_Try <= 10 ~ 1,
-    First_Try <= 12 ~ 2,
-    First_Try <= 14 ~ 3,
-    First_Try <= 16 ~ 4,
-    First_Try <= 18 ~ 5,
-    First_Try <= 20 ~ 6,
-    First_Try <= 22 ~ 7,
-    First_Try <= 24 ~ 8,
-    First_Try >= 24 ~ 9,
-    First_Try == NA ~ 10
-  ))
-
-hist(df_Drugs79$FU_Ord)
-
-df_Drugs79 <- df_Drugs79 %>%
-  mutate(Weed_Ord = case_when(
-    U1_Weed <= 10 ~ 1,
-    U1_Weed <= 12 ~ 2,
-    U1_Weed <= 14 ~ 3,
-    U1_Weed <= 16 ~ 4,
-    U1_Weed <= 18 ~ 5,
-    U1_Weed <= 20 ~ 6,
-    U1_Weed <= 22 ~ 7,
-    U1_Weed <= 24 ~ 8,
-    U1_Weed >= 24 ~ 9,
-    U1_Weed == NA ~ 10
-  ))
-
-hist(df_Drugs79$Weed_Ord)
-
-source("/Users/caileyfay/Documents/Research/GitHub/risky_gambling/risky_gambling_reapproach/data/KidDrugs/KidDrugs.R")
-anyDuplicated(df_KidsDrugs)
-df_KidsDrugs <- df_KidsDrugs %>%
-  select(-ends_with("_oops"))
-
-df_KidsDrugs <- df_KidsDrugs %>%
-  rowwise() %>%
-  mutate(First_Try = min(c_across(starts_with("1U_")), na.rm = TRUE)) %>%
-  ungroup() 
-
-df_KidsDrugs <- df_KidsDrugs %>%
-  mutate(First_Try = if_else(is.infinite(First_Try), NA_real_, First_Try))
-
-hist(df_KidsDrugs$First_Try)
-#A bunch of kids must have thought it would be funny to say they were 95 when they first tried something. I am going to pull anyone who said they were less than five or older than 60 when they first tried something, and turn those values into NAs
-
-#df_KidsDrugs <- df_KidsDrugs %>%
-#  filter(First_Try > 5,
-#         First_Try < 30)
-
-hist(df_KidsDrugs$First_Try) #much better 
-sum(!is.na(df_KidsDrugs$First_Try))
-
-df_KidsDrugs <- df_KidsDrugs %>%
-  mutate(FU_Ord = case_when(
-    First_Try <= 10 ~ 1,
-    First_Try <= 13 ~ 2,
-    First_Try <= 16 ~ 3,
-    First_Try <= 19 ~ 4,
-    First_Try <= 21 ~ 5,
-    First_Try <= 24 ~ 6,
-    First_Try >= 24 ~ 7,
-    First_Try == NA ~ 8,
-  ))
-
-#be careful if making this ordinal because of the filter 
-#creating the any drug ever variable for the survival analysis 
-df_KidsDrugs[df_KidsDrugs== -1] <- NA  # Refused
-df_KidsDrugs[df_KidsDrugs== -2] <- NA  # Dont know
-df_KidsDrugs[df_KidsDrugs== -3] <- NA  # Invalid missing
-df_KidsDrugs[df_KidsDrugs== -4] <- NA  # Valid missing
-df_KidsDrugs[df_KidsDrugs== -5] <- NA  # Non-interview
-
-df_KidsDrugs <- df_KidsDrugs %>%
-   mutate(Any_Drug_Use = ifelse(
-      is.na(First_Try),
-      0,
-      1))
-
-```
-```{r}
 library(knitr)
 library(dplyr)
 library(survival)
@@ -159,12 +32,37 @@ library(ggsurvfit)
 library(gtsummary)
 library(tidycmprsk)
 library(condSURV)
+```
 
+```{r include=FALSE}
+source("/Users/caileyfay/Documents/Research/GitHub/risky_gambling/data/KidsDemographics/KidsDemographics.R")
+source("/Users/caileyfay/Documents/Research/GitHub/risky_gambling/data/79Demographics/79Demographics.R")
+source("/Users/caileyfay/Documents/Research/GitHub/risky_gambling/data/GeneralRisk79/GeneralRisk79.R")
+source("/Users/caileyfay/Documents/Research/GitHub/risky_gambling/data/CBRandYBR/CBRandYBR.R")
+source("/Users/caileyfay/Documents/Research/GitHub/risky_gambling/data/KidDrugs/KidDrugs.R")
+recode_missing_values <- FALSE
+source("/Users/caileyfay/Documents/Research/GitHub/risky_gambling/data/Drugs79/Drugs79.R")
+source('/Users/caileyfay/Documents/Research/GitHub/risky_gambling/data/sexID/sexID.R')
+source('/Users/caileyfay/Documents/Research/GitHub/risky_gambling/data/kidsexID/kidsexID.R')
+ID_sex <- rbind(parent_sex, kid_sex)
+source("/Users/caileyfay/Documents/Research/GitHub/risky_gambling/merging_harmonizing_selecting.r")
+```
+
+The first thing I did was look at the NLSY79 Drug Initiation Data. I use Any_Drug_Use (a 0/1 variable) as the status, and First_Try as the time variable, representing the age people were when they first initiated. I don't have use any covariates/grouping variable. 
+
+From this analaysis, I get some interesting results, which are presented in the table below.The Time column is fairly intuitive. Under n.risk, see that this represents the number of people who haven't tried drugs yet (and therefore are labeled "at risk") for a given time. Under n.event, we are given the number of people who have already tried drugs. There were some people who said that they first tried drugs when they were 0. For my FYP modeling, these people are filtered out, but in this case I am just leaving them be - perhaps they were heroin babies, or maybe just teens who thought they were being funny. 
+
+The other thing to note is the "estimate" column. this represents the probability of resisting drugs at each year. For example, at age 16 (which happens to be the mean age at first use for the sample), there is a 47% chance a given person has not tried drugs yet.
+
+
+```{r echo=FALSE, results='hide'}
 #any drug use variable and first try are going to be used to run the survival analysis
 Surv(df_Drugs79$First_Try, df_Drugs79$Any_Drug_Use)[1:10]
 
 s1 <- survfit(Surv(First_Try, Any_Drug_Use) ~ 1, data = df_Drugs79)
-str(s1)
+```
+```{r echo=FALSE}
+kable(tidy(s1), caption="Drug Initiation Survival in the NLSY79")
 
 survfit2(Surv(First_Try, Any_Drug_Use) ~ 1, data = df_Drugs79) |> 
   ggsurvfit() +
@@ -173,16 +71,11 @@ survfit2(Surv(First_Try, Any_Drug_Use) ~ 1, data = df_Drugs79) |>
     y = "Overall survival probability") +
   add_confidence_interval() +
   add_risktable()
+```
 
-#not super helpful because most people aren't going to do drugs on their 1st birthday 
-survfit(Surv(First_Try, Any_Drug_Use) ~ 1, data = df_Drugs79) |> 
-  tbl_survfit(
-    times = 2,
-    label_header = "**1-year survival (95% CI)**")
+Next, I wanted to see if the survival pattern varies by gen1 and gen2. 
 
-#median age at first try of a drug is 16 
-survfit(Surv(First_Try, Any_Drug_Use) ~ 1, data = df_Drugs79)
-
+```{r include=FALSE}
 # I want to see if this varies by the parent and the kid drug data 
 #make a data frame with the parent Any_Drug_Use, and the kid _First_Try 
 
@@ -195,24 +88,256 @@ df_Drugs79Skinny <- df_Drugs79 %>%
   mutate(Group =2)
 
 df_DrugsSkinny <- rbind(df_KidsDrugsSkinny, df_Drugs79Skinny)
+```
+
+I merge drug use variables from Gen1 and Gen2 and make a new variable called Group. Unfortunately, to add confusion, I labeled gen1 as 2 and gen2 as 1.  
+```{r echo=FALSE}
                 
 #Now I can run a survival analysis comparing groups 
 #median age for the 79ers and kids was 16 which is cool 
-survdiff(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny)
-survfit(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny)
+# survdiff(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny)
+# survfit(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny)
+
 survfit2(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |> 
   ggsurvfit() +
   labs(title ="Survival Analysis of NLSY Drug Initation Data on the '79 Cohort and Their Kids",
     x = "Years",
     y = "Overall survival probability") +
+ coord_cartesian(xlim = c(0, 30)) +
   add_confidence_interval() +
   add_risktable() 
-
 
 #I don't know what this means but the helpful tutorial said to do it 
 coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |> 
  tbl_regression(exp = TRUE) 
 
 ```
+
+These results show that Gen1 and Gen2 follow similar drug-initiation trajectories, though there are differences. Based on the hazard ratio, one of the groups is 23% more likely to be at risk at any given time, but I am having a hard time figuring out how the Surv function is picking a reference group. 
+
+Next up, I am going to run a survival analysis grouping by relatedness type. First I do more data management stuff, and then I also created a color pallete for the browns and golds I thought would like nice in the figure. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#Now I can run a survival analysis comparing groups 
+#median age for the 79ers and kids was 16 which is cool 
+#first I need to prep some new df format 
+df_KidsPairs <- df_linkBigKids %>%
+  select(c("First_Try_S1","First_Try_S2","Any_Drug_Use_S1","Any_Drug_Use_S2","FU_Ord_S1","FU_Ord_S2",
+           "SubjectTag_S1","SubjectTag_S2","ExtendedID","R","Sex_S1","Sex_S2")) %>%
+  mutate(Group = 1)
+
+df_79pairs <- df_linkBigBoy79 %>%
+  select(c("First_Try_S1","First_Try_S2","Any_Drug_Use_S1","Any_Drug_Use_S2","FU_Ord_S1","FU_Ord_S2",
+           "SubjectTag_S1","SubjectTag_S2","ExtendedID","R","Sex_S1","Sex_S2")) %>%
+  mutate(Group =2)
+
+df_linkDrugsSkinny <- rbind(df_KidsPairs, df_79pairs) 
+
+#now I can run the surivval analysis 
+
+old_gold_pallete <- c("#D4AF37", "#D9C589", "#9E7E38", "#7D5F28", 
+                   "#5C4018", "#3B2A10", "#B5A68C", "#4A4E41")
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+survfit2(Surv(First_Try_S1, Any_Drug_Use_S1) ~ R, data = df_linkDrugsSkinny) |> 
+  ggsurvfit(palette = old_gold_pallete, size =1) +
+  labs(
+    x = "Years",
+    y = "Overall survival probability") +
+  add_confidence_interval() +
+#  add_risktable() +
+   coord_cartesian(xlim = c(0, 30)) +
+  theme(text = element_text(family = "Baskerville", color = "white", text.size = 15),
+        panel.background = element_rect(fill = "black"),
+    plot.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    legend.text = element_text(color = "white", size =15),
+    legend.title = element_text(color = "white", size =15),
+    axis.title.x = element_text(colour = "black", size =15),
+    axis.text.x = element_text(colour = "white", size =15),
+        axis.text.y = element_text(colour = "white", size =15),
+    legend.background = element_rect(fill = "black"),
+    legend.position = "left") +
+  scale_fill_manual(values = old_gold_pallete) +
+  scale_color_manual(values = old_gold_pallete)
+
+#ggsave('kapcurves.PNG',plot, dpi = 300)
+
+coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |> 
+ tbl_regression(exp = TRUE) 
+```
+
+## Mets 
+
+It starts with whole lot of cleaning and reshaping data to get it into the right format. 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(mets)
+#it uses an indicator of if its an mz or dz, like a mz is baseline, but flag it if its dz
+df_linkDrugsSkinny$is_half_sib <- ifelse(df_linkDrugsSkinny$R == 0.25, 1, 0)
+# This model estimates polygenic (A) and shared env (C) for survival data
+
+#the other catch is that I need to only look at one pair per family, so I need to just keep the distinct extendedIDs
+#using this to check against other frames where there allegedly should only be one set per fam
+one_per_fam <-df_linkDrugsSkinny %>%
+  distinct(ExtendedID, .keep_all = TRUE) 
+
+df_long <- df_linkDrugsSkinny %>%
+  pivot_longer(
+    cols = contains("_S1") | contains("_S2"), 
+    names_to = c(".value", "Sibling"), 
+    names_sep = "_S"
+  )
+
+df_long <- df_long %>%
+  rename(id = "ExtendedID")
+
+
+age79 <- df_79Demographics %>%
+  mutate(SubjectTag = CASEID*100) %>%
+  select(c("SubjectTag","DOB")) %>%
+  rename(Age = "DOB")
+
+agekids <- BigKidsFile %>%
+  select(c("CASEID","Age")) %>%
+  rename(SubjectTag = "CASEID")
+
+age <- rbind(age79, agekids) 
+
+df_long <- merge(df_long, age, by = "SubjectTag")
+
+#also need to make first try value their age if they were NA 
+df_long <- df_long %>% mutate(First_Try = case_when(
+    is.na(First_Try) & Any_Drug_Use == 0 ~ Age,
+    TRUE ~ First_Try
+  ))
+
+df_long$y <- with(df_long, Surv(First_Try, Any_Drug_Use))
+
+df_long_pairs <- df_long %>%
+  group_by(id) %>%
+  filter(n() == 2) %>%  #pull the people who don't have a sibling / mom only had one kid
+  ungroup() %>%
+  as.data.frame() %>%
+  filter(R < .75)
+
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#step one is get this into the prt framework 
+df_long_pairs <- df_long_pairs %>%
+  select(c("R","id","Sibling","First_Try","Any_Drug_Use","Age")) %>%
+  rename(num = "Sibling", time = "First_Try", status = "Any_Drug_Use") 
+
+df_long_pairs <- df_long_pairs %>%
+  mutate(zyg = case_when(
+    R < .5 ~ "DZ", #make sure to accomodate in the threshold that these are actually sibs and halfsibs 
+    R == .5 ~ "MZ" #the other spooky thing going on here is that I am making half sibs = anyone less than 50% related because if I narrow it down to strickly .25 it wont run 
+  )) %>%
+  mutate(zyg = as.factor(zyg)) %>%
+  select(-"R") 
+
+df_long_pairs <- df_long_pairs %>%
+  mutate(drugs = case_when(
+    status == 1 ~ 1,
+    status == 0 ~ 0
+  ))
+
+#pull everyone that was less than 10 and greater than 40 
+df_long_pairs <- df_long_pairs %>% filter(time > 10,
+                         time < 40)
+
+#now make sure we only have complete pairs in the file
+df_long_pairs <- df_long_pairs %>%
+  group_by(id) %>%
+  filter(n() == 2) %>%
+  ungroup()
+
+#make sure it is arranged nicely and in the way bptwin is expecting 
+df_long_pairs <- df_long_pairs %>%
+  arrange(id)
+
+#making the ids sequential 
+df_long_pairs <- df_long_pairs %>%
+  arrange(id) %>%
+  mutate(id = rep(1:(n()/2), each = 2))
+
+#makes sure we are dealing with all complete cases 
+df_long_pairs <- df_long_pairs %>%
+  filter(!is.na(drugs), !is.na(time), !is.na(status), !is.na(zyg))
+```
+
+
+Here is where the mysterious error codes start appearing. I think I am aborting this mission. 
+
+### Mets failure 
+
+Ok it turns out the problem is somehow after all of the filtering, there is only one pair of twins in df_final that didn't do drugs. making sense why this gave me so many problems. df_long_pairs is fine though, so whatever modification started in step 1 is the problem 
+
+```{#r message=FALSE, warning=FALSE}
+#it looks like prt0, so now we move on to 
+df_wide <- fast.reshape(df_long_pairs, id="id", num="num", varying=c("time","status","drugs")) 
+df_time <- subset(df_wide, select=c(time1, time2, zyg))
+tau <- 39
+tt <- seq(11, tau, length.out=5)
+
+a0 <- bptwin.time(drugs ~ 1, 
+                  data=df_long_pairs, id="id", zyg="zyg", DZ="DZ", type="cor",
+              cens.formula=Surv(time,status==0)~zyg, breaks=tau)
+summary(a0)
+```
+
+
+```{#r message=FALSE, warning=FALSE}
+#alt version w different error
+# status is still looking ok but this slashed my sample size 
+df_final <- as.data.frame(lapply(df_long_pairs, function(x) {
+  if(is.factor(x)) return(as.character(x))
+  as.vector(x)
+}))
+
+# 2. Force ID and zyg to be the simplest types possible
+df_final$id <- as.integer(df_final$id)
+df_final$zyg <- as.character(df_final$zyg)
+
+# 3. Sort one last time
+df_final <- df_final[order(df_final$id), ]
+
+df_final <- df_final %>% ##ok heres the problem 
+  filter(time < 25)
+
+# 4. Try the original call with the 'naked' data
+a0 <- bptwin.time(drugs ~ 1, 
+                  data = df_final, 
+                  id = "id", zyg = "zyg", DZ = "DZ", type = "cor",
+                  cens.formula = Surv(time, status == 1) ~ zyg, 
+                  breaks = c(12, 16, 19),
+                  n.times = 1)
+summary(a0)
+
+#sick plots from the plot_twin mets function examples: work on replicating with my own data 
+
+data("df_final", package="mets")
+twinwide <- fast.reshape(df_final, id="id",varying=c("drugs"))
+datamz <- log(subset(twinwide, zyg=="MZ")[,c("drugs1","drugs2")])
+
+# continuous variables
+plot_twin(datamz)
+
+# categorical variables
+datamz2 <- datamz
+datamz2[, 1] <- cut(datamz[, 1], 4)
+datamz2[, 2] <- cut(datamz[, 2], 4)
+plot_twin(datamz2, color = TRUE)
+
+# survival variables #this runs on my data, but something fishy going on 
+cens1 <- rbinom(nrow(datamz), 1, 0.5)
+cens2 <- rbinom(nrow(datamz), 1, 0.5)
+datamz2[, 1] <- Event(datamz[, 1], cens1)
+datamz2[, 2] <- suppressWarnings(Event(datamz[, 2], cens2))
+plot_twin(datamz2)
+
+rm(datamz, datamz2, cens1, cens2)
+```
+
 
 

@@ -299,859 +299,464 @@ $(document).ready(function () {
 the drug intiation data. I haven’t included the behavior-genetic
 component, it is just a plain old survival analysis. Nothing fancy but
 it works.</p>
-<pre class="r"><code>knitr::opts_chunk$set(echo = TRUE)
-
-# set seed
-set.seed(20200804)
-
-library(psych)
-library(polycor)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;polycor&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:psych&#39;:
-## 
-##     polyserial</code></pre>
-<pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-## ✔ dplyr     1.1.4     ✔ readr     2.1.5
-## ✔ forcats   1.0.0     ✔ stringr   1.5.2
-## ✔ ggplot2   4.0.0     ✔ tibble    3.3.0
-## ✔ lubridate 1.9.4     ✔ tidyr     1.3.1
-## ✔ purrr     1.1.0</code></pre>
-<pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-## ✖ ggplot2::%+%()   masks psych::%+%()
-## ✖ ggplot2::alpha() masks psych::alpha()
-## ✖ dplyr::filter()  masks stats::filter()
-## ✖ dplyr::lag()     masks stats::lag()
-## ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
-<pre class="r"><code>library(devtools)</code></pre>
-<pre><code>## Loading required package: usethis</code></pre>
-<pre class="r"><code>library(remotes)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;remotes&#39;
-## 
-## The following objects are masked from &#39;package:devtools&#39;:
-## 
-##     dev_package_deps, install_bioc, install_bitbucket, install_cran,
-##     install_deps, install_dev, install_git, install_github,
-##     install_gitlab, install_local, install_svn, install_url,
-##     install_version, update_packages</code></pre>
-<pre class="r"><code>library(NlsyLinks)
-library(ggplot2)
-library(parameters)
-library(dplyr)
-library(gtsummary)
-library(discord)
-library(janitor)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;janitor&#39;
-## 
-## The following objects are masked from &#39;package:stats&#39;:
-## 
-##     chisq.test, fisher.test</code></pre>
-<pre class="r"><code>library(lm.beta)
-library(matrixStats)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;matrixStats&#39;
-## 
-## The following object is masked from &#39;package:dplyr&#39;:
-## 
-##     count</code></pre>
-<pre class="r"><code>library(gt)
-library(OpenMx)</code></pre>
-<pre><code>## OpenMx may run faster if it is compiled to take advantage of multiple cores.
-## 
-## Attaching package: &#39;OpenMx&#39;
-## 
-## The following object is masked from &#39;package:psych&#39;:
-## 
-##     tr</code></pre>
-<pre class="r"><code>library(ACEsimFit)</code></pre>
-<pre class="r"><code>source(&quot;/Users/caileyfay/Documents/Research/GitHub/risky_gambling/risky_gambling_reapproach/data/KidsDemographics/KidsDemographics.R&quot;, echo = TRUE)</code></pre>
-<pre><code>## 
-## &gt; new_data &lt;- read_csv(&quot;~/Documents/Research/GitHub/risky_gambling/risky_gambling_reapproach/data/KidsDemographics/KidsDemographics.csv&quot;)</code></pre>
-<pre><code>## Rows: 11551 Columns: 6
-## ── Column specification ────────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## dbl (6): C0000100, C0000200, C0005300, C0005400, C0005700, Y2267000
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre><code>## 
-## &gt; names(new_data) &lt;- c(&quot;C0000100&quot;, &quot;C0000200&quot;, &quot;C0005300&quot;, 
-## +     &quot;C0005400&quot;, &quot;C0005700&quot;, &quot;Y2267000&quot;)
-## 
-## &gt; new_data[new_data == -1] &lt;- NA
-## 
-## &gt; new_data[new_data == -2] &lt;- NA
-## 
-## &gt; new_data[new_data == -3] &lt;- NA
-## 
-## &gt; new_data[new_data == -7] &lt;- NA
-## 
-## &gt; vallabels &lt;- function(data) {
-## +     data$C0005300 &lt;- factor(data$C0005300, levels = c(1, 2, 3), 
-## +         labels = c(&quot;HISPANIC&quot;, &quot;BLACK&quot;, &quot;NON-BLAC ...&quot; ... [TRUNCATED] 
-## 
-## &gt; vallabels_continuous &lt;- function(data) {
-## +     data$C0000100[1 &lt;= data$C0000100 &amp; data$C0000100 &lt;= 9999999] &lt;- 1
-## +     data$C0000100 &lt;- factor(data$ .... [TRUNCATED] 
-## 
-## &gt; varlabels &lt;- c(&quot;ID CODE OF CHILD&quot;, &quot;ID CODE OF MOTHER OF CHILD&quot;, 
-## +     &quot;RACE OF CHILD (FROM MOTHERS SCREENER 79)&quot;, &quot;SEX OF CHILD&quot;, 
-## +     &quot;DATE OF  ...&quot; ... [TRUNCATED] 
-## 
-## &gt; qnames &lt;- function(data) {
-## +     names(data) &lt;- c(&quot;CASEID&quot;, &quot;MCASEID&quot;, &quot;CRace&quot;, &quot;CSex&quot;, &quot;CBirthYear&quot;, 
-## +         &quot;VERSION_R29_XRND&quot;)
-## +     return(da .... [TRUNCATED] 
-## 
-## &gt; df_KidsDemographics &lt;- qnames(vallabels(new_data))
-## 
-## &gt; remove(new_data)</code></pre>
-<pre class="r"><code>source(&quot;/Users/caileyfay/Documents/Research/GitHub/risky_gambling/risky_gambling_reapproach/data/79Demographics/79Demographics.R&quot;)</code></pre>
-<pre><code>## Rows: 12686 Columns: 9
-## ── Column specification ────────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## dbl (9): R0000100, R0000300, R0000500, R0173600, R0214700, R0214800, R089884...
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>source(&quot;/Users/caileyfay/Documents/Research/GitHub/risky_gambling/risky_gambling_reapproach/data/79Demographics/79Demographics.R&quot;)</code></pre>
-<pre><code>## Rows: 12686 Columns: 9
-## ── Column specification ────────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## dbl (9): R0000100, R0000300, R0000500, R0173600, R0214700, R0214800, R089884...
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>recode_missing_values &lt;- FALSE
-source(&quot;/Users/caileyfay/Documents/Research/GitHub/risky_gambling/risky_gambling_reapproach/data/Drugs79/Drugs79.R&quot;)</code></pre>
-<pre><code>## Rows: 12686 Columns: 14
-## ── Column specification ────────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## dbl (14): R0000100, R0173600, R0214700, R0214800, R1403000, R1403300, R14036...
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>df_Drugs79 &lt;- df_Drugs79 %&gt;%
-  mutate(did_interview = ifelse(
-    if_all(c(U1_Amphet, U1_Sedative, U1_Tranq, U1_Psych, U1_Heroin, U1_Narc, U1_Inhale, U1_Weed, U1_Coke, U1_Crack), 
-           ~ . == -5), 0, 1))
-
-df_Drugs79[df_Drugs79== -1] &lt;- NA  # Refused
-df_Drugs79[df_Drugs79== -2] &lt;- NA  # Dont know
-df_Drugs79[df_Drugs79== -3] &lt;- NA  # Invalid missing
-df_Drugs79[df_Drugs79== -4] &lt;- NA  # Valid missing
-df_Drugs79[df_Drugs79== -5] &lt;- NA  # Non-interview
-
-df_Drugs79 &lt;- df_Drugs79 %&gt;%
-   mutate(  
-    Any_Drug_Use = ifelse(
-      is.na(U1_Amphet) &amp; is.na(U1_Sedative) &amp; is.na(U1_Tranq) &amp; is.na(U1_Psych) &amp; is.na(U1_Heroin) &amp; is.na(U1_Narc) &amp; is.na(U1_Inhale) &amp; is.na(U1_Weed) &amp; is.na(U1_Coke) &amp; is.na(U1_Crack),
-      0,
-      1),
-    Any_Drug_Use = ifelse(did_interview == 0, NA, Any_Drug_Use),
-    First_Try = pmin(
-        U1_Amphet,
-        U1_Sedative,
-        U1_Tranq,
-        U1_Psych,
-        U1_Heroin,
-        U1_Narc,
-        U1_Inhale,
-        U1_Weed,
-        U1_Coke,
-        U1_Crack, na.rm = TRUE
-    ))
-
-df_Drugs79 &lt;- df_Drugs79 %&gt;%
-  mutate(FU_Ord = case_when(
-    First_Try &lt;= 10 ~ 1,
-    First_Try &lt;= 12 ~ 2,
-    First_Try &lt;= 14 ~ 3,
-    First_Try &lt;= 16 ~ 4,
-    First_Try &lt;= 18 ~ 5,
-    First_Try &lt;= 20 ~ 6,
-    First_Try &lt;= 22 ~ 7,
-    First_Try &lt;= 24 ~ 8,
-    First_Try &gt;= 24 ~ 9,
-    First_Try == NA ~ 10
-  ))
-
-hist(df_Drugs79$FU_Ord)</code></pre>
-<p><img src="p05_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
-<pre class="r"><code>df_Drugs79 &lt;- df_Drugs79 %&gt;%
-  mutate(Weed_Ord = case_when(
-    U1_Weed &lt;= 10 ~ 1,
-    U1_Weed &lt;= 12 ~ 2,
-    U1_Weed &lt;= 14 ~ 3,
-    U1_Weed &lt;= 16 ~ 4,
-    U1_Weed &lt;= 18 ~ 5,
-    U1_Weed &lt;= 20 ~ 6,
-    U1_Weed &lt;= 22 ~ 7,
-    U1_Weed &lt;= 24 ~ 8,
-    U1_Weed &gt;= 24 ~ 9,
-    U1_Weed == NA ~ 10
-  ))
-
-hist(df_Drugs79$Weed_Ord)</code></pre>
-<p><img src="p05_files/figure-html/unnamed-chunk-2-2.png" width="672" /></p>
-<pre class="r"><code>source(&quot;/Users/caileyfay/Documents/Research/GitHub/risky_gambling/risky_gambling_reapproach/data/KidDrugs/KidDrugs.R&quot;)</code></pre>
-<pre><code>## Rows: 11551 Columns: 52
-## ── Column specification ────────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## dbl (52): C0000100, C0000200, C0005300, C0005400, C0005700, C0733300, C07336...
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>anyDuplicated(df_KidsDrugs)</code></pre>
-<pre><code>## [1] 0</code></pre>
-<pre class="r"><code>df_KidsDrugs &lt;- df_KidsDrugs %&gt;%
-  select(-ends_with(&quot;_oops&quot;))
-
-df_KidsDrugs &lt;- df_KidsDrugs %&gt;%
-  rowwise() %&gt;%
-  mutate(First_Try = min(c_across(starts_with(&quot;1U_&quot;)), na.rm = TRUE)) %&gt;%
-  ungroup() </code></pre>
-<pre><code>## Warning: There were 5254 warnings in `mutate()`.
-## The first warning was:
-## ℹ In argument: `First_Try = min(c_across(starts_with(&quot;1U_&quot;)), na.rm = TRUE)`.
-## ℹ In row 1.
-## Caused by warning in `min()`:
-## ! no non-missing arguments to min; returning Inf
-## ℹ Run `dplyr::last_dplyr_warnings()` to see the 5253 remaining warnings.</code></pre>
-<pre class="r"><code>df_KidsDrugs &lt;- df_KidsDrugs %&gt;%
-  mutate(First_Try = if_else(is.infinite(First_Try), NA_real_, First_Try))
-
-hist(df_KidsDrugs$First_Try)</code></pre>
-<p><img src="p05_files/figure-html/unnamed-chunk-2-3.png" width="672" /></p>
-<pre class="r"><code>#A bunch of kids must have thought it would be funny to say they were 95 when they first tried something. I am going to pull anyone who said they were less than five or older than 60 when they first tried something, and turn those values into NAs
-
-#df_KidsDrugs &lt;- df_KidsDrugs %&gt;%
-#  filter(First_Try &gt; 5,
-#         First_Try &lt; 30)
-
-hist(df_KidsDrugs$First_Try) #much better 
-sum(!is.na(df_KidsDrugs$First_Try))</code></pre>
-<pre><code>## [1] 6297</code></pre>
-<pre class="r"><code>df_KidsDrugs &lt;- df_KidsDrugs %&gt;%
-  mutate(FU_Ord = case_when(
-    First_Try &lt;= 10 ~ 1,
-    First_Try &lt;= 13 ~ 2,
-    First_Try &lt;= 16 ~ 3,
-    First_Try &lt;= 19 ~ 4,
-    First_Try &lt;= 21 ~ 5,
-    First_Try &lt;= 24 ~ 6,
-    First_Try &gt;= 24 ~ 7,
-    First_Try == NA ~ 8,
-  ))
-
-#be careful if making this ordinal because of the filter 
-#creating the any drug ever variable for the survival analysis 
-df_KidsDrugs[df_KidsDrugs== -1] &lt;- NA  # Refused
-df_KidsDrugs[df_KidsDrugs== -2] &lt;- NA  # Dont know
-df_KidsDrugs[df_KidsDrugs== -3] &lt;- NA  # Invalid missing
-df_KidsDrugs[df_KidsDrugs== -4] &lt;- NA  # Valid missing
-df_KidsDrugs[df_KidsDrugs== -5] &lt;- NA  # Non-interview
-
-df_KidsDrugs &lt;- df_KidsDrugs %&gt;%
-   mutate(Any_Drug_Use = ifelse(
-      is.na(First_Try),
-      0,
-      1))</code></pre>
-<pre class="r"><code>library(knitr)
-library(dplyr)
-library(survival)
-library(ggplot2)
-library(tibble)
-library(lubridate)
-library(ggsurvfit)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;ggsurvfit&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:psych&#39;:
-## 
-##     %+%</code></pre>
-<pre class="r"><code>library(gtsummary)
-library(tidycmprsk)</code></pre>
-<pre><code>## Warning: package &#39;tidycmprsk&#39; was built under R version 4.5.2</code></pre>
-<pre><code>## 
-## Attaching package: &#39;tidycmprsk&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:gtsummary&#39;:
-## 
-##     trial</code></pre>
-<pre class="r"><code>library(condSURV)
-
-#any drug use variable and first try are going to be used to run the survival analysis
-Surv(df_Drugs79$First_Try, df_Drugs79$Any_Drug_Use)[1:10]</code></pre>
-<pre><code>##  [1] NA? NA+ 12  11  NA+ 16  12  16  20  15</code></pre>
-<pre class="r"><code>s1 &lt;- survfit(Surv(First_Try, Any_Drug_Use) ~ 1, data = df_Drugs79)
-str(s1)</code></pre>
-<pre><code>## List of 18
-##  $ n        : int 6254
-##  $ time     : num [1:39] 0 1 2 3 4 5 6 7 8 9 ...
-##  $ n.risk   : num [1:39] 6254 6093 6086 6079 6078 ...
-##  $ n.event  : num [1:39] 161 7 7 1 1 4 4 2 17 14 ...
-##  $ n.censor : num [1:39] 0 0 0 0 0 0 0 0 0 0 ...
-##  $ surv     : num [1:39] 0.974 0.973 0.972 0.972 0.972 ...
-##  $ std.err  : num [1:39] 0.00206 0.0021 0.00215 0.00215 0.00216 ...
-##  $ cumhaz   : num [1:39] 0.0257 0.0269 0.028 0.0282 0.0284 ...
-##  $ std.chaz : num [1:39] 0.00203 0.00207 0.00212 0.00213 0.00213 ...
-##  $ type     : chr &quot;right&quot;
-##  $ logse    : logi TRUE
-##  $ conf.int : num 0.95
-##  $ conf.type: chr &quot;log&quot;
-##  $ lower    : num [1:39] 0.97 0.969 0.968 0.968 0.968 ...
-##  $ upper    : num [1:39] 0.978 0.977 0.976 0.976 0.976 ...
-##  $ t0       : num 0
-##  $ na.action: &#39;omit&#39; Named int [1:6432] 1 2 5 11 12 15 19 23 24 29 ...
-##   ..- attr(*, &quot;names&quot;)= chr [1:6432] &quot;1&quot; &quot;2&quot; &quot;5&quot; &quot;11&quot; ...
-##  $ call     : language survfit(formula = Surv(First_Try, Any_Drug_Use) ~ 1, data = df_Drugs79)
-##  - attr(*, &quot;class&quot;)= chr &quot;survfit&quot;</code></pre>
-<pre class="r"><code>survfit2(Surv(First_Try, Any_Drug_Use) ~ 1, data = df_Drugs79) |&gt; 
-  ggsurvfit() +
-  labs(title =&quot;Survival Analysis of NLSY Drug Initation Data on the &#39;79 Cohort and Their Kids&quot;,
-    x = &quot;Years&quot;,
-    y = &quot;Overall survival probability&quot;) +
-  add_confidence_interval() +
-  add_risktable()</code></pre>
-<p><img src="p05_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
-<pre class="r"><code>#not super helpful because most people aren&#39;t going to do drugs on their 1st birthday 
-survfit(Surv(First_Try, Any_Drug_Use) ~ 1, data = df_Drugs79) |&gt; 
-  tbl_survfit(
-    times = 2,
-    label_header = &quot;**1-year survival (95% CI)**&quot;)</code></pre>
-<div id="ngtoyntxhy" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#ngtoyntxhy table {
-  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-#ngtoyntxhy thead, #ngtoyntxhy tbody, #ngtoyntxhy tfoot, #ngtoyntxhy tr, #ngtoyntxhy td, #ngtoyntxhy th {
-  border-style: none;
-}
-
-#ngtoyntxhy p {
-  margin: 0;
-  padding: 0;
-}
-
-#ngtoyntxhy .gt_table {
-  display: table;
-  border-collapse: collapse;
-  line-height: normal;
-  margin-left: auto;
-  margin-right: auto;
-  color: #333333;
-  font-size: 16px;
-  font-weight: normal;
-  font-style: normal;
-  background-color: #FFFFFF;
-  width: auto;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #A8A8A8;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #A8A8A8;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-}
-
-#ngtoyntxhy .gt_caption {
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
-
-#ngtoyntxhy .gt_title {
-  color: #333333;
-  font-size: 125%;
-  font-weight: initial;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-color: #FFFFFF;
-  border-bottom-width: 0;
-}
-
-#ngtoyntxhy .gt_subtitle {
-  color: #333333;
-  font-size: 85%;
-  font-weight: initial;
-  padding-top: 3px;
-  padding-bottom: 5px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-color: #FFFFFF;
-  border-top-width: 0;
-}
-
-#ngtoyntxhy .gt_heading {
-  background-color: #FFFFFF;
-  text-align: center;
-  border-bottom-color: #FFFFFF;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#ngtoyntxhy .gt_bottom_border {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#ngtoyntxhy .gt_col_headings {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#ngtoyntxhy .gt_col_heading {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 6px;
-  padding-left: 5px;
-  padding-right: 5px;
-  overflow-x: hidden;
-}
-
-#ngtoyntxhy .gt_column_spanner_outer {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-left: 4px;
-  padding-right: 4px;
-}
-
-#ngtoyntxhy .gt_column_spanner_outer:first-child {
-  padding-left: 0;
-}
-
-#ngtoyntxhy .gt_column_spanner_outer:last-child {
-  padding-right: 0;
-}
-
-#ngtoyntxhy .gt_column_spanner {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  overflow-x: hidden;
-  display: inline-block;
-  width: 100%;
-}
-
-#ngtoyntxhy .gt_spanner_row {
-  border-bottom-style: hidden;
-}
-
-#ngtoyntxhy .gt_group_heading {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-  text-align: left;
-}
-
-#ngtoyntxhy .gt_empty_group_heading {
-  padding: 0.5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: middle;
-}
-
-#ngtoyntxhy .gt_from_md > :first-child {
-  margin-top: 0;
-}
-
-#ngtoyntxhy .gt_from_md > :last-child {
-  margin-bottom: 0;
-}
-
-#ngtoyntxhy .gt_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  margin: 10px;
-  border-top-style: solid;
-  border-top-width: 1px;
-  border-top-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-  overflow-x: hidden;
-}
-
-#ngtoyntxhy .gt_stub {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#ngtoyntxhy .gt_stub_row_group {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-  vertical-align: top;
-}
-
-#ngtoyntxhy .gt_row_group_first td {
-  border-top-width: 2px;
-}
-
-#ngtoyntxhy .gt_row_group_first th {
-  border-top-width: 2px;
-}
-
-#ngtoyntxhy .gt_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#ngtoyntxhy .gt_first_summary_row {
-  border-top-style: solid;
-  border-top-color: #D3D3D3;
-}
-
-#ngtoyntxhy .gt_first_summary_row.thick {
-  border-top-width: 2px;
-}
-
-#ngtoyntxhy .gt_last_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#ngtoyntxhy .gt_grand_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#ngtoyntxhy .gt_first_grand_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-style: double;
-  border-top-width: 6px;
-  border-top-color: #D3D3D3;
-}
-
-#ngtoyntxhy .gt_last_grand_summary_row_top {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-style: double;
-  border-bottom-width: 6px;
-  border-bottom-color: #D3D3D3;
-}
-
-#ngtoyntxhy .gt_striped {
-  background-color: rgba(128, 128, 128, 0.05);
-}
-
-#ngtoyntxhy .gt_table_body {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#ngtoyntxhy .gt_footnotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#ngtoyntxhy .gt_footnote {
-  margin: 0px;
-  font-size: 90%;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#ngtoyntxhy .gt_sourcenotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#ngtoyntxhy .gt_sourcenote {
-  font-size: 90%;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#ngtoyntxhy .gt_left {
-  text-align: left;
-}
-
-#ngtoyntxhy .gt_center {
-  text-align: center;
-}
-
-#ngtoyntxhy .gt_right {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-#ngtoyntxhy .gt_font_normal {
-  font-weight: normal;
-}
-
-#ngtoyntxhy .gt_font_bold {
-  font-weight: bold;
-}
-
-#ngtoyntxhy .gt_font_italic {
-  font-style: italic;
-}
-
-#ngtoyntxhy .gt_super {
-  font-size: 65%;
-}
-
-#ngtoyntxhy .gt_footnote_marks {
-  font-size: 75%;
-  vertical-align: 0.4em;
-  position: initial;
-}
-
-#ngtoyntxhy .gt_asterisk {
-  font-size: 100%;
-  vertical-align: 0;
-}
-
-#ngtoyntxhy .gt_indent_1 {
-  text-indent: 5px;
-}
-
-#ngtoyntxhy .gt_indent_2 {
-  text-indent: 10px;
-}
-
-#ngtoyntxhy .gt_indent_3 {
-  text-indent: 15px;
-}
-
-#ngtoyntxhy .gt_indent_4 {
-  text-indent: 20px;
-}
-
-#ngtoyntxhy .gt_indent_5 {
-  text-indent: 25px;
-}
-
-#ngtoyntxhy .katex-display {
-  display: inline-flex !important;
-  margin-bottom: 0.75em !important;
-}
-
-#ngtoyntxhy div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
-  height: 0px !important;
-}
-</style>
-<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
-  <thead>
-    <tr class="gt_col_headings">
-      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="label"><span class='gt_from_md'><strong>Characteristic</strong></span></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_1"><span class='gt_from_md'><strong>1-year survival (95% CI)</strong></span></th>
-    </tr>
-  </thead>
-  <tbody class="gt_table_body">
-    <tr><td headers="label" class="gt_row gt_left">Overall</td>
-<td headers="stat_1" class="gt_row gt_center">97% (97%, 98%)</td></tr>
-  </tbody>
-  
+<p>The first thing I did was look at the NLSY79 Drug Initiation Data. I
+use Any_Drug_Use (a 0/1 variable) as the status, and First_Try as the
+time variable, representing the age people were when they first
+initiated. I don’t have use any covariates/grouping variable.</p>
+<p>From this analaysis, I get some interesting results, which are
+presented in the table below.The Time column is fairly intuitive. Under
+n.risk, see that this represents the number of people who haven’t tried
+drugs yet (and therefore are labeled “at risk”) for a given time. Under
+n.event, we are given the number of people who have already tried drugs.
+There were some people who said that they first tried drugs when they
+were 0. For my FYP modeling, these people are filtered out, but in this
+case I am just leaving them be - perhaps they were heroin babies, or
+maybe just teens who thought they were being funny.</p>
+<p>The other thing to note is the “estimate” column. this represents the
+probability of resisting drugs at each year. For example, at age 16
+(which happens to be the mean age at first use for the sample), there is
+a 47% chance a given person has not tried drugs yet.</p>
+<table style="width:100%;">
+<caption>Drug Initiation Survival in the NLSY79</caption>
+<colgroup>
+<col width="7%" />
+<col width="10%" />
+<col width="11%" />
+<col width="13%" />
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">time</th>
+<th align="right">n.risk</th>
+<th align="right">n.event</th>
+<th align="right">n.censor</th>
+<th align="right">estimate</th>
+<th align="right">std.error</th>
+<th align="right">conf.high</th>
+<th align="right">conf.low</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0</td>
+<td align="right">6254</td>
+<td align="right">161</td>
+<td align="right">0</td>
+<td align="right">0.9742565</td>
+<td align="right">0.0020555</td>
+<td align="right">0.9781894</td>
+<td align="right">0.9703394</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="right">6093</td>
+<td align="right">7</td>
+<td align="right">0</td>
+<td align="right">0.9731372</td>
+<td align="right">0.0021009</td>
+<td align="right">0.9771526</td>
+<td align="right">0.9691383</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">6086</td>
+<td align="right">7</td>
+<td align="right">0</td>
+<td align="right">0.9720179</td>
+<td align="right">0.0021455</td>
+<td align="right">0.9761139</td>
+<td align="right">0.9679391</td>
+</tr>
+<tr class="even">
+<td align="right">3</td>
+<td align="right">6079</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0.9718580</td>
+<td align="right">0.0021518</td>
+<td align="right">0.9759654</td>
+<td align="right">0.9677679</td>
+</tr>
+<tr class="odd">
+<td align="right">4</td>
+<td align="right">6078</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0.9716981</td>
+<td align="right">0.0021581</td>
+<td align="right">0.9758168</td>
+<td align="right">0.9675968</td>
+</tr>
+<tr class="even">
+<td align="right">5</td>
+<td align="right">6077</td>
+<td align="right">4</td>
+<td align="right">0</td>
+<td align="right">0.9710585</td>
+<td align="right">0.0021830</td>
+<td align="right">0.9752222</td>
+<td align="right">0.9669126</td>
+</tr>
+<tr class="odd">
+<td align="right">6</td>
+<td align="right">6073</td>
+<td align="right">4</td>
+<td align="right">0</td>
+<td align="right">0.9704189</td>
+<td align="right">0.0022077</td>
+<td align="right">0.9746271</td>
+<td align="right">0.9662289</td>
+</tr>
+<tr class="even">
+<td align="right">7</td>
+<td align="right">6069</td>
+<td align="right">2</td>
+<td align="right">0</td>
+<td align="right">0.9700991</td>
+<td align="right">0.0022200</td>
+<td align="right">0.9743294</td>
+<td align="right">0.9658873</td>
+</tr>
+<tr class="odd">
+<td align="right">8</td>
+<td align="right">6067</td>
+<td align="right">17</td>
+<td align="right">0</td>
+<td align="right">0.9673809</td>
+<td align="right">0.0023220</td>
+<td align="right">0.9717935</td>
+<td align="right">0.9629883</td>
+</tr>
+<tr class="even">
+<td align="right">9</td>
+<td align="right">6050</td>
+<td align="right">14</td>
+<td align="right">0</td>
+<td align="right">0.9651423</td>
+<td align="right">0.0024031</td>
+<td align="right">0.9696989</td>
+<td align="right">0.9606072</td>
+</tr>
+<tr class="odd">
+<td align="right">10</td>
+<td align="right">6036</td>
+<td align="right">40</td>
+<td align="right">0</td>
+<td align="right">0.9587464</td>
+<td align="right">0.0026230</td>
+<td align="right">0.9636880</td>
+<td align="right">0.9538301</td>
+</tr>
+<tr class="even">
+<td align="right">11</td>
+<td align="right">5996</td>
+<td align="right">64</td>
+<td align="right">0</td>
+<td align="right">0.9485130</td>
+<td align="right">0.0029461</td>
+<td align="right">0.9540058</td>
+<td align="right">0.9430518</td>
+</tr>
+<tr class="odd">
+<td align="right">12</td>
+<td align="right">5932</td>
+<td align="right">190</td>
+<td align="right">0</td>
+<td align="right">0.9181324</td>
+<td align="right">0.0037759</td>
+<td align="right">0.9249524</td>
+<td align="right">0.9113627</td>
+</tr>
+<tr class="even">
+<td align="right">13</td>
+<td align="right">5742</td>
+<td align="right">334</td>
+<td align="right">0</td>
+<td align="right">0.8647266</td>
+<td align="right">0.0050014</td>
+<td align="right">0.8732447</td>
+<td align="right">0.8562915</td>
+</tr>
+<tr class="odd">
+<td align="right">14</td>
+<td align="right">5408</td>
+<td align="right">519</td>
+<td align="right">0</td>
+<td align="right">0.7817397</td>
+<td align="right">0.0066816</td>
+<td align="right">0.7920444</td>
+<td align="right">0.7715691</td>
+</tr>
+<tr class="even">
+<td align="right">15</td>
+<td align="right">4889</td>
+<td align="right">811</td>
+<td align="right">0</td>
+<td align="right">0.6520627</td>
+<td align="right">0.0092369</td>
+<td align="right">0.6639751</td>
+<td align="right">0.6403639</td>
+</tr>
+<tr class="odd">
+<td align="right">16</td>
+<td align="right">4078</td>
+<td align="right">1132</td>
+<td align="right">0</td>
+<td align="right">0.4710585</td>
+<td align="right">0.0133995</td>
+<td align="right">0.4835936</td>
+<td align="right">0.4588484</td>
+</tr>
+<tr class="even">
+<td align="right">17</td>
+<td align="right">2946</td>
+<td align="right">846</td>
+<td align="right">0</td>
+<td align="right">0.3357851</td>
+<td align="right">0.0177846</td>
+<td align="right">0.3476960</td>
+<td align="right">0.3242822</td>
+</tr>
+<tr class="odd">
+<td align="right">18</td>
+<td align="right">2100</td>
+<td align="right">814</td>
+<td align="right">0</td>
+<td align="right">0.2056284</td>
+<td align="right">0.0248537</td>
+<td align="right">0.2158930</td>
+<td align="right">0.1958518</td>
+</tr>
+<tr class="even">
+<td align="right">19</td>
+<td align="right">1286</td>
+<td align="right">413</td>
+<td align="right">0</td>
+<td align="right">0.1395907</td>
+<td align="right">0.0313939</td>
+<td align="right">0.1484496</td>
+<td align="right">0.1312604</td>
+</tr>
+<tr class="odd">
+<td align="right">20</td>
+<td align="right">873</td>
+<td align="right">312</td>
+<td align="right">0</td>
+<td align="right">0.0897026</td>
+<td align="right">0.0402819</td>
+<td align="right">0.0970718</td>
+<td align="right">0.0828928</td>
+</tr>
+<tr class="even">
+<td align="right">21</td>
+<td align="right">561</td>
+<td align="right">171</td>
+<td align="right">0</td>
+<td align="right">0.0623601</td>
+<td align="right">0.0490327</td>
+<td align="right">0.0686505</td>
+<td align="right">0.0566461</td>
+</tr>
+<tr class="odd">
+<td align="right">22</td>
+<td align="right">390</td>
+<td align="right">115</td>
+<td align="right">0</td>
+<td align="right">0.0439719</td>
+<td align="right">0.0589616</td>
+<td align="right">0.0493586</td>
+<td align="right">0.0391730</td>
+</tr>
+<tr class="even">
+<td align="right">23</td>
+<td align="right">275</td>
+<td align="right">72</td>
+<td align="right">0</td>
+<td align="right">0.0324592</td>
+<td align="right">0.0690377</td>
+<td align="right">0.0371624</td>
+<td align="right">0.0283513</td>
+</tr>
+<tr class="odd">
+<td align="right">24</td>
+<td align="right">203</td>
+<td align="right">51</td>
+<td align="right">0</td>
+<td align="right">0.0243044</td>
+<td align="right">0.0801190</td>
+<td align="right">0.0284370</td>
+<td align="right">0.0207725</td>
+</tr>
+<tr class="even">
+<td align="right">25</td>
+<td align="right">152</td>
+<td align="right">66</td>
+<td align="right">0</td>
+<td align="right">0.0137512</td>
+<td align="right">0.1070888</td>
+<td align="right">0.0169627</td>
+<td align="right">0.0111477</td>
+</tr>
+<tr class="odd">
+<td align="right">26</td>
+<td align="right">86</td>
+<td align="right">19</td>
+<td align="right">0</td>
+<td align="right">0.0107131</td>
+<td align="right">0.1215133</td>
+<td align="right">0.0135941</td>
+<td align="right">0.0084428</td>
+</tr>
+<tr class="even">
+<td align="right">27</td>
+<td align="right">67</td>
+<td align="right">14</td>
+<td align="right">0</td>
+<td align="right">0.0084746</td>
+<td align="right">0.1367773</td>
+<td align="right">0.0110801</td>
+<td align="right">0.0064818</td>
+</tr>
+<tr class="odd">
+<td align="right">28</td>
+<td align="right">53</td>
+<td align="right">5</td>
+<td align="right">0</td>
+<td align="right">0.0076751</td>
+<td align="right">0.1437826</td>
+<td align="right">0.0101735</td>
+<td align="right">0.0057902</td>
+</tr>
+<tr class="even">
+<td align="right">29</td>
+<td align="right">48</td>
+<td align="right">5</td>
+<td align="right">0</td>
+<td align="right">0.0068756</td>
+<td align="right">0.1519734</td>
+<td align="right">0.0092613</td>
+<td align="right">0.0051045</td>
+</tr>
+<tr class="odd">
+<td align="right">30</td>
+<td align="right">43</td>
+<td align="right">16</td>
+<td align="right">0</td>
+<td align="right">0.0043172</td>
+<td align="right">0.1920342</td>
+<td align="right">0.0062902</td>
+<td align="right">0.0029631</td>
+</tr>
+<tr class="even">
+<td align="right">31</td>
+<td align="right">27</td>
+<td align="right">4</td>
+<td align="right">0</td>
+<td align="right">0.0036776</td>
+<td align="right">0.2081306</td>
+<td align="right">0.0055301</td>
+<td align="right">0.0024457</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">23</td>
+<td align="right">10</td>
+<td align="right">0</td>
+<td align="right">0.0020787</td>
+<td align="right">0.2770617</td>
+<td align="right">0.0035778</td>
+<td align="right">0.0012077</td>
+</tr>
+<tr class="even">
+<td align="right">33</td>
+<td align="right">13</td>
+<td align="right">4</td>
+<td align="right">0</td>
+<td align="right">0.0014391</td>
+<td align="right">0.3330934</td>
+<td align="right">0.0027645</td>
+<td align="right">0.0007491</td>
+</tr>
+<tr class="odd">
+<td align="right">34</td>
+<td align="right">9</td>
+<td align="right">2</td>
+<td align="right">0</td>
+<td align="right">0.0011193</td>
+<td align="right">0.3777529</td>
+<td align="right">0.0023468</td>
+<td align="right">0.0005338</td>
+</tr>
+<tr class="even">
+<td align="right">35</td>
+<td align="right">7</td>
+<td align="right">2</td>
+<td align="right">0</td>
+<td align="right">0.0007995</td>
+<td align="right">0.4470348</td>
+<td align="right">0.0019201</td>
+<td align="right">0.0003329</td>
+</tr>
+<tr class="odd">
+<td align="right">36</td>
+<td align="right">5</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0.0006396</td>
+<td align="right">0.4998401</td>
+<td align="right">0.0017036</td>
+<td align="right">0.0002401</td>
+</tr>
+<tr class="even">
+<td align="right">37</td>
+<td align="right">4</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0.0004797</td>
+<td align="right">0.5772118</td>
+<td align="right">0.0014869</td>
+<td align="right">0.0001548</td>
+</tr>
+<tr class="odd">
+<td align="right">38</td>
+<td align="right">3</td>
+<td align="right">3</td>
+<td align="right">0</td>
+<td align="right">0.0000000</td>
+<td align="right">Inf</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+</tr>
+</tbody>
 </table>
-</div>
-<pre class="r"><code>#median age at first try of a drug is 16 
-survfit(Surv(First_Try, Any_Drug_Use) ~ 1, data = df_Drugs79)</code></pre>
-<pre><code>## Call: survfit(formula = Surv(First_Try, Any_Drug_Use) ~ 1, data = df_Drugs79)
-## 
-##    6432 observations deleted due to missingness 
-##         n events median 0.95LCL 0.95UCL
-## [1,] 6254   6254     16      16      16</code></pre>
-<pre class="r"><code># I want to see if this varies by the parent and the kid drug data 
-#make a data frame with the parent Any_Drug_Use, and the kid _First_Try 
-
-df_KidsDrugsSkinny &lt;- df_KidsDrugs %&gt;%
-  select(c(&quot;First_Try&quot;,&quot;Any_Drug_Use&quot;,&quot;FU_Ord&quot;,&quot;CASEID&quot;,&quot;ExtendedID&quot;)) %&gt;%
-  mutate(Group = 1)
-
-df_Drugs79Skinny &lt;- df_Drugs79 %&gt;%
-  select(c(&quot;CASEID&quot;,&quot;ExtendedID&quot;,&quot;Any_Drug_Use&quot;,&quot;FU_Ord&quot;,&quot;First_Try&quot;)) %&gt;%
-  mutate(Group =2)
-
-df_DrugsSkinny &lt;- rbind(df_KidsDrugsSkinny, df_Drugs79Skinny)
-                
-#Now I can run a survival analysis comparing groups 
-#median age for the 79ers and kids was 16 which is cool 
-survdiff(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny)</code></pre>
-<pre><code>## Call:
-## survdiff(formula = Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny)
-## 
-## n=12551, 11686 observations deleted due to missingness.
-## 
-##            N Observed Expected (O-E)^2/E (O-E)^2/V
-## Group=1 6297     6297     6785      35.1       102
-## Group=2 6254     6254     5766      41.3       102
-## 
-##  Chisq= 102  on 1 degrees of freedom, p= &lt;2e-16</code></pre>
-<pre class="r"><code>survfit(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny)</code></pre>
-<pre><code>## Call: survfit(formula = Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny)
-## 
-##    11686 observations deleted due to missingness 
-##            n events median 0.95LCL 0.95UCL
-## Group=1 6297   6297     16      16      16
-## Group=2 6254   6254     16      16      16</code></pre>
-<pre class="r"><code>survfit2(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt; 
-  ggsurvfit() +
-  labs(title =&quot;Survival Analysis of NLSY Drug Initation Data on the &#39;79 Cohort and Their Kids&quot;,
-    x = &quot;Years&quot;,
-    y = &quot;Overall survival probability&quot;) +
-  add_confidence_interval() +
-  add_risktable() </code></pre>
-<p><img src="p05_files/figure-html/unnamed-chunk-3-2.png" width="672" /></p>
-<pre class="r"><code>#I don&#39;t know what this means but the helpful tutorial said to do it 
-coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt; 
- tbl_regression(exp = TRUE) </code></pre>
-<div id="fnlrdvsjgc" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#fnlrdvsjgc table {
+<p><img src="p05_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>Next, I wanted to see if the survival pattern varies by gen1 and
+gen2.</p>
+<p>I merge drug use variables from Gen1 and Gen2 and make a new variable
+called Group. Unfortunately, to add confusion, I labeled gen1 as 2 and
+gen2 as 1.<br />
+<img src="p05_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<div id="yghcklonjr" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#yghcklonjr table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#fnlrdvsjgc thead, #fnlrdvsjgc tbody, #fnlrdvsjgc tfoot, #fnlrdvsjgc tr, #fnlrdvsjgc td, #fnlrdvsjgc th {
+#yghcklonjr thead, #yghcklonjr tbody, #yghcklonjr tfoot, #yghcklonjr tr, #yghcklonjr td, #yghcklonjr th {
   border-style: none;
 }
 
-#fnlrdvsjgc p {
+#yghcklonjr p {
   margin: 0;
   padding: 0;
 }
 
-#fnlrdvsjgc .gt_table {
+#yghcklonjr .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -1177,12 +782,12 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   border-left-color: #D3D3D3;
 }
 
-#fnlrdvsjgc .gt_caption {
+#yghcklonjr .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#fnlrdvsjgc .gt_title {
+#yghcklonjr .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -1194,7 +799,7 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   border-bottom-width: 0;
 }
 
-#fnlrdvsjgc .gt_subtitle {
+#yghcklonjr .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -1206,7 +811,7 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   border-top-width: 0;
 }
 
-#fnlrdvsjgc .gt_heading {
+#yghcklonjr .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -1218,13 +823,13 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   border-right-color: #D3D3D3;
 }
 
-#fnlrdvsjgc .gt_bottom_border {
+#yghcklonjr .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#fnlrdvsjgc .gt_col_headings {
+#yghcklonjr .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1239,7 +844,7 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   border-right-color: #D3D3D3;
 }
 
-#fnlrdvsjgc .gt_col_heading {
+#yghcklonjr .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1259,7 +864,7 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   overflow-x: hidden;
 }
 
-#fnlrdvsjgc .gt_column_spanner_outer {
+#yghcklonjr .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1271,15 +876,15 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   padding-right: 4px;
 }
 
-#fnlrdvsjgc .gt_column_spanner_outer:first-child {
+#yghcklonjr .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#fnlrdvsjgc .gt_column_spanner_outer:last-child {
+#yghcklonjr .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#fnlrdvsjgc .gt_column_spanner {
+#yghcklonjr .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -1291,11 +896,11 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   width: 100%;
 }
 
-#fnlrdvsjgc .gt_spanner_row {
+#yghcklonjr .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#fnlrdvsjgc .gt_group_heading {
+#yghcklonjr .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1321,7 +926,7 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   text-align: left;
 }
 
-#fnlrdvsjgc .gt_empty_group_heading {
+#yghcklonjr .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1336,15 +941,15 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   vertical-align: middle;
 }
 
-#fnlrdvsjgc .gt_from_md > :first-child {
+#yghcklonjr .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#fnlrdvsjgc .gt_from_md > :last-child {
+#yghcklonjr .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#fnlrdvsjgc .gt_row {
+#yghcklonjr .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1363,7 +968,7 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   overflow-x: hidden;
 }
 
-#fnlrdvsjgc .gt_stub {
+#yghcklonjr .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1376,7 +981,7 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   padding-right: 5px;
 }
 
-#fnlrdvsjgc .gt_stub_row_group {
+#yghcklonjr .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1390,15 +995,15 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   vertical-align: top;
 }
 
-#fnlrdvsjgc .gt_row_group_first td {
+#yghcklonjr .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#fnlrdvsjgc .gt_row_group_first th {
+#yghcklonjr .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#fnlrdvsjgc .gt_summary_row {
+#yghcklonjr .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1408,16 +1013,16 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   padding-right: 5px;
 }
 
-#fnlrdvsjgc .gt_first_summary_row {
+#yghcklonjr .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#fnlrdvsjgc .gt_first_summary_row.thick {
+#yghcklonjr .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#fnlrdvsjgc .gt_last_summary_row {
+#yghcklonjr .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1427,7 +1032,7 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   border-bottom-color: #D3D3D3;
 }
 
-#fnlrdvsjgc .gt_grand_summary_row {
+#yghcklonjr .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1437,7 +1042,7 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   padding-right: 5px;
 }
 
-#fnlrdvsjgc .gt_first_grand_summary_row {
+#yghcklonjr .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1447,7 +1052,7 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   border-top-color: #D3D3D3;
 }
 
-#fnlrdvsjgc .gt_last_grand_summary_row_top {
+#yghcklonjr .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1457,11 +1062,11 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   border-bottom-color: #D3D3D3;
 }
 
-#fnlrdvsjgc .gt_striped {
+#yghcklonjr .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#fnlrdvsjgc .gt_table_body {
+#yghcklonjr .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1470,7 +1075,7 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   border-bottom-color: #D3D3D3;
 }
 
-#fnlrdvsjgc .gt_footnotes {
+#yghcklonjr .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1484,7 +1089,7 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   border-right-color: #D3D3D3;
 }
 
-#fnlrdvsjgc .gt_footnote {
+#yghcklonjr .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1493,7 +1098,7 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   padding-right: 5px;
 }
 
-#fnlrdvsjgc .gt_sourcenotes {
+#yghcklonjr .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1507,7 +1112,7 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   border-right-color: #D3D3D3;
 }
 
-#fnlrdvsjgc .gt_sourcenote {
+#yghcklonjr .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1515,72 +1120,72 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
   padding-right: 5px;
 }
 
-#fnlrdvsjgc .gt_left {
+#yghcklonjr .gt_left {
   text-align: left;
 }
 
-#fnlrdvsjgc .gt_center {
+#yghcklonjr .gt_center {
   text-align: center;
 }
 
-#fnlrdvsjgc .gt_right {
+#yghcklonjr .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#fnlrdvsjgc .gt_font_normal {
+#yghcklonjr .gt_font_normal {
   font-weight: normal;
 }
 
-#fnlrdvsjgc .gt_font_bold {
+#yghcklonjr .gt_font_bold {
   font-weight: bold;
 }
 
-#fnlrdvsjgc .gt_font_italic {
+#yghcklonjr .gt_font_italic {
   font-style: italic;
 }
 
-#fnlrdvsjgc .gt_super {
+#yghcklonjr .gt_super {
   font-size: 65%;
 }
 
-#fnlrdvsjgc .gt_footnote_marks {
+#yghcklonjr .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#fnlrdvsjgc .gt_asterisk {
+#yghcklonjr .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#fnlrdvsjgc .gt_indent_1 {
+#yghcklonjr .gt_indent_1 {
   text-indent: 5px;
 }
 
-#fnlrdvsjgc .gt_indent_2 {
+#yghcklonjr .gt_indent_2 {
   text-indent: 10px;
 }
 
-#fnlrdvsjgc .gt_indent_3 {
+#yghcklonjr .gt_indent_3 {
   text-indent: 15px;
 }
 
-#fnlrdvsjgc .gt_indent_4 {
+#yghcklonjr .gt_indent_4 {
   text-indent: 20px;
 }
 
-#fnlrdvsjgc .gt_indent_5 {
+#yghcklonjr .gt_indent_5 {
   text-indent: 25px;
 }
 
-#fnlrdvsjgc .katex-display {
+#yghcklonjr .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#fnlrdvsjgc div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#yghcklonjr div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -1605,6 +1210,560 @@ coxph(Surv(First_Try, Any_Drug_Use) ~ Group, data = df_DrugsSkinny) |&gt;
     </tr>
   </tfoot>
 </table>
+</div>
+<p>These results show that Gen1 and Gen2 follow similar drug-initiation
+trajectories, though there are differences. Based on the hazard ratio,
+one of the groups is 23% more likely to be at risk at any given time,
+but I am having a hard time figuring out how the Surv function is
+picking a reference group.</p>
+<p>Next up, I am going to run a survival analysis grouping by
+relatedness type. First I do more data management stuff, and then I also
+created a color pallete for the browns and golds I thought would like
+nice in the figure.</p>
+<p><img src="p05_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<div id="doogfrrdgl" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#doogfrrdgl table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#doogfrrdgl thead, #doogfrrdgl tbody, #doogfrrdgl tfoot, #doogfrrdgl tr, #doogfrrdgl td, #doogfrrdgl th {
+  border-style: none;
+}
+
+#doogfrrdgl p {
+  margin: 0;
+  padding: 0;
+}
+
+#doogfrrdgl .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#doogfrrdgl .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#doogfrrdgl .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#doogfrrdgl .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#doogfrrdgl .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#doogfrrdgl .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#doogfrrdgl .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#doogfrrdgl .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#doogfrrdgl .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#doogfrrdgl .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#doogfrrdgl .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#doogfrrdgl .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#doogfrrdgl .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#doogfrrdgl .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#doogfrrdgl .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#doogfrrdgl .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#doogfrrdgl .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#doogfrrdgl .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#doogfrrdgl .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#doogfrrdgl .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#doogfrrdgl .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#doogfrrdgl .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#doogfrrdgl .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#doogfrrdgl .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#doogfrrdgl .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#doogfrrdgl .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#doogfrrdgl .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#doogfrrdgl .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#doogfrrdgl .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#doogfrrdgl .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#doogfrrdgl .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#doogfrrdgl .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#doogfrrdgl .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#doogfrrdgl .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#doogfrrdgl .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#doogfrrdgl .gt_left {
+  text-align: left;
+}
+
+#doogfrrdgl .gt_center {
+  text-align: center;
+}
+
+#doogfrrdgl .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#doogfrrdgl .gt_font_normal {
+  font-weight: normal;
+}
+
+#doogfrrdgl .gt_font_bold {
+  font-weight: bold;
+}
+
+#doogfrrdgl .gt_font_italic {
+  font-style: italic;
+}
+
+#doogfrrdgl .gt_super {
+  font-size: 65%;
+}
+
+#doogfrrdgl .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#doogfrrdgl .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#doogfrrdgl .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#doogfrrdgl .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#doogfrrdgl .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#doogfrrdgl .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#doogfrrdgl .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#doogfrrdgl .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#doogfrrdgl div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+  <thead>
+    <tr class="gt_col_headings">
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="label"><span class='gt_from_md'><strong>Characteristic</strong></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="estimate"><span class='gt_from_md'><strong>HR</strong></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="conf.low"><span class='gt_from_md'><strong>95% CI</strong></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="p.value"><span class='gt_from_md'><strong>p-value</strong></span></th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td headers="label" class="gt_row gt_left">Group</td>
+<td headers="estimate" class="gt_row gt_center">1.23</td>
+<td headers="conf.low" class="gt_row gt_center">1.18, 1.27</td>
+<td headers="p.value" class="gt_row gt_center"><0.001</td></tr>
+  </tbody>
+  <tfoot>
+    <tr class="gt_sourcenotes">
+      <td class="gt_sourcenote" colspan="4"><span class='gt_from_md'>Abbreviations: CI = Confidence Interval, HR = Hazard Ratio</span></td>
+    </tr>
+  </tfoot>
+</table>
+</div>
+<div id="mets" class="section level2">
+<h2>Mets</h2>
+<p>It starts with whole lot of cleaning and reshaping data to get it
+into the right format.</p>
+<p>Here is where the mysterious error codes start appearing. I think I
+am aborting this mission.</p>
+<div id="mets-failure" class="section level3">
+<h3>Mets failure</h3>
+<p>Ok it turns out the problem is somehow after all of the filtering,
+there is only one pair of twins in df_final that didn’t do drugs. making
+sense why this gave me so many problems. df_long_pairs is fine though,
+so whatever modification started in step 1 is the problem</p>
+<pre id="r" message="FALSE," warning="FALSE"><code>#it looks like prt0, so now we move on to 
+df_wide &lt;- fast.reshape(df_long_pairs, id=&quot;id&quot;, num=&quot;num&quot;, varying=c(&quot;time&quot;,&quot;status&quot;,&quot;drugs&quot;)) 
+df_time &lt;- subset(df_wide, select=c(time1, time2, zyg))
+tau &lt;- 39
+tt &lt;- seq(11, tau, length.out=5)
+
+a0 &lt;- bptwin.time(drugs ~ 1, 
+                  data=df_long_pairs, id=&quot;id&quot;, zyg=&quot;zyg&quot;, DZ=&quot;DZ&quot;, type=&quot;cor&quot;,
+              cens.formula=Surv(time,status==0)~zyg, breaks=tau)
+summary(a0)</code></pre>
+<pre id="r" message="FALSE," warning="FALSE"><code>#alt version w different error
+# status is still looking ok but this slashed my sample size 
+df_final &lt;- as.data.frame(lapply(df_long_pairs, function(x) {
+  if(is.factor(x)) return(as.character(x))
+  as.vector(x)
+}))
+
+# 2. Force ID and zyg to be the simplest types possible
+df_final$id &lt;- as.integer(df_final$id)
+df_final$zyg &lt;- as.character(df_final$zyg)
+
+# 3. Sort one last time
+df_final &lt;- df_final[order(df_final$id), ]
+
+df_final &lt;- df_final %&gt;% ##ok heres the problem 
+  filter(time &lt; 25)
+
+# 4. Try the original call with the &#39;naked&#39; data
+a0 &lt;- bptwin.time(drugs ~ 1, 
+                  data = df_final, 
+                  id = &quot;id&quot;, zyg = &quot;zyg&quot;, DZ = &quot;DZ&quot;, type = &quot;cor&quot;,
+                  cens.formula = Surv(time, status == 1) ~ zyg, 
+                  breaks = c(12, 16, 19),
+                  n.times = 1)
+summary(a0)
+
+#sick plots from the plot_twin mets function examples: work on replicating with my own data 
+
+data(&quot;df_final&quot;, package=&quot;mets&quot;)
+twinwide &lt;- fast.reshape(df_final, id=&quot;id&quot;,varying=c(&quot;drugs&quot;))
+datamz &lt;- log(subset(twinwide, zyg==&quot;MZ&quot;)[,c(&quot;drugs1&quot;,&quot;drugs2&quot;)])
+
+# continuous variables
+plot_twin(datamz)
+
+# categorical variables
+datamz2 &lt;- datamz
+datamz2[, 1] &lt;- cut(datamz[, 1], 4)
+datamz2[, 2] &lt;- cut(datamz[, 2], 4)
+plot_twin(datamz2, color = TRUE)
+
+# survival variables #this runs on my data, but something fishy going on 
+cens1 &lt;- rbinom(nrow(datamz), 1, 0.5)
+cens2 &lt;- rbinom(nrow(datamz), 1, 0.5)
+datamz2[, 1] &lt;- Event(datamz[, 1], cens1)
+datamz2[, 2] &lt;- suppressWarnings(Event(datamz[, 2], cens2))
+plot_twin(datamz2)
+
+rm(datamz, datamz2, cens1, cens2)</code></pre>
+</div>
 </div>
 
 
