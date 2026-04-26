@@ -1,5 +1,5 @@
 ---
-title: "Automating the Hermine Interval ACE proceedure"
+title: "Automating the Hermine Interval ACE procedure"
 ---
 
 Loading packages and sourcing my BG helpers 
@@ -13,6 +13,8 @@ library(ACEsimFit)
 library(tidyr)
 library(dplyr)
 library(purrr)
+library(polycor)
+library(lattice)
 
 source("/Users/caileyfay/Documents/Research/Github/risky_gambling/helpers.R")
 source("/Users/caileyfay/Documents/Research/Github/risky_gambling/EasyMx/R/emxBehaviorGenetics.R")
@@ -106,7 +108,7 @@ histogram(sim_df$y1)
 
 Interval Ace 
 ```{r}
-source("sim_df_interval_ACE.r")
+source("~/Documents/Research/Github/risky_gambling/sim_df_interval_ACE.r")
 sumACE
 ```
 
@@ -133,7 +135,7 @@ estimates_df1 <- R1$algebra
 #now scale it up so I don't have to repeat manually ten times 
 #can't figure it out yet with lapply so I am going to for loop it 
 
-estimates_list <- lapply(model_results_list, function(fit) {
+estimates_list <- lapply(results, function(fit) {
   s <- summary(fit)
   return(s$parameters) 
 })
