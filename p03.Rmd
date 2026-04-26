@@ -209,7 +209,7 @@ kable(easy_result, caption = "EasyMx Interval ACE Results for Iteration 1")
 ```
 
 Now I want to repeat this for the other 9 iterations 
-```{r echo=FALSE, message=TRUE, warning=FALSE, results='hide'}
+```{r echo=TRUE, message=TRUE, warning=FALSE, results='hide'}
 run_int <- function(df) {
    model <- emxTwinModel(model="Cholesky", relatedness ='RCoef', data=df, run=TRUE, use=c('y1','y2'), name='model', components='ACE')
    }
@@ -395,5 +395,6 @@ I did look a little closer at the EasyMx Iteration1 output, and the simulated nu
 Will return to the following if time allows: 
 -Need to do the ordinal with easyMx - will need to modify the function 
 -Need to get down to the bottom of why my EasyMx iterations are giving the wrong values. The Hermine results with iteration 1 are consistent with the simulated data, but EasyMx is not. 
+-Also worth considering if its the missing data injections that are fucking it up - its set to random, but perhaps the amount of missingness has consequences??
 
 

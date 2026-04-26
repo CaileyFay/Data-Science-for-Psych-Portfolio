@@ -456,6 +456,10 @@ second.</h3>
 <p>emxTwinModel function already modified (sourced at the
 beginning).</p>
 <p>Now I want to repeat this for the other 9 iterations</p>
+<pre class="r"><code>run_int &lt;- function(df) {
+   model &lt;- emxTwinModel(model=&quot;Cholesky&quot;, relatedness =&#39;RCoef&#39;, data=df, run=TRUE, use=c(&#39;y1&#39;,&#39;y2&#39;), name=&#39;model&#39;, components=&#39;ACE&#39;)
+   }
+results &lt;- lapply(df_list, run_int)</code></pre>
 <pre><code>## Running model with 4 parameters
 ## Running model with 4 parameters
 ## Running model with 4 parameters
@@ -466,6 +470,7 @@ beginning).</p>
 ## Running model with 4 parameters
 ## Running model with 4 parameters
 ## Running model with 4 parameters</code></pre>
+<pre class="r"><code>results</code></pre>
 <div id="this-is-not-so-easy" class="section level3">
 <h3>This is not so easy</h3>
 <p>Now I have a big list of model outputs, but I can’t do anything with
@@ -634,7 +639,9 @@ simulated numbers are within the CIs, so that is encouraging.</p>
 with easyMx - will need to modify the function -Need to get down to the
 bottom of why my EasyMx iterations are giving the wrong values. The
 Hermine results with iteration 1 are consistent with the simulated data,
-but EasyMx is not.</p>
+but EasyMx is not. -Also worth considering if its the missing data
+injections that are fucking it up - its set to random, but perhaps the
+amount of missingness has consequences??</p>
 </div>
 
 
