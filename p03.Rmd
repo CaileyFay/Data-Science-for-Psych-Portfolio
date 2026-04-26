@@ -199,17 +199,14 @@ sumACE
 Now I want to repeat this for the other 9 iterations 
 ```{r}
 run_int <- function(df) {
- 
    model <- emxTwinModel(model="Cholesky", relatedness ='RCoef', data=df, run=TRUE, use=c('y1','y2'), name='model', components='ACE')
-   
-}
-
+   }
 results <- lapply(df_list, run_int)
 ```
 
 ### This is not so easy 
 
-Now I have a big list of model outputs, but I can't do anything with it. I want means, parameters, and I want it clean and easy like it was for the hermine scripts. 
+Now I have a big list of model outputs, but I can't do anything with it. I want means, parameters, and I want it clean and easy like it was for the Hermine scripts. 
 
 #### Option 1: Try to figure out a clean way of extracting parameters with EasyMx
 
@@ -247,65 +244,139 @@ estimates_df9 <- R9$parameters
 R10 <- summary(results$Iteration10)
 estimates_df10 <- R10$parameters
 
+estimates_list <- list(estimates_df1, estimates_df2, estimates_df3, estimates_df4, estimates_df5, estimates_df6, estimates_df7, estimates_df8, estimates_df10)
+```
+
+
+Now I want to make a function that uses my method for standardizing A,C,E and putting it into tables 
+
+1) lets try it out on Iteration 2 
+```{r}
+estimates_df2
+
+# Generate & Print Output
+# additive genetic variance, a^2
+A <- estimates_df2$Estimate[estimates_df2$name == "sqrtA11"]^2
+# shared environmental variance, c^2
+C  <- estimates_df2$Estimate[estimates_df2$name == "sqrtC11"]^2
+# unique environmental variance, e^2
+E  <- estimates_df2$Estimate[estimates_df2$name == "sqrtE11"]^2
+# total variance
+V  <- (A+C+E)
+# standardized A
+a2 <- A/V
+# standardized C
+c2 <- C/V
+# standardized E
+e2 <- E/V
+# table of estimates
+standACE2 <- rbind(cbind(a2,c2,e2))
+```
+
+2) Now we scale it up by trying to make a function
+```{r}
+#I want to use lapply to make a standACEi for each iteration
+
+stand <- function(data){
+  A <- data$Estimate[data$name == "sqrtA11"]^2
+# shared environmental variance, c^2
+C  <- data$Estimate[data$name == "sqrtC11"]^2
+# unique environmental variance, e^2
+E  <- data$Estimate[data$name == "sqrtE11"]^2
+# total variance
+V  <- (A+C+E)
+# standardized A
+a2 <- A/V
+# standardized C
+c2 <- C/V
+# standardized E
+e2 <- E/V
+# table of estimates
+return(rbind(cbind(a2,c2,e2)))
+}
+
+standardized <- lapply(estimates_list, stand)
+results <- do.call(rbind, standardized)
+
+#Bind them all together at the end 
+```
+
+The numbers aren't looking quite right to me but at least now the output is in the form I wanted. At least for iteration1, EasyMx and hermines interval script produced the exact same results, but when I pull out the standardized, its wrong - maybe I am accidentally taking the square root twice? 
+
+```{r}
+rownames(results) <- c("1","2","3","4","5","6","7","8","10")
+colnames(results) <- c("A","C","E")
+kable(results, caption="Interval ACE Model Estimates Across Iterations")
+```
+
+```{r include=FALSE}
+#Hot mess relic 
+
 #just in case I want to do something with this 
-eh <- rbind(estimates_df1,estimates_df2, estimates_df3, estimates_df4, estimates_df5, estimates_df6, estimates_df7, estimates_df8, estimates_df9, estimates_df10)
-eh <- eh %>%
-  mutate(It = rep(1:10, each = 4))
-
-A <- eh %>%
-  filter(name == "sqrtA11") #these need to be transformed so that they are actually the A ( or C or E ) so I atually probably need to approach this diffrently 
-
-C <-eh %>%
-  filter(name == "sqrtC11")
-
-E <- eh %>%
-  filter(name == "sqrtE11")
+# eh <- rbind(estimates_df1,estimates_df2, estimates_df3, estimates_df4, estimates_df5, estimates_df6, estimates_df7, estimates_df8, estimates_df9, estimates_df10)
+# eh <- eh %>%
+#   mutate(It = rep(1:10, each = 4))
+# 
+# A <- eh %>%
+#   filter(name == "sqrtA11") #these need to be transformed so that they are actually the A ( or C or E ) so I atually probably need to approach this diffrently 
+# 
+# C <-eh %>%
+#   filter(name == "sqrtC11")
+# 
+# E <- eh %>%
+#   filter(name == "sqrtE11")
 ```
 
 #### Option 2: Try to build a function that passes each iteraction to the hermine method
 
-This seems hard. 
+This seems hard. Leaving it be for now. 
 
 ### Phew, Time to Start Plotting 
 
-now that the parameters are workable, I want to graph them as 3 overlapping density distributions 
-```{r}
-ggplot(A, mapping = aes(x=Estimate)) +
-  geom_density() +
-  xlim(0, 1)
+now that the parameters stored in a more accessible way, I want to graph them as 3 overlapping density distributions.  
 
-ggplot(C, mapping = aes(x=Estimate)) +
-  geom_density() +
-  xlim(0, 1)
 
-ggplot(E, mapping = aes(x=Estimate)) +
-  geom_density() +
-  xlim(0, 1)
+```{r include=FALSE}
+#just thinking this through by starting very simple and layering up 
+df_results <- as.data.frame(results)
 
-#Dubious 
-ggplot(eh, mapping = aes(x = Estimate, fill = name)) +
-  geom_density() +
-  xlim(0,1) +
-  scale_fill_brewer() +
-  theme_minimal()
+ggplot(df_results, mapping=aes(x=A)) +
+  geom_density()
 
+ggplot(df_results, mapping=aes(x=C)) +
+  geom_density()
+
+ggplot(df_results, mapping=aes(x=E)) +
+  geom_density()
 ```
 
-Need to do the ordinal with easyMx - will need to modify the function 
-```{r}
+Now I am going to reshape the data and plot:
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+results_long <- pivot_longer(
+  df_results,
+  cols = c("A","C","E"),
+  names_to = "Estimate")
 
+results_long$Iteration <- rep(1:9, each = 3)
+
+ggplot(results_long, mapping=aes(x=value, fill=Estimate)) + 
+  geom_density() +
+  scale_fill_manual(values= c("lightblue","#8EC3E6","#6BADCE")) +
+  theme_minimal() +
+  labs(title="Distribution of A,C,E Estimates Across 9 Iterations",
+       subtitle="Simulated Parameters: A =.3, C =.2, E =.5",
+       x="Value",
+       y="Density",
+       fill="Parameter")
 ```
+These values aren't even close, but I am going to leave it as is for now. Something definitely went wrong and the problem is either with Hermine's script or EasyMx's, or in the way that I pulled out the standardized parameters. Major cause for concern. 
 
-Trying out this function 
-```{r}
+I did look a little closer at the EasyMx Iteration1 output, and the simulated numbers are within the CIs, so that is encouraging. 
 
+## Further steps
 
+Will return to the following if time allows: 
+-Need to do the ordinal with easyMx - will need to modify the function 
+-Need to get down to the bottom of why my EasyMx iterations are giving the wrong values. The Hermine results with iteration 1 are consistent with the simulated data, but EasyMx is not. 
 
-```
-
-```{r}
-
-
-
-```
 

@@ -436,10 +436,14 @@ ironic). So I asked Gemini how it would do this, given an openMx ACE
 output. For your entertainment, this is what it gave me.</p>
 <div class="grViz html-widget html-fill-item" id="htmlwidget-c85b3454dce0fe4dc731" style="width:672px;height:480px;"></div>
 <script type="application/json" data-for="htmlwidget-c85b3454dce0fe4dc731">{"x":{"diagram":"\ndigraph ACE_Model {\n  graph [layout = neato, overlap = FALSE, outputorder = edgesfirst]\n  \n  # Latent Variables\n  node [shape = circle, fixedsize = true, width = 0.8]\n  A [label = \"A\"]; C [label = \"C\"]; E [label = \"E\"]\n  \n  # Observed Variable\n  node [shape = box, fixedsize = true, width = 1.2]\n  Trait [label = \"Observed\nTrait\"]\n  \n  # Paths and Labels\n  A -> Trait [label = \"0.54\"]\n  C -> Trait [label = \"0.06\"]\n  E -> Trait [label = \"0.41\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
-<p>It reminds me of the graphing equivalent to this gem.</p>
-<pre class="r"><code>knitr::include_graphics(&quot;funny_embed.jpeg&quot;)</code></pre>
-<p><img src="funny_embed.jpeg" width="104" /> ### Descriptives: Interval
-ACE uses the first variable, Ordinal uses the second.</p>
+<p>It reminds me of the graphing equivalent to this gem.
+<img src="funny_embed.jpeg" width="104" /></p>
+</div>
+<div
+id="descriptives-interval-ace-uses-the-first-variable-ordinal-uses-the-second."
+class="section level3">
+<h3>Descriptives: Interval ACE uses the first variable, Ordinal uses the
+second.</h3>
 <p><img src="p03_files/figure-html/unnamed-chunk-10-1.png" width="672" /><img src="p03_files/figure-html/unnamed-chunk-10-2.png" width="672" /></p>
 </div>
 </div>
@@ -478,18 +482,15 @@ beginning).</p>
 ## AIC:      5563.7002              19119.700                19119.718
 ## BIC:    -35943.2091              19150.342                19134.454
 ## To get additional fit indices, see help(mxRefModels)
-## timestamp: 2026-04-26 13:47:53 
-## Wall clock time: 0.037484884 secs 
+## timestamp: 2026-04-26 14:44:11 
+## Wall clock time: 0.037142038 secs 
 ## optimizer:  SLSQP 
 ## OpenMx version number: 2.22.10 
 ## Need help?  See help(mxSummary)</code></pre>
 <p>Now I want to repeat this for the other 9 iterations</p>
 <pre class="r"><code>run_int &lt;- function(df) {
- 
    model &lt;- emxTwinModel(model=&quot;Cholesky&quot;, relatedness =&#39;RCoef&#39;, data=df, run=TRUE, use=c(&#39;y1&#39;,&#39;y2&#39;), name=&#39;model&#39;, components=&#39;ACE&#39;)
-   
-}
-
+   }
 results &lt;- lapply(df_list, run_int)</code></pre>
 <pre><code>## Running model with 4 parameters
 ## Running model with 4 parameters
@@ -505,7 +506,7 @@ results &lt;- lapply(df_list, run_int)</code></pre>
 <h3>This is not so easy</h3>
 <p>Now I have a big list of model outputs, but I can’t do anything with
 it. I want means, parameters, and I want it clean and easy like it was
-for the hermine scripts.</p>
+for the Hermine scripts.</p>
 <div
 id="option-1-try-to-figure-out-a-clean-way-of-extracting-parameters-with-easymx"
 class="section level4">
@@ -544,56 +545,165 @@ estimates_df9 &lt;- R9$parameters
 R10 &lt;- summary(results$Iteration10)
 estimates_df10 &lt;- R10$parameters
 
-#just in case I want to do something with this 
-eh &lt;- rbind(estimates_df1,estimates_df2, estimates_df3, estimates_df4, estimates_df5, estimates_df6, estimates_df7, estimates_df8, estimates_df9, estimates_df10)
-eh &lt;- eh %&gt;%
-  mutate(It = rep(1:10, each = 4))
+estimates_list &lt;- list(estimates_df1, estimates_df2, estimates_df3, estimates_df4, estimates_df5, estimates_df6, estimates_df7, estimates_df8, estimates_df10)</code></pre>
+<p>Now I want to make a function that uses my method for standardizing
+A,C,E and putting it into tables</p>
+<ol style="list-style-type: decimal">
+<li>lets try it out on Iteration 2</li>
+</ol>
+<pre class="r"><code>estimates_df2</code></pre>
+<pre><code>##      name matrix row col    Estimate   Std.Error lbound ubound lboundMet uboundMet
+## 1 sqrtA11  sqrtA   1   1  0.13406482 0.216033015  1e-06     NA     FALSE     FALSE
+## 2 sqrtC11  sqrtC   1   1  0.57666558 0.023909404  1e-06     NA     FALSE     FALSE
+## 3 sqrtE11  sqrtE   1   1  0.82138592 0.017024473  1e-06     NA     FALSE     FALSE
+## 4     My1  Means  y1   1 14.98276222 0.014153758     NA     NA     FALSE     FALSE</code></pre>
+<pre class="r"><code># Generate &amp; Print Output
+# additive genetic variance, a^2
+A &lt;- estimates_df2$Estimate[estimates_df2$name == &quot;sqrtA11&quot;]^2
+# shared environmental variance, c^2
+C  &lt;- estimates_df2$Estimate[estimates_df2$name == &quot;sqrtC11&quot;]^2
+# unique environmental variance, e^2
+E  &lt;- estimates_df2$Estimate[estimates_df2$name == &quot;sqrtE11&quot;]^2
+# total variance
+V  &lt;- (A+C+E)
+# standardized A
+a2 &lt;- A/V
+# standardized C
+c2 &lt;- C/V
+# standardized E
+e2 &lt;- E/V
+# table of estimates
+standACE2 &lt;- rbind(cbind(a2,c2,e2))</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>Now we scale it up by trying to make a function</li>
+</ol>
+<pre class="r"><code>#I want to use lapply to make a standACEi for each iteration
 
-A &lt;- eh %&gt;%
-  filter(name == &quot;sqrtA11&quot;) #these need to be transformed so that they are actually the A ( or C or E ) so I atually probably need to approach this diffrently 
+stand &lt;- function(data){
+  A &lt;- data$Estimate[data$name == &quot;sqrtA11&quot;]^2
+# shared environmental variance, c^2
+C  &lt;- data$Estimate[data$name == &quot;sqrtC11&quot;]^2
+# unique environmental variance, e^2
+E  &lt;- data$Estimate[data$name == &quot;sqrtE11&quot;]^2
+# total variance
+V  &lt;- (A+C+E)
+# standardized A
+a2 &lt;- A/V
+# standardized C
+c2 &lt;- C/V
+# standardized E
+e2 &lt;- E/V
+# table of estimates
+return(rbind(cbind(a2,c2,e2)))
+}
 
-C &lt;-eh %&gt;%
-  filter(name == &quot;sqrtC11&quot;)
+standardized &lt;- lapply(estimates_list, stand)
+results &lt;- do.call(rbind, standardized)
 
-E &lt;- eh %&gt;%
-  filter(name == &quot;sqrtE11&quot;)</code></pre>
+#Bind them all together at the end </code></pre>
+<p>The numbers aren’t looking quite right to me but at least now the
+output is in the form I wanted. EasyMx and the Hermine scripts should
+get you to the same place, but my iteration 1 here does not match up
+with what I got with Hermine’s method earlier. For now though we forge
+ahead and plot.</p>
+<pre class="r"><code>rownames(results) &lt;- c(&quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot;,&quot;5&quot;,&quot;6&quot;,&quot;7&quot;,&quot;8&quot;,&quot;10&quot;)
+colnames(results) &lt;- c(&quot;A&quot;,&quot;C&quot;,&quot;E&quot;)
+kable(results, caption=&quot;Interval ACE Model Estimates Across Iterations&quot;)</code></pre>
+<table>
+<caption>Interval ACE Model Estimates Across Iterations</caption>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">A</th>
+<th align="right">C</th>
+<th align="right">E</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1</td>
+<td align="right">0.11139936</td>
+<td align="right">0.26816558</td>
+<td align="right">0.62043505</td>
+</tr>
+<tr class="even">
+<td align="left">2</td>
+<td align="right">0.01753173</td>
+<td align="right">0.32437181</td>
+<td align="right">0.65809646</td>
+</tr>
+<tr class="odd">
+<td align="left">3</td>
+<td align="right">0.11854103</td>
+<td align="right">0.22995973</td>
+<td align="right">0.65149924</td>
+</tr>
+<tr class="even">
+<td align="left">4</td>
+<td align="right">0.00526405</td>
+<td align="right">0.31693206</td>
+<td align="right">0.67780389</td>
+</tr>
+<tr class="odd">
+<td align="left">5</td>
+<td align="right">0.04147170</td>
+<td align="right">0.25986055</td>
+<td align="right">0.69866775</td>
+</tr>
+<tr class="even">
+<td align="left">6</td>
+<td align="right">0.01562877</td>
+<td align="right">0.28298541</td>
+<td align="right">0.70138581</td>
+</tr>
+<tr class="odd">
+<td align="left">7</td>
+<td align="right">0.01934775</td>
+<td align="right">0.29206759</td>
+<td align="right">0.68858466</td>
+</tr>
+<tr class="even">
+<td align="left">8</td>
+<td align="right">0.08167756</td>
+<td align="right">0.28919938</td>
+<td align="right">0.62912305</td>
+</tr>
+<tr class="odd">
+<td align="left">10</td>
+<td align="right">0.00000000</td>
+<td align="right">0.30908862</td>
+<td align="right">0.69091138</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div
 id="option-2-try-to-build-a-function-that-passes-each-iteraction-to-the-hermine-method"
 class="section level4">
 <h4>Option 2: Try to build a function that passes each iteraction to the
 hermine method</h4>
-<p>This seems hard.</p>
+<p>This seems hard. Leaving it be for now.</p>
 </div>
 </div>
 <div id="phew-time-to-start-plotting" class="section level3">
 <h3>Phew, Time to Start Plotting</h3>
-<p>now that the parameters are workable, I want to graph them as 3
-overlapping density distributions</p>
-<pre class="r"><code>ggplot(A, mapping = aes(x=Estimate)) +
-  geom_density() +
-  xlim(0, 1)</code></pre>
-<p><img src="p03_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
-<pre class="r"><code>ggplot(C, mapping = aes(x=Estimate)) +
-  geom_density() +
-  xlim(0, 1)</code></pre>
-<p><img src="p03_files/figure-html/unnamed-chunk-15-2.png" width="672" /></p>
-<pre class="r"><code>ggplot(E, mapping = aes(x=Estimate)) +
-  geom_density() +
-  xlim(0, 1)</code></pre>
-<p><img src="p03_files/figure-html/unnamed-chunk-15-3.png" width="672" /></p>
-<pre class="r"><code>#Dubious 
-ggplot(eh, mapping = aes(x = Estimate, fill = name)) +
-  geom_density() +
-  xlim(0,1) +
-  scale_fill_brewer() +
-  theme_minimal()</code></pre>
-<pre><code>## Warning: Removed 10 rows containing non-finite outside the scale range (`stat_density()`).</code></pre>
-<p><img src="p03_files/figure-html/unnamed-chunk-15-4.png" width="672" /></p>
-<p>Need to do the ordinal with easyMx - will need to modify the
-function</p>
-<p>Trying out this function</p>
+<p>now that the parameters stored in a more accessible way, I want to
+graph them as 3 overlapping density distributions.</p>
+<p>Now I am going to reshape the data and plot:
+<img src="p03_files/figure-html/unnamed-chunk-20-1.png" width="672" />
+These values aren’t even close, but I am going to leave it as is for
+now. Something definitely went wrong and the problem is either with
+Hermine’s script or EasyMx’s, or in the way that I pulled out the
+standardized parameters. Major cause for concern.</p>
 </div>
+</div>
+<div id="further-steps" class="section level2">
+<h2>Further steps</h2>
+<p>Will return to the following if time allows: -Need to do the ordinal
+with easyMx - will need to modify the function -Need to get down to the
+bottom of why my EasyMx iterations are giving the wrong values. The
+Hermine results with iteration 1 are consistent with the simulated data,
+but EasyMx is not.</p>
 </div>
 
 
