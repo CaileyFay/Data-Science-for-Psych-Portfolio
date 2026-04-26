@@ -15,39 +15,39 @@ library(qgraph)
 library(visdat)
 library(RColorBrewer)
 library(corrr)
+library(corrplot)
+library(ggcorrplot)
+library(knitr)
+library(kableExtra)
 library(GGally) #[Found it here](https://r-graph-gallery.com/correlogram.html)
-Data <- read_sav("~/Documents/GitHub/Data-Science-for-Psych-Portfolio/OnlinePsychologySurveyData.sav")
+Data <- read_sav("~/Documents/LabsD4P/Data-Science-for-Psych-Portfolio/OnlinePsychologySurveyData.sav")
 ```
 
-Next, I will create scales for self-control, self-esteem, fear of negative evaluation, religiosity, political orientation, child-oriented, conscientousness, extraversion, emotional stability, satisfaction with life, and group affiliation seeking. To make this document more readable I am going to comment out the reliability analysis stuff, as well as the summary stats I did to make sure the recoding was correct each time. 
-
-Starting with satisfaction with life: 
-```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+Next, I do a bunch of data cleaning that isn't important, but is helpful for me when I am grading my students stuff. 
+```{r include=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #5 items mean composited 
 SWLitems <- Data[,c("SWL1","SWL2","SWL3","SWL4","SWL5")]
 #alpha(SWLitems, check.keys = TRUE)
 #alpha is .91 
 #Make the composite 
-Data$SWLscale <- rowMeans(Data[,c("SWL1","SWL2","SWL3","SWL4","SWL5")], na.rm = TRUE)
-#summary(Data$SWLscale)
+Data$SWL <- rowMeans(Data[,c("SWL1","SWL2","SWL3","SWL4","SWL5")], na.rm = TRUE)
+#summary(Data$SWL)
 ```
 
-Next, religiostiy : 
-```{r}
+```{r include=FALSE}
 #10 items mean composited, no recodes 
 Religiosityitems <- Data[,c("RCI1","RCI2","RCI3","RCI4","RCI5","RCI6",
                   "RCI7","RCI8","RCI9","RCI10")]
 #alpha(Religiosityitems, check.keys = TRUE)
 #alpha is .97 
 #mean composite 
-Data$RCIscale <- rowMeans(Data[,c("RCI1","RCI2","RCI3","RCI4","RCI5","RCI6",
+Data$RCI <- rowMeans(Data[,c("RCI1","RCI2","RCI3","RCI4","RCI5","RCI6",
                   "RCI7","RCI8","RCI9","RCI10")], na.rm = TRUE)
-#summary(Data$RCIscale)
+#summary(Data$RCI)
 
 ```
 
-Fear of negative evaluation:
-```{r}
+```{r include=FALSE}
 #1-5 scale, 12 items 
 #R: 2, 4, 7, 10. Average all items to compute a total scale score.
 #Recode Variables 
@@ -102,12 +102,12 @@ FNEitems <- Data[,c("FNE1","RFNE2","FNE3","RFNE4","FNE5","FNE6",
 #alpha equals .94, so we are good to move ahead. 
 
 #Make the composite 
-Data$FNEscale <- rowMeans(Data[,c("FNE1","RFNE2","FNE3","RFNE4","FNE5","FNE6",
+Data$FNE <- rowMeans(Data[,c("FNE1","RFNE2","FNE3","RFNE4","FNE5","FNE6",
                   "RFNE7","FNE8","FNE9","RFNE10","FNE11","FNE12")], na.rm = TRUE)
-#summary(Data$FNEscale)
+#summary(Data$FNE)
 ```
-Group affiliation seeking: 
-```{r}
+
+```{r include=FALSE}
 #FMSI - Group Affiliation Seeking: 13, 14, 15, 16R, 17, 18, one to seven scale
 #recoding item 16 first 
 #table(Data$FSMI16)
@@ -127,12 +127,12 @@ GASitems <- Data[,c("FSMI13","FSMI14","FSMI15","RFSMI16","FSMI17","FSMI18")]
 #alpha(GASitems, check.keys = TRUE)
 #Alpha is .84
 #Mean composite 
-Data$GASscale <- rowMeans(Data[,c("FSMI13","FSMI14","FSMI15","RFSMI16","FSMI17","FSMI18")], na.rm = TRUE)
-summary(Data$GASscale)
+Data$GAS <- rowMeans(Data[,c("FSMI13","FSMI14","FSMI15","RFSMI16","FSMI17","FSMI18")], na.rm = TRUE)
+summary(Data$GAS)
 
 ```
-Self-esteem: 
-```{r}
+
+```{r include=FALSE}
 #items 1-10 on a 4pt likert. RSE
 #Scoring: R: 2, 5, 6, 8, and 9. Average all items to compute a total scale score
 
@@ -183,12 +183,12 @@ RSEitems <- Data[,c("RSE1","RRSE2","RSE3","RSE4","RRSE5","RRSE6","RSE7","RRSE8",
 #alpha(RSEitems, check.keys=TRUE)
 
 #Mean composite 
-Data$RSEscale <- rowMeans(Data[,c("RSE1","RRSE2","RSE3","RSE4","RRSE5","RRSE6","RSE7","RRSE8","RRSE9","RSE10")], na.rm = TRUE)
-#summary(Data$RSEscale)
+Data$RSE <- rowMeans(Data[,c("RSE1","RRSE2","RSE3","RSE4","RRSE5","RRSE6","RSE7","RRSE8","RRSE9","RSE10")], na.rm = TRUE)
+#summary(Data$RSE)
 
 ```
-Self control:
-```{r}
+
+```{r include=FALSE}
 #13 items on a 1-5 scale, called SC
 #R: 1, 2, 3, 4, 6, 9, 11, 12, 13.
 Data$RSC1 <- dplyr::case_when(
@@ -268,16 +268,18 @@ SCitems <- Data[,c("RSC1","RSC2","RSC3","RSC4","SC5","RSC6","SC7","SC8","RSC9","
 #alpha(SCitems, check.keys = TRUE)
 #Alpha is .88
 #mean composite 
-Data$SCscale <- rowMeans( Data[,c("RSC1","RSC2","RSC3","RSC4","SC5","RSC6","SC7","SC8","RSC9","SC10","RSC11","RSC12","RSC13")], na.rm = TRUE)
-#summary(Data$SCscale)
+Data$SC <- rowMeans( Data[,c("RSC1","RSC2","RSC3","RSC4","SC5","RSC6","SC7","SC8","RSC9","SC10","RSC11","RSC12","RSC13")], na.rm = TRUE)
+#summary(Data$SC)
 ```
-Political orientation: 
-```{r}
+ 
+```{r include=FALSE}
 #single item on a 1-7 scale, so its already all set 
+Data <- Data %>%
+  rename(PolyO = "PoliticalOrientation")
 
 ```
-Child-oriented:
-```{r}
+
+```{r include=FALSE}
 #FSMI 1 to 7 scale 
 #Caring for Children: 61, 62, 63R, 64, 65R, 66
 #Two recodes 
@@ -304,11 +306,11 @@ Childrenitems <- Data[,c("FSMI61","FSMI62","RFSMI63","FSMI64","RFSMI65","FSMI66"
 #alpha(Childrenitems, check.keys = TRUE)
 #alpha is .73
 #mean composite 
-Data$Childrenscale <- rowMeans( Data[,c("FSMI61","FSMI62","RFSMI63","FSMI64","RFSMI65","FSMI66")], na.rm = TRUE)
-#summary(Data$Childrenscale)
+Data$Children <- rowMeans( Data[,c("FSMI61","FSMI62","RFSMI63","FSMI64","RFSMI65","FSMI66")], na.rm = TRUE)
+#summary(Data$Children)
 ```
-Conscientousness:
-```{r}
+
+```{r include=FALSE}
 #measured with TIPI Conscientiousness; 3, 8R on a 1-7 scale 
 #recode
 Data$RTIPI8 <- dplyr::case_when(
@@ -324,12 +326,12 @@ Conscientiousitems <-Data[,c("TIPI3","RTIPI8")]
 #alpha(Conscientiousitems, check.keys = TRUE)
 #alpha is .60
 
-Data$Conscale <- rowMeans(Data[,c("TIPI3","RTIPI8")], na.rm = TRUE)
-#summary(Data$Conscale)
+Data$Consc <- rowMeans(Data[,c("TIPI3","RTIPI8")], na.rm = TRUE)
+#summary(Data$Consc)
 
 ```
-Extraversion:
-```{r}
+
+```{r include=FALSE}
 #Extraversion: 1, 6R, also the TIPI scale 
 Data$RTIPI6 <- dplyr::case_when(
   Data$TIPI6 == 1 ~ 7,
@@ -343,75 +345,175 @@ Data$RTIPI6 <- dplyr::case_when(
 Extraitems <- Data[,c("TIPI1","RTIPI6")]
 #alpha(Extraitems, check.keys = TRUE)
 #alpha is .74
-Data$Extrascale <- rowMeans(Data[,c("TIPI1","RTIPI6")], na.rm = TRUE)
-#summary(Data$Extrascale)
+Data$Extra <- rowMeans(Data[,c("TIPI1","RTIPI6")], na.rm = TRUE)
+#summary(Data$Extra)
 
 ```
-Now that everything is clean and ready to go, I will produce the correlation matrix of the following variables: self-control, self-esteem, fear of negative evaluation, religiosity, political orientation, child-oriented, conscientousness, extraversion, satisfaction with life, and group affiliation seeking. 
-```{r warning=FALSE}
-df_scales <- Data[,c("SCscale","RSEscale","FNEscale","RCIscale","Childrenscale","Conscale","Extrascale","SWLscale","GASscale","PoliticalOrientation")]
+
+## Correlation Matrix 
+
+I will produce the correlation matrix of the following variables: self-control, self-esteem, fear of negative evaluation, religiosity, political orientation, child-oriented, conscientiousness, extraversion, satisfaction with life, and group affiliation seeking.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df_scales <- Data[,c("SC","RSE","FNE","RCI","Children","Consc","Extra","SWL","GAS","PolyO")]
 cor_matrix <- cor(df_scales)
+kable(cor_matrix)
 ```
-Next, I will express it as a heatmap using the vis_cor function:
-```{r warning=FALSE}
+
+## Heatmap with vis-cor
+
+Visualizing the correlation matrix with a heatmap using the vis_cor function:
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 vis_cor(
   df_scales,
   cor_method = "pearson",
-  na_action = "pairwise.complete.obs"
-) +
-  labs(title = "Correlations Among OnlinePsychologySurvey Scales")
-#go back in and add labels 
-
+  na_action = "pairwise.complete.obs") +
+  labs(title = "Correlations Among OnlinePsychologySurvey Scales") +
+    scale_fill_gradient2(low = "white", high = "#5575cb" , mid = "#95a9df", midpoint = 0) +
+  theme_minimal() 
 ```
-Now I want to make it like a network:
-```{r warning=FALSE}
+
+Now improving it:
+```{r echo=FALSE, warnings=FALSE, message=FALSE}
+A <- cor(df_scales, use="pairwise.complete.obs")
+
+ggcorrplot(A, 
+  type = "upper") +
+  theme_minimal() +
+  theme(axis.title.y = element_blank(),
+        axis.title.x = element_blank()) +
+  labs(title = "Correlations Among OnlinePsychologySurvey Scales") +
+    scale_fill_gradient2(low = "white", high = "#5575cb" , mid = "#95a9df", midpoint = 0)
+```
+
+Perhaps a better option than vis_cor is corrplot for making something like a heatmap. Here I play around with the different corrplot options. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+corrplot(A, order = 'AOE', tl.srt = 45, #rotating the top labels so that it looks a little nicer
+         mar=c(0,0,2,0), #this part keeps the title from getting cut off
+         title = "Correlations Among Research Report Variables"
+         )
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+par(bg = "black") #this will make my whole background black
+corrplot(A, method='square', order = 'FPC', type='lower', diag=FALSE,
+         tl.srt = 45,
+         mar=c(0,0,2,0), 
+         col = COL1('YlGn'),
+         tl.col = "white",
+         bg = "black",
+         col.main = 'white',
+         title = "Correlations Among Research Report Variables")
+```
+
+
+I like this chart, but I'd maybe like it even better wake themed? 
+Ends up being too hard to figure out how to incorporate. I miss ggplot. 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+#wake <- colorRampPalette(c( "#9E7E38", "#CEB888", "#FFFDD0"))
+
+par(bg = "black") #this will make my whole background black
+corrplot(A, method='square', order = 'FPC', type='lower', diag=FALSE,
+         tl.srt = 45,
+         mar=c(0,0,2,0), 
+         col = COL1('YlOrBr'),
+         tl.col = "white",
+         bg = "black",
+         col.main = 'white',
+         title = "Correlations Among Research Report Variables")
+```
+
+I tried out some other stuff, but it is quite ugly. If interested, see p02.rmd. 
+```{r include=FALSE}
+
+corrplot.mixed(A, use="pairwise.complete.obs", order="hclust",
+         mar=c(0,0,2,0), 
+         title = "Correlations Among Research Report Variables")
+
+corrplot.mixed(A, lower = 'shade', upper = 'pie', order = 'hclust',
+         mar=c(0,0,2,0), 
+         title = "Correlations Among Research Report Variables")
+
+corrplot(A, method = 'square', diag = FALSE, order = 'hclust',
+         addrect = 3, rect.col = 'lightblue', rect.lwd = 3, tl.pos = 'd', 
+         mar=c(0,0,2,0), 
+         title = "Correlations Among Research Report Variables")
+```
+
+
+## Network Plot 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 #To make sure the matrix doesn't have any NAs - something wrong with the children scale one
-new_scales <-Data[,c("SCscale","RSEscale","FNEscale","RCIscale","Conscale","Extrascale","SWLscale","GASscale","PoliticalOrientation")]
+new_scales <-Data[,c("SC","RSE","FNE","RCI","Consc","Extra","SWL","GAS","PolyO")]
 better_cor_matrix <- cor(new_scales)
 
 network_plot(better_cor_matrix, min_cor = 0)
 #this made me really happy 
-
-ggpairs(df_scales) #way too much going on 
-
-df_scales_subset <- df_scales %>%
-  select(,c("SCscale","RSEscale","FNEscale","RCIscale","SWLscale"))
-ggpairs(df_scales_subset) #its still more condensed than I would like, the dots are too big
-
-plot(df_scales_subset , pch=20 , cex=1.5 , col="#69b3a2")
-#https://r-graph-gallery.com/98-basic-scatterplot-matrix.html
-
 ```
 
-Just because I am having a lot of fun, I am going to repeat this with the items within a scale, one with failry high reliability, and another that is only so-so: 
-```{r warning=FALSE}
+This one is cool but there is way too much going on (totally uninformative). 
+
+```{r echo = FALSE, message=FALSE, warning=FALSE}
+ggpairs(df_scales) +
+  theme_classic()
+```
+
+Still more condensed than I would like, and the dots are too big. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df_scales_subset <- df_scales %>%
+  select(,c("SC","RSE","FNE","RCI","SWL"))
+
+ggpairs(df_scales_subset) +
+  theme_classic()
+```
+
+
+Bonus activities: 
+
+The Religiosity Scale was very reliable (α = .97). Here's the heatmap of its items. Its solid blue, which tracks. Not sure what I was expecting. 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 #Religiosity items alpha was .97
 religion_cor_matrix <- cor(Religiosityitems)
 vis_cor(
   Religiosityitems,
   cor_method = "pearson",
   na_action = "pairwise.complete.obs"
-)
+) +
+  theme_minimal() +
+  scale_fill_gradient2(low = "#95a9df", high = "navy" , mid = "#005F84", midpoint = 0)
 #these are very correlated, wow 
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 #RCI1, RCI2 and RC16 have a bunch of NAs for some reason, so that is an issue with the network plot. I am going to filter them out 
 new_religiosity <-Data[,c("RCI3","RCI4","RCI5",
                   "RCI7","RCI8","RCI9","RCI10")]
 new_religion_cor_matrix <- cor(new_religiosity)
 
 network_plot(new_religion_cor_matrix, min_cor = 0) +
+    scale_fill_gradient2(low = "#95a9df", high = "navy" , mid = "#005F84", midpoint = 0) +
   labs(title = "Network Plot of Religious Commitment Inventory Items",
        subtitle = "Here is where I would list what each of the items is roughly about")
 #this is pretty dense, as you would expect 
 ```
 
 Now for the less reliable scale: self control: still fairly reliable .88
-```{r warning=FALSE}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 SC_cor_matrix <- cor(SCitems)
 vis_cor(
   SCitems,
   cor_method = "pearson",
   na_action = "pairwise.complete.obs"
-)
+) +
+   scale_fill_gradient2(low = "white", high = "#5575cb" , mid = "#95a9df", midpoint = 0) +
+  theme_minimal() +
+  labs(title = "Correlations Among Self-Control Scale Items")
 #not nearly as red as religiosity 
 #a few items are NAs in the correlation matrix, and I am just going to drop them. I am not investing time into trying to fix it. 
 new_SCitems <-Data[,c("RSC1","RSC2","SC8","RSC9","SC10","RSC11","RSC12","RSC13")]
@@ -419,8 +521,10 @@ new_SCitems_matrix <- cor(new_SCitems)
 network_plot(new_SCitems_matrix, min_cor = 0)
 #this was also cool 
 ```
-Last thing I would like to do is map fear of negative evaluation and self esteem together, since the first network plot revealed that there were very related
-```{r warning=FALSE}
+
+Last thing I would like to do is map fear of negative evaluation and self esteem together, since the first network plot revealed that there were very related.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 FNE_RSE <- Data[,c("RSE1","RRSE2","RSE3","RSE4","RRSE5","RRSE6","RSE7","RRSE8","RRSE9","RSE10","FNE1","RFNE2","FNE3","RFNE4","FNE5","FNE6",  "RFNE7","FNE8","FNE9","RFNE10","FNE11","FNE12")]
 FNE_RSE_matrix <- cor(FNE_RSE)
 #FNE6 and FNE12 are the only ones with missing data
@@ -437,22 +541,6 @@ network_plot(new_FNE_RSE_matrix, min_cor = 0) +
   labs(title = "Relationships among self esteem and fear of negative evaluation survey items")
 #this reveals four different clusters of items, which would suggest that they are each capturing something a little bit different, but still very related, about self esteem and FNE. 
 ```
-Also going to play with this, from:https://r-graph-gallery.com/201-levelplot-with-latticeextra.html
 
-This is pretty but really tells us nothing. 
-```{r}
-#play around and try to figure out what this all means and how to apply it to my own stuff 
-# library
-library(latticeExtra) 
-# showing data points on the same color scale 
-levelplot(FNEscale ~ RSEscale * SCscale, df_3numvar, 
-          panel = panel.levelplot.points, cex = 1.2
-    ) + 
-    layer_(panel.2dsmoother(..., n = 200)) 
-     #  x="Self-Esteem",
-      # y= "Self-Control")
-#adding the labels is throwing NULL for some reason 
-  #this is pretty but it isn't really telling me anything, not tremendously interpretable
-  
-```
+
 

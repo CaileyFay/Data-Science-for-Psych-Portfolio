@@ -315,400 +315,233 @@ library(dplyr)
 library(psych)
 library(qgraph)
 library(visdat)
+library(RColorBrewer)
 library(corrr)
+library(corrplot)
+library(ggcorrplot)
+library(knitr)
+library(kableExtra)
 library(GGally) #[Found it here](https://r-graph-gallery.com/correlogram.html)
-Data &lt;- read_sav(&quot;~/Documents/GitHub/Data-Science-for-Psych-Portfolio/OnlinePsychologySurveyData.sav&quot;)</code></pre>
-<p>Next, I will create scales for self-control, self-esteem, fear of
-negative evaluation, religiosity, political orientation, child-oriented,
-conscientousness, extraversion, emotional stability, satisfaction with
-life, and group affiliation seeking. To make this document more readable
-I am going to comment out the reliability analysis stuff, as well as the
-summary stats I did to make sure the recoding was correct each time.</p>
-<p>Starting with satisfaction with life:</p>
-<pre class="r"><code>#5 items mean composited 
-SWLitems &lt;- Data[,c(&quot;SWL1&quot;,&quot;SWL2&quot;,&quot;SWL3&quot;,&quot;SWL4&quot;,&quot;SWL5&quot;)]
-#alpha(SWLitems, check.keys = TRUE)
-#alpha is .91 
-#Make the composite 
-Data$SWLscale &lt;- rowMeans(Data[,c(&quot;SWL1&quot;,&quot;SWL2&quot;,&quot;SWL3&quot;,&quot;SWL4&quot;,&quot;SWL5&quot;)], na.rm = TRUE)
-#summary(Data$SWLscale)</code></pre>
-<p>Next, religiostiy :</p>
-<pre class="r"><code>#10 items mean composited, no recodes 
-Religiosityitems &lt;- Data[,c(&quot;RCI1&quot;,&quot;RCI2&quot;,&quot;RCI3&quot;,&quot;RCI4&quot;,&quot;RCI5&quot;,&quot;RCI6&quot;,
-                  &quot;RCI7&quot;,&quot;RCI8&quot;,&quot;RCI9&quot;,&quot;RCI10&quot;)]
-#alpha(Religiosityitems, check.keys = TRUE)
-#alpha is .97 
-#mean composite 
-Data$RCIscale &lt;- rowMeans(Data[,c(&quot;RCI1&quot;,&quot;RCI2&quot;,&quot;RCI3&quot;,&quot;RCI4&quot;,&quot;RCI5&quot;,&quot;RCI6&quot;,
-                  &quot;RCI7&quot;,&quot;RCI8&quot;,&quot;RCI9&quot;,&quot;RCI10&quot;)], na.rm = TRUE)
-#summary(Data$RCIscale)</code></pre>
-<p>Fear of negative evaluation:</p>
-<pre class="r"><code>#1-5 scale, 12 items 
-#R: 2, 4, 7, 10. Average all items to compute a total scale score.
-#Recode Variables 
-#table(Data$FNE2)
-Data$RFNE2 &lt;- dplyr::case_when(
-  Data$FNE2 == 1 ~ 5,
- Data$FNE2 == 2 ~ 4,
- Data$FNE2 == 3 ~ 3,
- Data$FNE2 == 4 ~ 2,
- Data$FNE2 == 5 ~ 1,
-  TRUE ~ NA_real_
-)
-#table(Data$RFNE2)
-
-#table(Data$FNE4)
-Data$RFNE4 &lt;- dplyr::case_when(
-  Data$FNE4 == 1 ~ 5,
- Data$FNE4 == 2 ~ 4,
- Data$FNE4 == 3 ~ 3,
- Data$FNE4 == 4 ~ 2,
- Data$FNE4 == 5 ~ 1,
-  TRUE ~ NA_real_
-)
-#table(Data$RFNE4)
-
-#table(Data$FNE10)
-Data$RFNE10 &lt;- dplyr::case_when(
-  Data$FNE10 == 1 ~ 5,
- Data$FNE10 == 2 ~ 4,
- Data$FNE10 == 3 ~ 3,
- Data$FNE10 == 4 ~ 2,
- Data$FNE10 == 5 ~ 1,
-  TRUE ~ NA_real_
-)
-#table(Data$RFNE10)
-
-#table(Data$FNE7)
-Data$RFNE7 &lt;- dplyr::case_when(
-  Data$FNE7 == 1 ~ 5,
- Data$FNE7 == 2 ~ 4,
- Data$FNE7 == 3 ~ 3,
- Data$FNE7 == 4 ~ 2,
- Data$FNE7 == 5 ~ 1,
-  TRUE ~ NA_real_
-)
-#table(Data$RFNE7)
-
-#Reliability Analysis 
-FNEitems &lt;- Data[,c(&quot;FNE1&quot;,&quot;RFNE2&quot;,&quot;FNE3&quot;,&quot;RFNE4&quot;,&quot;FNE5&quot;,&quot;FNE6&quot;,
-                  &quot;RFNE7&quot;,&quot;FNE8&quot;,&quot;FNE9&quot;,&quot;RFNE10&quot;,&quot;FNE11&quot;,&quot;FNE12&quot;)]
-#alpha(FNEitems, check.keys = TRUE)
-#alpha equals .94, so we are good to move ahead. 
-
-#Make the composite 
-Data$FNEscale &lt;- rowMeans(Data[,c(&quot;FNE1&quot;,&quot;RFNE2&quot;,&quot;FNE3&quot;,&quot;RFNE4&quot;,&quot;FNE5&quot;,&quot;FNE6&quot;,
-                  &quot;RFNE7&quot;,&quot;FNE8&quot;,&quot;FNE9&quot;,&quot;RFNE10&quot;,&quot;FNE11&quot;,&quot;FNE12&quot;)], na.rm = TRUE)
-#summary(Data$FNEscale)</code></pre>
-<p>Group affiliation seeking:</p>
-<pre class="r"><code>#FMSI - Group Affiliation Seeking: 13, 14, 15, 16R, 17, 18, one to seven scale
-#recoding item 16 first 
-#table(Data$FSMI16)
-Data$RFSMI16 &lt;- dplyr::case_when(
-  Data$FSMI16 == 1 ~ 7,
- Data$FSMI16 == 2 ~ 6,
- Data$FSMI16 == 3 ~ 5,
- Data$FSMI16 == 4 ~ 4,
- Data$FSMI16 == 5 ~ 3,
- Data$FSMI16 == 6 ~ 2,
- Data$FSMI16 == 7 ~ 1,
-  TRUE ~ NA_real_
-)
-#table(Data$RFSMI16)
-#reliability 
-GASitems &lt;- Data[,c(&quot;FSMI13&quot;,&quot;FSMI14&quot;,&quot;FSMI15&quot;,&quot;RFSMI16&quot;,&quot;FSMI17&quot;,&quot;FSMI18&quot;)]
-#alpha(GASitems, check.keys = TRUE)
-#Alpha is .84
-#Mean composite 
-Data$GASscale &lt;- rowMeans(Data[,c(&quot;FSMI13&quot;,&quot;FSMI14&quot;,&quot;FSMI15&quot;,&quot;RFSMI16&quot;,&quot;FSMI17&quot;,&quot;FSMI18&quot;)], na.rm = TRUE)
-summary(Data$GASscale)</code></pre>
-<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##   1.000   3.833   4.667   4.557   5.333   7.000</code></pre>
-<p>Self-esteem:</p>
-<pre class="r"><code>#items 1-10 on a 4pt likert. RSE
-#Scoring: R: 2, 5, 6, 8, and 9. Average all items to compute a total scale score
-
-Data$RRSE2 &lt;- dplyr::case_when(
-  Data$RSE2 == 1 ~ 5,
- Data$RSE2 == 2 ~ 4,
- Data$RSE2 == 3 ~ 3,
- Data$RSE2 == 4 ~ 2,
- Data$RSE2 == 5 ~ 1,
-  TRUE ~ NA_real_
-)
-
-Data$RRSE5 &lt;- dplyr::case_when(
-  Data$RSE5 == 1 ~ 5,
- Data$RSE5 == 2 ~ 4,
- Data$RSE5 == 3 ~ 3,
- Data$RSE5 == 4 ~ 2,
- Data$RSE5 == 5 ~ 1,
-  TRUE ~ NA_real_
-)
-
-Data$RRSE6 &lt;- dplyr::case_when(
-  Data$RSE6 == 1 ~ 5,
- Data$RSE6 == 2 ~ 4,
- Data$RSE6 == 3 ~ 3,
- Data$RSE6 == 4 ~ 2,
- Data$RSE6 == 5 ~ 1,
-  TRUE ~ NA_real_
-)
-Data$RRSE8 &lt;- dplyr::case_when(
-  Data$RSE8 == 1 ~ 5,
- Data$RSE8 == 2 ~ 4,
- Data$RSE8 == 3 ~ 3,
- Data$RSE8 == 4 ~ 2,
- Data$RSE8 == 5 ~ 1,
-  TRUE ~ NA_real_
-)
-Data$RRSE9 &lt;- dplyr::case_when(
-  Data$RSE9 == 1 ~ 5,
- Data$RSE9 == 2 ~ 4,
- Data$RSE9 == 3 ~ 3,
- Data$RSE9 == 4 ~ 2,
- Data$RSE9 == 5 ~ 1,
-  TRUE ~ NA_real_
-)
-#reliability, alpha is .91
-RSEitems &lt;- Data[,c(&quot;RSE1&quot;,&quot;RRSE2&quot;,&quot;RSE3&quot;,&quot;RSE4&quot;,&quot;RRSE5&quot;,&quot;RRSE6&quot;,&quot;RSE7&quot;,&quot;RRSE8&quot;,&quot;RRSE9&quot;,&quot;RSE10&quot;)]
-#alpha(RSEitems, check.keys=TRUE)
-
-#Mean composite 
-Data$RSEscale &lt;- rowMeans(Data[,c(&quot;RSE1&quot;,&quot;RRSE2&quot;,&quot;RSE3&quot;,&quot;RSE4&quot;,&quot;RRSE5&quot;,&quot;RRSE6&quot;,&quot;RSE7&quot;,&quot;RRSE8&quot;,&quot;RRSE9&quot;,&quot;RSE10&quot;)], na.rm = TRUE)
-#summary(Data$RSEscale)</code></pre>
-<p>Self control:</p>
-<pre class="r"><code>#13 items on a 1-5 scale, called SC
-#R: 1, 2, 3, 4, 6, 9, 11, 12, 13.
-Data$RSC1 &lt;- dplyr::case_when(
-  Data$SC1 == 1 ~ 5,
- Data$SC1 == 2 ~ 4,
- Data$SC1 == 3 ~ 3,
- Data$SC1 == 4 ~ 2,
- Data$SC1 == 5 ~ 1,
-  TRUE ~ NA_real_
-)
-Data$RSC2 &lt;- dplyr::case_when(
-  Data$SC2 == 1 ~ 5,
- Data$SC2 == 2 ~ 4,
- Data$SC2 == 3 ~ 3,
- Data$SC2 == 4 ~ 2,
- Data$SC2 == 5 ~ 1,
-  TRUE ~ NA_real_
-)
-Data$RSC3 &lt;- dplyr::case_when(
-  Data$SC3 == 1 ~ 5,
- Data$SC3 == 2 ~ 4,
- Data$SC3 == 3 ~ 3,
- Data$SC3 == 4 ~ 2,
- Data$SC3 == 5 ~ 1,
-  TRUE ~ NA_real_
-)
-Data$RSC4 &lt;- dplyr::case_when(
-  Data$SC4 == 1 ~ 5,
- Data$SC4 == 2 ~ 4,
- Data$SC4 == 3 ~ 3,
- Data$SC4 == 4 ~ 2,
- Data$SC4 == 5 ~ 1,
-  TRUE ~ NA_real_
-)
-Data$RSC6 &lt;- dplyr::case_when(
-  Data$SC6 == 1 ~ 5,
- Data$SC6 == 2 ~ 4,
- Data$SC6 == 3 ~ 3,
- Data$SC6 == 4 ~ 2,
- Data$SC6 == 5 ~ 1,
-  TRUE ~ NA_real_
-)
-Data$RSC9 &lt;- dplyr::case_when(
-  Data$SC9 == 1 ~ 5,
- Data$SC9 == 2 ~ 4,
- Data$SC9 == 3 ~ 3,
- Data$SC9 == 4 ~ 2,
- Data$SC9 == 5 ~ 1,
-  TRUE ~ NA_real_
-)
-Data$RSC11 &lt;- dplyr::case_when(
-  Data$SC11 == 1 ~ 5,
- Data$SC11 == 2 ~ 4,
- Data$SC11 == 3 ~ 3,
- Data$SC11 == 4 ~ 2,
- Data$SC11 == 5 ~ 1,
-  TRUE ~ NA_real_
-)
-Data$RSC12 &lt;- dplyr::case_when(
-  Data$SC12 == 1 ~ 5,
- Data$SC12 == 2 ~ 4,
- Data$SC12 == 3 ~ 3,
- Data$SC12 == 4 ~ 2,
- Data$SC12 == 5 ~ 1,
-  TRUE ~ NA_real_
-)
-Data$RSC13 &lt;- dplyr::case_when(
-  Data$SC13 == 1 ~ 5,
- Data$SC13 == 2 ~ 4,
- Data$SC13 == 3 ~ 3,
- Data$SC13 == 4 ~ 2,
- Data$SC13 == 5 ~ 1,
-  TRUE ~ NA_real_
-)
-#R: 1, 2, 3, 4, 6, 9, 11, 12, 13.
-SCitems &lt;- Data[,c(&quot;RSC1&quot;,&quot;RSC2&quot;,&quot;RSC3&quot;,&quot;RSC4&quot;,&quot;SC5&quot;,&quot;RSC6&quot;,&quot;SC7&quot;,&quot;SC8&quot;,&quot;RSC9&quot;,&quot;SC10&quot;,&quot;RSC11&quot;,&quot;RSC12&quot;,&quot;RSC13&quot;)]
-#alpha(SCitems, check.keys = TRUE)
-#Alpha is .88
-#mean composite 
-Data$SCscale &lt;- rowMeans( Data[,c(&quot;RSC1&quot;,&quot;RSC2&quot;,&quot;RSC3&quot;,&quot;RSC4&quot;,&quot;SC5&quot;,&quot;RSC6&quot;,&quot;SC7&quot;,&quot;SC8&quot;,&quot;RSC9&quot;,&quot;SC10&quot;,&quot;RSC11&quot;,&quot;RSC12&quot;,&quot;RSC13&quot;)], na.rm = TRUE)
-#summary(Data$SCscale)</code></pre>
-<p>Political orientation:</p>
-<pre class="r"><code>#single item on a 1-7 scale, so its already all set </code></pre>
-<p>Child-oriented:</p>
-<pre class="r"><code>#FSMI 1 to 7 scale 
-#Caring for Children: 61, 62, 63R, 64, 65R, 66
-#Two recodes 
-Data$RFSMI63 &lt;- dplyr::case_when(
-  Data$FSMI63 == 7 ~ 1,
- Data$FSMI63 == 6 ~ 2,
- Data$FSMI63 == 4 ~ 3,
- Data$FSMI63 == 3 ~ 4,
- Data$FSMI63 == 2 ~ 5,
-  Data$FSMI63 == 1 ~ 7,
-  TRUE ~ NA_real_
-)
-Data$RFSMI65 &lt;- dplyr::case_when(
-  Data$FSMI65 == 1 ~ 7,
- Data$FSMI65 == 2 ~ 6,
- Data$FSMI65 == 3 ~ 5,
- Data$FSMI65 == 4 ~ 4,
- Data$FSMI65 == 5 ~ 3,
-  Data$FSMI65 == 6 ~ 2,
-  Data$FSMI65 == 7 ~ 1,
-  TRUE ~ NA_real_
-)
-Childrenitems &lt;- Data[,c(&quot;FSMI61&quot;,&quot;FSMI62&quot;,&quot;RFSMI63&quot;,&quot;FSMI64&quot;,&quot;RFSMI65&quot;,&quot;FSMI66&quot;)]
-#alpha(Childrenitems, check.keys = TRUE)
-#alpha is .73
-#mean composite 
-Data$Childrenscale &lt;- rowMeans( Data[,c(&quot;FSMI61&quot;,&quot;FSMI62&quot;,&quot;RFSMI63&quot;,&quot;FSMI64&quot;,&quot;RFSMI65&quot;,&quot;FSMI66&quot;)], na.rm = TRUE)
-#summary(Data$Childrenscale)</code></pre>
-<p>Conscientousness:</p>
-<pre class="r"><code>#measured with TIPI Conscientiousness; 3, 8R on a 1-7 scale 
-#recode
-Data$RTIPI8 &lt;- dplyr::case_when(
-  Data$TIPI8 == 1 ~ 7,
- Data$TIPI8 == 2 ~ 6,
- Data$TIPI8 == 3 ~ 5,
- Data$TIPI8 == 4 ~ 4,
- Data$TIPI8 == 5 ~ 3,
-  Data$TIPI8 == 6 ~ 2,
- Data$TIPI8 == 7 ~ 1,
-  TRUE ~ NA_real_)
-Conscientiousitems &lt;-Data[,c(&quot;TIPI3&quot;,&quot;RTIPI8&quot;)]
-#alpha(Conscientiousitems, check.keys = TRUE)
-#alpha is .60
-
-Data$Conscale &lt;- rowMeans(Data[,c(&quot;TIPI3&quot;,&quot;RTIPI8&quot;)], na.rm = TRUE)
-#summary(Data$Conscale)</code></pre>
-<p>Extraversion:</p>
-<pre class="r"><code>#Extraversion: 1, 6R, also the TIPI scale 
-Data$RTIPI6 &lt;- dplyr::case_when(
-  Data$TIPI6 == 1 ~ 7,
- Data$TIPI6 == 2 ~ 6,
- Data$TIPI6 == 3 ~ 5,
- Data$TIPI6 == 4 ~ 4,
- Data$TIPI6 == 5 ~ 3,
- Data$TIPI6 == 6 ~ 2,
- Data$TIPI6 == 7 ~ 1,
-  TRUE ~ NA_real_)
-Extraitems &lt;- Data[,c(&quot;TIPI1&quot;,&quot;RTIPI6&quot;)]
-#alpha(Extraitems, check.keys = TRUE)
-#alpha is .74
-Data$Extrascale &lt;- rowMeans(Data[,c(&quot;TIPI1&quot;,&quot;RTIPI6&quot;)], na.rm = TRUE)
-#summary(Data$Extrascale)</code></pre>
-<p>Now that everything is clean and ready to go, I will produce the
-correlation matrix of the following variables: self-control,
-self-esteem, fear of negative evaluation, religiosity, political
-orientation, child-oriented, conscientousness, extraversion,
+Data &lt;- read_sav(&quot;~/Documents/LabsD4P/Data-Science-for-Psych-Portfolio/OnlinePsychologySurveyData.sav&quot;)</code></pre>
+<p>Next, I do a bunch of data cleaning that isn’t important, but is
+helpful for me when I am grading my students stuff.</p>
+<div id="correlation-matrix" class="section level2">
+<h2>Correlation Matrix</h2>
+<p>I will produce the correlation matrix of the following variables:
+self-control, self-esteem, fear of negative evaluation, religiosity,
+political orientation, child-oriented, conscientiousness, extraversion,
 satisfaction with life, and group affiliation seeking.</p>
-<pre class="r"><code>df_scales &lt;- Data[,c(&quot;SCscale&quot;,&quot;RSEscale&quot;,&quot;FNEscale&quot;,&quot;RCIscale&quot;,&quot;Childrenscale&quot;,&quot;Conscale&quot;,&quot;Extrascale&quot;,&quot;SWLscale&quot;,&quot;GASscale&quot;,&quot;PoliticalOrientation&quot;)]
-cor_matrix &lt;- cor(df_scales)</code></pre>
-<p>Next, I will express it as a heatmap using the vis_cor function:</p>
-<pre class="r"><code>vis_cor(
-  df_scales,
-  cor_method = &quot;pearson&quot;,
-  na_action = &quot;pairwise.complete.obs&quot;
-)</code></pre>
-<p><img src="p02_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
-<pre class="r"><code>#go back in and add labels </code></pre>
-<p>Now I want to make it like a network:</p>
-<pre class="r"><code>#To make sure the matrix doesn&#39;t have any NAs - something wrong with the children scale one
-new_scales &lt;-Data[,c(&quot;SCscale&quot;,&quot;RSEscale&quot;,&quot;FNEscale&quot;,&quot;RCIscale&quot;,&quot;Conscale&quot;,&quot;Extrascale&quot;,&quot;SWLscale&quot;,&quot;GASscale&quot;,&quot;PoliticalOrientation&quot;)]
-better_cor_matrix &lt;- cor(new_scales)
-
-network_plot(better_cor_matrix, min_cor = 0)</code></pre>
+<table style="width:100%;">
+<colgroup>
+<col width="7%" />
+<col width="9%" />
+<col width="9%" />
+<col width="9%" />
+<col width="9%" />
+<col width="7%" />
+<col width="9%" />
+<col width="9%" />
+<col width="9%" />
+<col width="8%" />
+<col width="9%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">SC</th>
+<th align="right">RSE</th>
+<th align="right">FNE</th>
+<th align="right">RCI</th>
+<th align="right">Children</th>
+<th align="right">Consc</th>
+<th align="right">Extra</th>
+<th align="right">SWL</th>
+<th align="right">GAS</th>
+<th align="right">PolyO</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">SC</td>
+<td align="right">1.0000000</td>
+<td align="right">0.4857467</td>
+<td align="right">-0.3722418</td>
+<td align="right">-0.1065454</td>
+<td align="right">NA</td>
+<td align="right">0.6419319</td>
+<td align="right">0.1193292</td>
+<td align="right">0.2247213</td>
+<td align="right">0.0455769</td>
+<td align="right">-0.0854198</td>
+</tr>
+<tr class="even">
+<td align="left">RSE</td>
+<td align="right">0.4857467</td>
+<td align="right">1.0000000</td>
+<td align="right">-0.4904166</td>
+<td align="right">-0.1190757</td>
+<td align="right">NA</td>
+<td align="right">0.4673775</td>
+<td align="right">0.3789747</td>
+<td align="right">0.4307896</td>
+<td align="right">0.2208653</td>
+<td align="right">-0.0715618</td>
+</tr>
+<tr class="odd">
+<td align="left">FNE</td>
+<td align="right">-0.3722418</td>
+<td align="right">-0.4904166</td>
+<td align="right">1.0000000</td>
+<td align="right">0.0864208</td>
+<td align="right">NA</td>
+<td align="right">-0.2282450</td>
+<td align="right">-0.2692570</td>
+<td align="right">-0.1234272</td>
+<td align="right">0.1180394</td>
+<td align="right">0.0331418</td>
+</tr>
+<tr class="even">
+<td align="left">RCI</td>
+<td align="right">-0.1065454</td>
+<td align="right">-0.1190757</td>
+<td align="right">0.0864208</td>
+<td align="right">1.0000000</td>
+<td align="right">NA</td>
+<td align="right">-0.1678402</td>
+<td align="right">0.1881945</td>
+<td align="right">0.2859180</td>
+<td align="right">0.2231984</td>
+<td align="right">0.4401452</td>
+</tr>
+<tr class="odd">
+<td align="left">Children</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">1</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Consc</td>
+<td align="right">0.6419319</td>
+<td align="right">0.4673775</td>
+<td align="right">-0.2282450</td>
+<td align="right">-0.1678402</td>
+<td align="right">NA</td>
+<td align="right">1.0000000</td>
+<td align="right">0.1420666</td>
+<td align="right">0.1456974</td>
+<td align="right">0.1018936</td>
+<td align="right">-0.0728116</td>
+</tr>
+<tr class="odd">
+<td align="left">Extra</td>
+<td align="right">0.1193292</td>
+<td align="right">0.3789747</td>
+<td align="right">-0.2692570</td>
+<td align="right">0.1881945</td>
+<td align="right">NA</td>
+<td align="right">0.1420666</td>
+<td align="right">1.0000000</td>
+<td align="right">0.2831760</td>
+<td align="right">0.3902377</td>
+<td align="right">0.1382187</td>
+</tr>
+<tr class="even">
+<td align="left">SWL</td>
+<td align="right">0.2247213</td>
+<td align="right">0.4307896</td>
+<td align="right">-0.1234272</td>
+<td align="right">0.2859180</td>
+<td align="right">NA</td>
+<td align="right">0.1456974</td>
+<td align="right">0.2831760</td>
+<td align="right">1.0000000</td>
+<td align="right">0.3031402</td>
+<td align="right">0.2837225</td>
+</tr>
+<tr class="odd">
+<td align="left">GAS</td>
+<td align="right">0.0455769</td>
+<td align="right">0.2208653</td>
+<td align="right">0.1180394</td>
+<td align="right">0.2231984</td>
+<td align="right">NA</td>
+<td align="right">0.1018936</td>
+<td align="right">0.3902377</td>
+<td align="right">0.3031402</td>
+<td align="right">1.0000000</td>
+<td align="right">0.0854532</td>
+</tr>
+<tr class="even">
+<td align="left">PolyO</td>
+<td align="right">-0.0854198</td>
+<td align="right">-0.0715618</td>
+<td align="right">0.0331418</td>
+<td align="right">0.4401452</td>
+<td align="right">NA</td>
+<td align="right">-0.0728116</td>
+<td align="right">0.1382187</td>
+<td align="right">0.2837225</td>
+<td align="right">0.0854532</td>
+<td align="right">1.0000000</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="heatmap-with-vis-cor" class="section level2">
+<h2>Heatmap with vis-cor</h2>
+<p>Visualizing the correlation matrix with a heatmap using the vis_cor
+function:
+<img src="p02_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p>Now improving it:</p>
+<pre><code>## Warning: `aes_string()` was deprecated in ggplot2 3.0.0.
+## ℹ Please use tidy evaluation idioms with `aes()`.
+## ℹ See also `vignette(&quot;ggplot2-in-packages&quot;)` for more information.
+## ℹ The deprecated feature was likely used in the ggcorrplot package.
+##   Please report the issue at &lt;https://github.com/kassambara/ggcorrplot/issues&gt;.
+## This warning is displayed once per session.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
 <p><img src="p02_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
-<pre class="r"><code>#this made me really happy 
-
-ggpairs(df_scales) #way too much going on </code></pre>
-<p><img src="p02_files/figure-html/unnamed-chunk-14-2.png" width="672" /></p>
-<pre class="r"><code>df_scales_subset &lt;- df_scales %&gt;%
-  select(,c(&quot;SCscale&quot;,&quot;RSEscale&quot;,&quot;FNEscale&quot;,&quot;RCIscale&quot;,&quot;SWLscale&quot;))
-ggpairs(df_scales_subset) #its still more condensed than I would like, the dots are too big</code></pre>
-<p><img src="p02_files/figure-html/unnamed-chunk-14-3.png" width="672" /></p>
-<p>Just because I am having a lot of fun, I am going to repeat this with
-the items within a scale, one with failry high reliability, and another
-that is only so-so:</p>
-<pre class="r"><code>#Religiosity items alpha was .97
-religion_cor_matrix &lt;- cor(Religiosityitems)
-vis_cor(
-  Religiosityitems,
-  cor_method = &quot;pearson&quot;,
-  na_action = &quot;pairwise.complete.obs&quot;
-)</code></pre>
-<p><img src="p02_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
-<pre class="r"><code>#these are very correlated, wow 
-#RCI1, RCI2 and RC16 have a bunch of NAs for some reason, so that is an issue with the network plot. I am going to filter them out 
-new_religiosity &lt;-Data[,c(&quot;RCI3&quot;,&quot;RCI4&quot;,&quot;RCI5&quot;,
-                  &quot;RCI7&quot;,&quot;RCI8&quot;,&quot;RCI9&quot;,&quot;RCI10&quot;)]
-new_religion_cor_matrix &lt;- cor(new_religiosity)
-
-network_plot(new_religion_cor_matrix, min_cor = 0)</code></pre>
-<p><img src="p02_files/figure-html/unnamed-chunk-15-2.png" width="672" /></p>
-<pre class="r"><code>#this is pretty dense, as you would expect </code></pre>
+<p>Perhaps a better option than vis_cor is corrplot for making something
+like a heatmap. Here I play around with the different corrplot
+options.</p>
+<p><img src="p02_files/figure-html/unnamed-chunk-15-1.png" width="672" />
+<img src="p02_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<p>I like this chart, but I’d maybe like it even better wake themed?
+Ends up being too hard to figure out how to incorporate. I miss ggplot.
+<img src="p02_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p>I tried out some other stuff, but it is quite ugly. If interested,
+see p02.rmd.</p>
+</div>
+<div id="network-plot" class="section level2">
+<h2>Network Plot</h2>
+<p><img src="p02_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<p>This one is cool but there is way too much going on (totally
+uninformative).</p>
+<p><img src="p02_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<p>Still more condensed than I would like, and the dots are too big.</p>
+<p><img src="p02_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
+<p>Bonus activities:</p>
+<p>The Religiosity Scale was very reliable (α = .97). Here’s the heatmap
+of its items. Its solid blue, which tracks. Not sure what I was
+expecting.
+<img src="p02_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+<p><img src="p02_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
 <p>Now for the less reliable scale: self control: still fairly reliable
 .88</p>
-<pre class="r"><code>SC_cor_matrix &lt;- cor(SCitems)
-vis_cor(
-  SCitems,
-  cor_method = &quot;pearson&quot;,
-  na_action = &quot;pairwise.complete.obs&quot;
-)</code></pre>
-<p><img src="p02_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
-<pre class="r"><code>#not nearly as red as religiosity 
-#a few items are NAs in the correlation matrix, and I am just going to drop them. I am not investing time into trying to fix it. 
-new_SCitems &lt;-Data[,c(&quot;RSC1&quot;,&quot;RSC2&quot;,&quot;SC8&quot;,&quot;RSC9&quot;,&quot;SC10&quot;,&quot;RSC11&quot;,&quot;RSC12&quot;,&quot;RSC13&quot;)]
-new_SCitems_matrix &lt;- cor(new_SCitems)
-network_plot(new_SCitems_matrix, min_cor = 0)</code></pre>
-<p><img src="p02_files/figure-html/unnamed-chunk-16-2.png" width="672" /></p>
-<pre class="r"><code>#this was also cool </code></pre>
+<p><img src="p02_files/figure-html/unnamed-chunk-24-1.png" width="672" /><img src="p02_files/figure-html/unnamed-chunk-24-2.png" width="672" /></p>
 <p>Last thing I would like to do is map fear of negative evaluation and
 self esteem together, since the first network plot revealed that there
-were very related</p>
-<pre class="r"><code>FNE_RSE &lt;- Data[,c(&quot;RSE1&quot;,&quot;RRSE2&quot;,&quot;RSE3&quot;,&quot;RSE4&quot;,&quot;RRSE5&quot;,&quot;RRSE6&quot;,&quot;RSE7&quot;,&quot;RRSE8&quot;,&quot;RRSE9&quot;,&quot;RSE10&quot;,&quot;FNE1&quot;,&quot;RFNE2&quot;,&quot;FNE3&quot;,&quot;RFNE4&quot;,&quot;FNE5&quot;,&quot;FNE6&quot;,  &quot;RFNE7&quot;,&quot;FNE8&quot;,&quot;FNE9&quot;,&quot;RFNE10&quot;,&quot;FNE11&quot;,&quot;FNE12&quot;)]
-FNE_RSE_matrix &lt;- cor(FNE_RSE)
-#FNE6 and FNE12 are the only ones with missing data
-vis_cor(
-  FNE_RSE,
-  cor_method = &quot;pearson&quot;,
-  na_action = &quot;pairwise.complete.obs&quot;
-)</code></pre>
-<p><img src="p02_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
-<pre class="r"><code>#this is very cool and it makes sense - self esteem looks quite to fear of negative evaluation 
-#lets filter and make the network plot 
-new_FNE_RSE&lt;-Data[,c(&quot;RSE1&quot;,&quot;RRSE2&quot;,&quot;RSE3&quot;,&quot;RSE4&quot;,&quot;RRSE5&quot;,&quot;RRSE6&quot;,&quot;RSE7&quot;,&quot;RRSE8&quot;,&quot;RRSE9&quot;,&quot;RSE10&quot;,&quot;FNE1&quot;,&quot;RFNE2&quot;,&quot;FNE3&quot;,&quot;RFNE4&quot;,&quot;FNE5&quot;,  &quot;RFNE7&quot;,&quot;FNE8&quot;,&quot;FNE9&quot;,&quot;RFNE10&quot;,&quot;FNE11&quot;)]
-new_FNE_RSE_matrix &lt;- cor(new_FNE_RSE)
-network_plot(new_FNE_RSE_matrix, min_cor = 0)</code></pre>
-<p><img src="p02_files/figure-html/unnamed-chunk-17-2.png" width="672" /></p>
-<pre class="r"><code>#this reveals four different clusters of items, which would suggest that they are each capturing something a little bit different, but still very related, about self esteem and FNE. </code></pre>
+were very related.</p>
+<p><img src="p02_files/figure-html/unnamed-chunk-25-1.png" width="672" /><img src="p02_files/figure-html/unnamed-chunk-25-2.png" width="672" /></p>
+</div>
 
 
 
