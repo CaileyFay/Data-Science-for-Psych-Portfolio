@@ -14,6 +14,7 @@ library(googlesheets4)
 library(bslib)
 
 source("/Users/caileyfay/Documents/LabsD4P/Data-Science-for-Psych-Portfolio/P4_ESM/cleaning_ESM.r")
+#syn_data <- read.csv("my_synthetic_data.csv")
 
 # Define UI for application
 ui <- library(shiny)
@@ -55,7 +56,7 @@ server <- function(input, output) {
   # selected_trait == input$selected_trait) %>%
 
          ggplot(mapping = aes(x=hour, y=.data[[input$selected_trait]])) + #I got the y variable thing from Gemini because It was taking forever to figure out
-      geom_col(fill = "tan") +
+      geom_col(fill = "lightblue") +
       labs(title = "Personality State Levels at Different Times of Day, For Different Subjects",
            x = "Time of Day, in Military Time",
            y = "Personality State Level") +
