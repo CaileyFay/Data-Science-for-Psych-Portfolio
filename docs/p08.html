@@ -11,9 +11,9 @@
 
 
 
-<title>Portfolio 8</title>
+<title>Plot Recreation</title>
 
-<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -141,11 +141,15 @@ $(document).ready(function () {
     href = "index.html";
   var menuAnchor = $('a[href="' + href + '"]');
 
-  // mark it active
-  menuAnchor.tab('show');
-
-  // if it's got a parent navbar menu mark it active as well
-  menuAnchor.closest('li.dropdown').addClass('active');
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
 
   // Navbar adjustments
   var navHeight = $(".navbar").first().height() + 15;
@@ -174,8 +178,8 @@ $(document).ready(function () {
   border-radius: 4px;
 }
 
-.tabset-dropdown > .nav-tabs > li.active:before {
-  content: "";
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
   font-family: 'Glyphicons Halflings';
   display: inline-block;
   padding: 10px;
@@ -183,16 +187,9 @@ $(document).ready(function () {
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-  content: "&#xe258;";
-  border: none;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-  content: "";
+  content: "\e258";
   font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
+  border: none;
 }
 
 .tabset-dropdown > .nav-tabs > li.active {
@@ -293,18 +290,344 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Portfolio 8</h1>
+<h1 class="title toc-ignore">Plot Recreation</h1>
 
 </div>
 
 
-<blockquote>
-<p>The projects should be numbered consecutively (i.e., in the order in
-which you began them), and should include for each project a description
-of the goal, the product (computer program, hand graph, computer graph,
-etc.), the data, and some interpretation. Reports must be reproducible
-and of high quality in terms of writing, grammar, presentation, etc.</p>
-</blockquote>
+<p>A cool plot popped up on my instagram feed and it reminded me of
+“Napoleon’s March”. The twist is, its a chart about love is blind and
+relationship survival.</p>
+<p><img src="LOB_graph.png" width="415" /></p>
+<p>I’ve decided to try to recreate it!</p>
+<p>On this journey, I found myself on reddit and ended up coming across
+this website: <a href="https://islovereallyblind.com/trends"
+class="uri">https://islovereallyblind.com/trends</a> and this is going
+to be a reference for constructing some data.</p>
+<p>I am feeling less insecure now about making a portfolio piece.
+Clearly I am not the #1 superfan.</p>
+<p>To get me started on doing sankey diagrams with ggplot, I used this
+tutorial: <a href="https://r-charts.com/flow/sankey-diagram-ggplot2/"
+class="uri">https://r-charts.com/flow/sankey-diagram-ggplot2/</a> and
+the info in the development github repo <a
+href="https://github.com/davidsjoberg/ggsankey"
+class="uri">https://github.com/davidsjoberg/ggsankey</a> which was very
+helpful for figuring out how to set up the data.</p>
+<p>I ran their example so that I could see what the data frame should
+look like.
+<img src="p08_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">x</th>
+<th align="right">node</th>
+<th align="left">next_x</th>
+<th align="right">next_node</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">cyl</td>
+<td align="right">6</td>
+<td align="left">vs</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">vs</td>
+<td align="right">0</td>
+<td align="left">am</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">am</td>
+<td align="right">1</td>
+<td align="left">gear</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="left">gear</td>
+<td align="right">4</td>
+<td align="left">carb</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="left">carb</td>
+<td align="right">4</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">cyl</td>
+<td align="right">6</td>
+<td align="left">vs</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+<p>Based on this diagram and their df versus what I want, I now know the
+following:</p>
+<ul>
+<li><p>x is going to be the relationship outcome - e.g. engaged, split
+before alter, split at alter, etc</p></li>
+<li><p>the node is the frequency - e.g. for x=engaged, node = 110 -
+actually this is not right</p></li>
+<li><p>the next x is just the value of x that follows the previous x,
+for example, if x=alter, then next x is split at alter and married. I
+need to think more about how to ensure that it stacks</p></li>
+<li><p>next node just refers to the frequency of the next x. If x =
+alter and node = 70, then next_x=married and next node = 32.</p></li>
+<li><p>for dead ends, such as broke up, the next_x and next node get
+NAs</p></li>
+</ul>
+<p>With this in mind, I start constructing a data frame. I am just going
+to try to create a series of vectors and then slap them together. My
+starting number is 304 singles.</p>
+<p>First attempt at schemeing:</p>
+<table>
+<caption>Love Is Blind Flow Frame</caption>
+<thead>
+<tr class="header">
+<th align="left">x</th>
+<th align="right">node</th>
+<th align="left">next_x</th>
+<th align="right">next_node</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Appeared on the show</td>
+<td align="right">0</td>
+<td align="left">Not engaged</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">Appeared on the show</td>
+<td align="right">0</td>
+<td align="left">Engaged</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">Appeared on the show</td>
+<td align="right">0</td>
+<td align="left">Engaged off Camera</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">Not Engaged</td>
+<td align="right">1</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Engaged</td>
+<td align="right">1</td>
+<td align="left">Broke Up</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">Engaged</td>
+<td align="right">1</td>
+<td align="left">Still Together</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="left">Engaged off Camera</td>
+<td align="right">1</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Broke Up</td>
+<td align="right">2</td>
+<td align="left">Alter</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="left">Still Together</td>
+<td align="right">2</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Alter</td>
+<td align="right">3</td>
+<td align="left">Married</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="left">Alter</td>
+<td align="right">3</td>
+<td align="left">Split at Alter</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="left">Married</td>
+<td align="right">4</td>
+<td align="left">Still Married</td>
+<td align="right">5</td>
+</tr>
+<tr class="odd">
+<td align="left">Married</td>
+<td align="right">4</td>
+<td align="left">Divorced</td>
+<td align="right">5</td>
+</tr>
+<tr class="even">
+<td align="left">Split at Alter</td>
+<td align="right">4</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Still Married</td>
+<td align="right">5</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Divorced</td>
+<td align="right">5</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+</tr>
+</tbody>
+</table>
+<p>It took an embarrassingly long time to figure this out and fix the
+logic gaps to geom_sankey would be happy. Here is the final df:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">x</th>
+<th align="right">node</th>
+<th align="left">next_x</th>
+<th align="right">next_node</th>
+<th align="right">n</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">On Show</td>
+<td align="right">0</td>
+<td align="left">Not Engaged</td>
+<td align="right">1</td>
+<td align="right">168</td>
+</tr>
+<tr class="even">
+<td align="left">On Show</td>
+<td align="right">0</td>
+<td align="left">Engaged</td>
+<td align="right">1</td>
+<td align="right">110</td>
+</tr>
+<tr class="odd">
+<td align="left">On Show</td>
+<td align="right">0</td>
+<td align="left">Engaged off Camera</td>
+<td align="right">1</td>
+<td align="right">26</td>
+</tr>
+<tr class="even">
+<td align="left">Not Engaged</td>
+<td align="right">1</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="right">168</td>
+</tr>
+<tr class="odd">
+<td align="left">Engaged off Camera</td>
+<td align="right">1</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="right">26</td>
+</tr>
+<tr class="even">
+<td align="left">Engaged</td>
+<td align="right">1</td>
+<td align="left">Broke Up</td>
+<td align="right">2</td>
+<td align="right">42</td>
+</tr>
+<tr class="odd">
+<td align="left">Engaged</td>
+<td align="right">1</td>
+<td align="left">Still Together</td>
+<td align="right">2</td>
+<td align="right">68</td>
+</tr>
+<tr class="even">
+<td align="left">Broke Up</td>
+<td align="right">2</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="right">70</td>
+</tr>
+<tr class="odd">
+<td align="left">Still Together</td>
+<td align="right">2</td>
+<td align="left">Alter</td>
+<td align="right">3</td>
+<td align="right">42</td>
+</tr>
+<tr class="even">
+<td align="left">Alter</td>
+<td align="right">3</td>
+<td align="left">Married</td>
+<td align="right">4</td>
+<td align="right">70</td>
+</tr>
+<tr class="odd">
+<td align="left">Alter</td>
+<td align="right">3</td>
+<td align="left">Split at Alter</td>
+<td align="right">4</td>
+<td align="right">32</td>
+</tr>
+<tr class="even">
+<td align="left">Split at Alter</td>
+<td align="right">4</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="right">38</td>
+</tr>
+<tr class="odd">
+<td align="left">Married</td>
+<td align="right">4</td>
+<td align="left">Still Married</td>
+<td align="right">5</td>
+<td align="right">12</td>
+</tr>
+<tr class="even">
+<td align="left">Married</td>
+<td align="right">4</td>
+<td align="left">Divorced</td>
+<td align="right">5</td>
+<td align="right">18</td>
+</tr>
+<tr class="odd">
+<td align="left">Still Married</td>
+<td align="right">5</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="right">12</td>
+</tr>
+<tr class="even">
+<td align="left">Divorced</td>
+<td align="right">5</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="right">18</td>
+</tr>
+</tbody>
+</table>
+<div id="plot-attempt" class="section level1">
+<h1>Plot Attempt</h1>
+<p><img src="p08_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p>This was actually so difficult and it took me forever. I don’t know
+if part of the problem was that I manually set the dataframe up myself,
+rather than using the make_long() function or what, but I’ve now sunk a
+few hours into this. Sankey charts just aren’t my thing. I will stick to
+pedigrees and relatedness matrices.</p>
+</div>
 
 
 

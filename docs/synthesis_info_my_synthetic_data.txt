@@ -1,4 +1,4 @@
-Date saved: 26 Apr 2026, 19:11 
+Date saved: 26 Apr 2026, 19:26 
 Data frame with original data: ESM 
 Number of synthetic data sets: 1 
 Output file(s):(csv) my_synthetic_data.csv
@@ -10,4 +10,4 @@ Methods used:
              "cart"              "cart"              "cart"         "collinear" 
           date_time                hour 
              "cart"              "cart" 
-Seed used: 828713958 
+Seed used: 961804080 

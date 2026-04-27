@@ -1,6 +1,5 @@
 ---
 title: "Portfolio 4: Using Shiny App to Make an Interactive Dashboard of Some ESM Personality Data"
-#output: html_document
 runtime: shiny
 ---
 I was once again inspired by something we talked about in Will's Personality Seminar. SO, for this portfolio, I will be doing an abrieviated version of the density distribution approach for mapping the relationship between trait standing and trait manifestation. The data is coming from my favorite guinea pig, my boyfriend, who was nice enough to fill out some short pseudo personality state assessment that I made. Here are my learning objectives for this portfolio piece...lets see if I succeed! 
@@ -124,6 +123,8 @@ Nothing about the way I conducted this was foolproof, but this little snapshot m
 Finally, I made an interactive dashboard. Its not very complex, but bonus points for it taking me forever to figure out??? 
 
 ### GAHH I can't see to get rid of this ugly warning message 
+
+Point to a different repo that hosts the shiny app and it will do better? 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 suppressWarnings(
