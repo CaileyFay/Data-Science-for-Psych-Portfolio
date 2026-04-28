@@ -160,20 +160,20 @@ v2 <- tibble(id = 1:1, row = id %% 1, col = id %/% 1) %>%
 
 v2 <- v2 +
   annotate(
-    geom = "text",                  # adding text to our plot using the annotate() function and the "text" geometry
-    x = 1, y = .6,             # x and y coordinates for the location of the text
-    label = "Who needs a Chocolate Bunny\n When You Can have the Real Thing?", # the text as label, \n is used to break the text
-    colour = "#675746",                # color of the text
-    family = "Baskerville",               # font family 
+    geom = "text",                 
+    x = 1, y = .6,            
+    label = "Who needs a Chocolate Bunny\n When You Can have the Real Thing?", 
+    colour = "#675746",              
+    family = "Baskerville",               
     fontface = "italic", size = 5
    # face = "bold" ,
   ) +
     annotate(
-    geom = "text",                  # adding text to our plot using the annotate() function and the "text" geometry
-    x = 1, y = -.6,             # x and y coordinates for the location of the text
-    label = "...The Eastern Bunny is in a Better Place", # the text as label, \n is used to break the text
-    colour = "#675746",                # color of the text
-    family = "Baskerville",               # font family 
+    geom = "text",                
+    x = 1, y = -.6,             
+    label = "...The Eastern Bunny is in a Better Place", 
+    colour = "#675746",                
+    family = "Baskerville",               
     fontface = "italic", size = 5
    # face = "bold" ,
   ) 
@@ -216,13 +216,13 @@ v21 <- tibble(id = 1:1, row = id %% 1, col = id %/% 1) %>%
       panel.background = element_rect(color = "#675746")) 
 
 
-v21 <- v21 +
+v21 <- v21 + #I got this annotate trick from the christmas card tutorial 
   annotate(
-    geom = "text",                  # adding text to our plot using the annotate() function and the "text" geometry
-    x = 1, y = .6,             # x and y coordinates for the location of the text
-    label = "Who needs a Chocolate Bunny\n When You Can have the Real Thing?", # the text as label, \n is used to break the text
-    colour = "#675746",                # color of the text
-    family = "Baskerville",               # font family 
+    geom = "text",                
+    x = 1, y = .6,            
+    label = "Who needs a Chocolate Bunny\n When You Can have the Real Thing?", 
+    colour = "#675746",              
+    family = "Baskerville",             
     fontface = "italic", size = 5
    # face = "bold" ,
   ) 
@@ -239,8 +239,8 @@ v3 <- tibble(id = 1:1, row = id %% 1, col = id %/% 1) %>%
   ) +
   coord_equal() +
 #  labs(
- #   title = 'Who needs a Chocolate Bunny When You Can have the Real Thing?',
-#    caption = 'The Eastern Bunny is in a Better Place'
+ #   title = 'Who needs a Chocolate Bunny When You Can have the Real Thing?', #my mom came up with this line while we were yapping
+#    caption = 'The Eastern Bunny is in a Better Place' #this is me
 #  ) +
   theme_minimal() +
   theme(text = element_text(family = "Baskerville", color = "#675746", size = 15),
@@ -258,11 +258,11 @@ v3 <- tibble(id = 1:1, row = id %% 1, col = id %/% 1) %>%
   
   
 v3 <- v3 +  annotate(
-    geom = "text",                  # adding text to our plot using the annotate() function and the "text" geometry
-    x = 1, y = -.6,             # x and y coordinates for the location of the text
-    label = "...The Eastern Bunny is in a Better Place", # the text as label, \n is used to break the text
-    colour = "#675746",                # color of the text
-    family = "Baskerville",               # font family 
+    geom = "text",                 
+    x = 1, y = -.6,           
+    label = "...The Eastern Bunny is in a Better Place",
+    colour = "#675746",                
+    family = "Baskerville",              
     fontface = "italic", size = 5
    # face = "bold" ,
   ) 

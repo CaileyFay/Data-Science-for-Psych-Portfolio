@@ -373,13 +373,13 @@ class="section level2">
       panel.background = element_rect(color = &quot;#675746&quot;)) 
 
 
-v21 &lt;- v21 +
+v21 &lt;- v21 + #I got this annotate trick from the christmas card tutorial 
   annotate(
-    geom = &quot;text&quot;,                  # adding text to our plot using the annotate() function and the &quot;text&quot; geometry
-    x = 1, y = .6,             # x and y coordinates for the location of the text
-    label = &quot;Who needs a Chocolate Bunny\n When You Can have the Real Thing?&quot;, # the text as label, \n is used to break the text
-    colour = &quot;#675746&quot;,                # color of the text
-    family = &quot;Baskerville&quot;,               # font family 
+    geom = &quot;text&quot;,                
+    x = 1, y = .6,            
+    label = &quot;Who needs a Chocolate Bunny\n When You Can have the Real Thing?&quot;, 
+    colour = &quot;#675746&quot;,              
+    family = &quot;Baskerville&quot;,             
     fontface = &quot;italic&quot;, size = 5
    # face = &quot;bold&quot; ,
   ) 
@@ -396,8 +396,8 @@ v3 &lt;- tibble(id = 1:1, row = id %% 1, col = id %/% 1) %&gt;%
   ) +
   coord_equal() +
 #  labs(
- #   title = &#39;Who needs a Chocolate Bunny When You Can have the Real Thing?&#39;,
-#    caption = &#39;The Eastern Bunny is in a Better Place&#39;
+ #   title = &#39;Who needs a Chocolate Bunny When You Can have the Real Thing?&#39;, #my mom came up with this line while we were yapping
+#    caption = &#39;The Eastern Bunny is in a Better Place&#39; #this is me
 #  ) +
   theme_minimal() +
   theme(text = element_text(family = &quot;Baskerville&quot;, color = &quot;#675746&quot;, size = 15),
@@ -415,11 +415,11 @@ v3 &lt;- tibble(id = 1:1, row = id %% 1, col = id %/% 1) %&gt;%
   
   
 v3 &lt;- v3 +  annotate(
-    geom = &quot;text&quot;,                  # adding text to our plot using the annotate() function and the &quot;text&quot; geometry
-    x = 1, y = -.6,             # x and y coordinates for the location of the text
-    label = &quot;...The Eastern Bunny is in a Better Place&quot;, # the text as label, \n is used to break the text
-    colour = &quot;#675746&quot;,                # color of the text
-    family = &quot;Baskerville&quot;,               # font family 
+    geom = &quot;text&quot;,                 
+    x = 1, y = -.6,           
+    label = &quot;...The Eastern Bunny is in a Better Place&quot;,
+    colour = &quot;#675746&quot;,                
+    family = &quot;Baskerville&quot;,              
     fontface = &quot;italic&quot;, size = 5
    # face = &quot;bold&quot; ,
   ) </code></pre>
