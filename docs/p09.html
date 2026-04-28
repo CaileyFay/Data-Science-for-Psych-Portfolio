@@ -11,9 +11,9 @@
 
 
 
-<title>Portfolio 9</title>
+<title>Custom Greeting Cards</title>
 
-<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -141,11 +141,15 @@ $(document).ready(function () {
     href = "index.html";
   var menuAnchor = $('a[href="' + href + '"]');
 
-  // mark it active
-  menuAnchor.tab('show');
-
-  // if it's got a parent navbar menu mark it active as well
-  menuAnchor.closest('li.dropdown').addClass('active');
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
 
   // Navbar adjustments
   var navHeight = $(".navbar").first().height() + 15;
@@ -174,8 +178,8 @@ $(document).ready(function () {
   border-radius: 4px;
 }
 
-.tabset-dropdown > .nav-tabs > li.active:before {
-  content: "";
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
   font-family: 'Glyphicons Halflings';
   display: inline-block;
   padding: 10px;
@@ -183,16 +187,9 @@ $(document).ready(function () {
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-  content: "&#xe258;";
-  border: none;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-  content: "";
+  content: "\e258";
   font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
+  border: none;
 }
 
 .tabset-dropdown > .nav-tabs > li.active {
@@ -293,18 +290,145 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Portfolio 9</h1>
+<h1 class="title toc-ignore">Custom Greeting Cards</h1>
 
 </div>
 
 
-<blockquote>
-<p>The projects should be numbered consecutively (i.e., in the order in
-which you began them), and should include for each project a description
-of the goal, the product (computer program, hand graph, computer graph,
-etc.), the data, and some interpretation. Reports must be reproducible
-and of high quality in terms of writing, grammar, presentation, etc.</p>
-</blockquote>
+<div
+id="for-this-portfolio-i-am-going-to-make-a-custom-easter-card-featuring-my-dogs."
+class="section level3">
+<h3>For this portfolio, I am going to make a custom Easter Card
+featuring my dogs.</h3>
+<p>For inspo, I looked at a few differnt things:</p>
+<ul>
+<li><p><a
+href="https://albert-rapp.de/posts/ggplot2-tips/27_images/27_images"
+class="uri">https://albert-rapp.de/posts/ggplot2-tips/27_images/27_images</a></p></li>
+<li><p>This one helped me with how to incorporate pictures as a pattern
+layered onto ggplot()</p></li>
+<li><p><a
+href="https://medium.com/@arpita_deb/r-you-ready-for-christmas-6a4191a412c1"
+class="uri">https://medium.com/@arpita_deb/r-you-ready-for-christmas-6a4191a412c1</a></p></li>
+<li><p>This is a christmas card tutorial in R, which also had some
+helpful tricks</p></li>
+</ul>
+<p><img src="Wookie.png" width="583" /><img src="newlou.png" width="566" /></p>
+</div>
+<div id="the-background" class="section level3">
+<h3>The background</h3>
+<ul>
+<li>made using theme_void() to get it super simple</li>
+</ul>
+<p><img src="p09_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+</div>
+<div id="next-up-i-add-in-my-puppy-pictures" class="section level3">
+<h3>Next up I add in my puppy pictures:</h3>
+<p><img src="p09_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+</div>
+<div
+id="take-two-this-uses-geom_tile_pattern-as-a-workaround-to-including-images-and-then-layers-on-theme_void"
+class="section level1">
+<h1>Take two: This uses geom_tile_pattern as a workaround to including
+images, and then layers on theme_void():</h1>
+<p><img src="p09_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<div id="i-want-both-dogs-in-the-picture-but-that-is-hard"
+class="section level3">
+<h3>I want both dogs in the picture but that is hard</h3>
+<p><img src="p09_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+</div>
+<div id="another-version" class="section level3">
+<h3>Another version:</h3>
+<p><img src="p09_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+</div>
+<div id="to-get-front-and-back-why-is-this-so-hard"
+class="section level2">
+<h2>To get front and back: Why is This So Hard??</h2>
+<pre class="r"><code>v21 &lt;- tibble(id = 1:1, row = id %% 1, col = id %/% 1) %&gt;%
+    ggplot(aes(x = col, y = row)) +
+  geom_tile_pattern(
+    fill = &#39;#9CAF88&#39;, 
+    col = &#39;gold&#39;, 
+    linewidth = .1,
+    pattern = &#39;image&#39;,
+    pattern_filename = &#39;Wookie.png&#39;
+  ) +
+  coord_equal() +
+#  labs(
+ #   title = &#39;Who needs a Chocolate Bunny When You Can have the Real Thing?&#39;,
+#    caption = &#39;The Eastern Bunny is in a Better Place&#39;
+#  ) +
+  theme_minimal() +
+  theme(text = element_text(family = &quot;Baskerville&quot;, color = &quot;#675746&quot;, size = 15),
+     #   subtitle.text = element_text(family = &quot;Baskerville&quot;, color = &quot;#675746&quot;, size = 15),
+        axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major= element_blank(),
+        panel.grid.minor = element_blank(), #,
+      #  plot.title.position = 
+      #  plot.caption.position = 
+      plot.background = element_rect(color = &quot;#675746&quot;),
+      panel.background = element_rect(color = &quot;#675746&quot;)) 
+
+
+v21 &lt;- v21 +
+  annotate(
+    geom = &quot;text&quot;,                  # adding text to our plot using the annotate() function and the &quot;text&quot; geometry
+    x = 1, y = .6,             # x and y coordinates for the location of the text
+    label = &quot;Who needs a Chocolate Bunny\n When You Can have the Real Thing?&quot;, # the text as label, \n is used to break the text
+    colour = &quot;#675746&quot;,                # color of the text
+    family = &quot;Baskerville&quot;,               # font family 
+    fontface = &quot;italic&quot;, size = 5
+   # face = &quot;bold&quot; ,
+  ) 
+ 
+  
+v3 &lt;- tibble(id = 1:1, row = id %% 1, col = id %/% 1) %&gt;%
+    ggplot(aes(x = col, y = row)) +
+  geom_tile_pattern(
+    fill = &#39;#9CAF88&#39;, 
+    col = &#39;gold&#39;, 
+    linewidth = .1,
+    pattern = &#39;image&#39;,
+    pattern_filename = &#39;newlou.png&#39;
+  ) +
+  coord_equal() +
+#  labs(
+ #   title = &#39;Who needs a Chocolate Bunny When You Can have the Real Thing?&#39;,
+#    caption = &#39;The Eastern Bunny is in a Better Place&#39;
+#  ) +
+  theme_minimal() +
+  theme(text = element_text(family = &quot;Baskerville&quot;, color = &quot;#675746&quot;, size = 15),
+     #   subtitle.text = element_text(family = &quot;Baskerville&quot;, color = &quot;#675746&quot;, size = 15),
+        axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major= element_blank(),
+        panel.grid.minor = element_blank(), #,
+      #  plot.title.position = 
+      #  plot.caption.position = 
+      plot.background = element_rect(color = &quot;#675746&quot;),
+      panel.background = element_rect(color = &quot;#675746&quot;)) 
+  
+  
+v3 &lt;- v3 +  annotate(
+    geom = &quot;text&quot;,                  # adding text to our plot using the annotate() function and the &quot;text&quot; geometry
+    x = 1, y = -.6,             # x and y coordinates for the location of the text
+    label = &quot;...The Eastern Bunny is in a Better Place&quot;, # the text as label, \n is used to break the text
+    colour = &quot;#675746&quot;,                # color of the text
+    family = &quot;Baskerville&quot;,               # font family 
+    fontface = &quot;italic&quot;, size = 5
+   # face = &quot;bold&quot; ,
+  ) </code></pre>
+<p><img src="p09_files/figure-html/unnamed-chunk-8-1.png" width="672" /><img src="p09_files/figure-html/unnamed-chunk-8-2.png" width="672" /></p>
+<div id="so-much-work-for-something-so-mid." class="section level3">
+<h3>So much work for something so mid.</h3>
+</div>
+</div>
+</div>
 
 
 
