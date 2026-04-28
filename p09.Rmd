@@ -259,13 +259,28 @@ v3 <- tibble(id = 1:1, row = id %% 1, col = id %/% 1) %>%
   
 v3 <- v3 +  annotate(
     geom = "text",                 
-    x = 1, y = -.6,           
+    x = 1, y = .6,           
     label = "...The Eastern Bunny is in a Better Place",
     colour = "#675746",                
     family = "Baskerville",              
     fontface = "italic", size = 5
    # face = "bold" ,
   ) 
+
+v3 <- v3 + annotate(
+    geom = "text",                 
+    x = 1, y = -.6,           
+    label = "Happy Spring From Wookie & Mr.Louie",
+    colour = "#675746",                
+    family = "Baskerville",              
+    fontface = "italic", size = 5
+   # face = "bold" ,
+  ) +
+  geom_image(
+    aes(image = "bunny.jpeg", 
+        #size = 0.01,
+        nudge_x = 3
+       ))
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -273,4 +288,4 @@ v21
 v3
 ```
 
-### So much work for something so mid. 
+### So much work for something so mid. I can't seem to move the bunny to any other location than dead center. I'm over it. 

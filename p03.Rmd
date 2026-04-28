@@ -61,7 +61,7 @@ for (i in 1:length(df_list)) {
   )) %>%
   mutate(Ord_1 = case_when(
     y1 <= 14 ~ 1,
-  y1 <= 15 ~ 2,
+  y1 <= 15 ~ 2,      #does this make sense or do people end up with multiple numbers by doing it this way  -- it seems like its working OK just eyeballing my iterations ord var. 
   y1 <= 16 ~ 3,
   y1 >= 17 ~ 4,
   is.na(y1) ~ 4,
@@ -148,7 +148,7 @@ knitr::include_graphics("funny_embed.jpeg")
 
 
 
-### Descriptives: Interval ACE uses the first variable, Ordinal uses the second. 
+### Descriptives: Interval ACE uses the first variable, Ordinal uses the second. Iteration1
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(sim_df, mapping=aes(x=y1)) +
@@ -197,8 +197,10 @@ ggplot(sim_df, mapping=aes(x=Ord_1)) +
 ## Interval ACE with Easymx 
 
 emxTwinModel function already modified (sourced at the beginning). 
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
-model <- emxTwinModel(model="Cholesky", relatedness ='RCoef', data=Iteration1, run=TRUE, use=c('y1','y2'), name='model', components='ACE')
+model <- emxModelTwin(model="Cholesky", relatedness ='RCoef', data=Iteration1, run=TRUE, use=c('y1','y2'), name='model', components='ACE')
+
 sumACE
 estimate <- c(.472, .155, .4099)
 lbound <- c(.2329755, .0582, .261268)
@@ -206,15 +208,43 @@ ubound <- c(.713447,.25133,.56227)
 name <- c("A","C","E")
 easy_result <- data.frame(name, lbound,estimate,ubound)
 kable(easy_result, caption = "EasyMx Interval ACE Results for Iteration 1")
+
+#to pull out standardized values
+# dont need to square because VA11 is already squared here 
+A  <- mxEval(VA11, fitACE)
+#shared environmental variance, c^2
+C  <- mxEval(VC11, fitACE)
+#unique environmental variance, e^2
+E  <- mxEval(VE11, fitACE)
+#total variance
+V  <- (A+C+E)
+#standardized A
+a2 <- A/V
+#standardized C
+c2 <- C/V
+#standardized E
+e2 <- E/V
+#table of estimates
+estACE <- rbind(cbind(A,C,E),cbind(a2,c2,e2))
+```
+```{r}
+estACE
 ```
 
 Now I want to repeat this for the other 9 iterations 
 ```{r echo=TRUE, message=TRUE, warning=FALSE, results='hide'}
+
 run_int <- function(df) {
-   model <- emxTwinModel(model="Cholesky", relatedness ='RCoef', data=df, run=TRUE, use=c('y1','y2'), name='model', components='ACE')
-   }
+   model <- emxModelTwin(model="Cholesky", relatedness ='RCoef', data=df, run=TRUE, use=c('y1','y2'), name='model', components='ACE')
+   local_sum <- summary(fitACE)
+   return(list(model=model, sum=local_sum))
+}
+
 results <- lapply(df_list, run_int)
 results
+
+#now the problem is that it is running the same iteration every time? identical results here 
+
 ```
 
 ### This is not so easy 
@@ -223,58 +253,22 @@ Now I have a big list of model outputs, but I can't do anything with it. I want 
 
 #### Option 1: Try to figure out a clean way of extracting parameters with EasyMx
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
-R1 <- summary(results$Iteration1)
-estimates_df1 <- R1$algebra
+```{r include=FALSE, echo=FALSE, message=FALSE, warning=FALSE, results='hide', eval=FALSE}
+#R1 <- summary(results$Iteration1)
+#estimates_df1 <- R1$algebra
 
 #now scale it up so I don't have to repeat manually ten times 
 #can't figure it out yet with lapply so I am going to for loop it 
 
-estimates_list <- lapply(results, function(fit) {
-  s <- summary(fit)
-  return(s$parameters) 
-})
-
-#fuck it 
-R1 <- summary(results$Iteration1)
-estimates_df1 <- R1$parameters
-R2 <- summary(results$Iteration2)
-estimates_df2 <- R2$parameters
-R3 <- summary(results$Iteration3)
-estimates_df3 <- R3$parameters
-R4 <- summary(results$Iteration4)
-estimates_df4 <- R4$parameters
-R5 <- summary(results$Iteration5)
-estimates_df5 <- R5$parameters
-R6 <- summary(results$Iteration6)
-estimates_df6 <- R6$parameters
-R7 <- summary(results$Iteration7)
-estimates_df7 <- R7$parameters
-R8 <- summary(results$Iteration8)
-estimates_df8 <- R8$parameters
-R9 <- summary(results$Iteration9)
-estimates_df9 <- R9$parameters
-R10 <- summary(results$Iteration10)
-estimates_df10 <- R10$parameters
-
-estimates_list <- list(estimates_df1, estimates_df2, estimates_df3, estimates_df4, estimates_df5, estimates_df6, estimates_df7, estimates_df8, estimates_df10)
-estimates_list
-```
-
-
-Now I want to make a function that uses my method for standardizing A,C,E and putting it into tables 
-
-1) lets try it out on Iteration 2 
-```{r message=FALSE, warning=FALSE, results='hide'}
-estimates_df2
-
-# Generate & Print Output
-# additive genetic variance, a^2
-A <- estimates_df2$Estimate[estimates_df2$name == "sqrtA11"]^2
+stand <- function(data){
+ 
+   actual_model <- data$sum$parameters
+   
+ A <- mxEval(VA11, actual_model)
 # shared environmental variance, c^2
-C  <- estimates_df2$Estimate[estimates_df2$name == "sqrtC11"]^2
+C  <- mxEval(VC11, actual_model)
 # unique environmental variance, e^2
-E  <- estimates_df2$Estimate[estimates_df2$name == "sqrtE11"]^2
+E  <- mxEval(VE11, actual_model)
 # total variance
 V  <- (A+C+E)
 # standardized A
@@ -284,11 +278,84 @@ c2 <- C/V
 # standardized E
 e2 <- E/V
 # table of estimates
-standACE2 <- rbind(cbind(a2,c2,e2))
+estACE <- rbind(cbind(a2,c2,e2))
+return(estACE)
+}
+
+
+# estimates_list2 <- lapply(results, function(fit) {
+#   s <- summary(fit)
+#   return(s) 
+# })
+
+estimates_list21 <- lapply(results, stand)
+estimates_list21
+
+correct_results1 <- do.call(rbind, estimates_list21)
+correct_df1 <- as.data.frame(correct_results1)
+kable(correct_df1)
+```
+```{r}
+stand3 <- function(data) {
+  # 1. Access the parameters table from the summary
+  params <- data$sum$parameters
+  
+  # 2. Pull the 'Estimate' value where the 'name' matches your labels
+  # We use [1] at the end just to ensure we get a single numeric value
+  A <- params$Estimate[params$name == "VA11"]
+  C <- params$Estimate[params$name == "VC11"]
+  E <- params$Estimate[params$name == "VE11"]
+  
+  # 3. Calculation
+  V  <- (A + C + E)
+  a2 <- A / V
+  c2 <- C / V
+  e2 <- E / V
+  
+  # 4. Return as a clean row
+  estACE <- rbind(cbind(a2,c2,e2))
+  return(estACE)
+}
+
+# Run the apply
+estimates_list2 <- lapply(results, stand3)
+
+# Combine into one big table
+correct_results <- do.call(rbind, estimates_list2)
+correct_df <- as.data.frame(correct_results)
+kable(correct_df)
 ```
 
-2) Now we scale it up by trying to make a function
-```{r message=FALSE, warning=FALSE, results='hide'}
+I don't know why my lapply of the results is leading to the same iteration getting standardized over and over in the stand function 
+
+
+
+lets try it out on Iteration 1 to confirm I get the same thing as w Hermine and the first run of easy mx 
+```{r include=FALSE, message=FALSE, warning=FALSE, results='hide', eval=FALSE}
+it1 <- estimates_list2$Iteration1
+
+# Generate & Print Output
+# additive genetic variance, a^2 
+A <- it1$Estimate[it1$name == "sqrtA11"]^2
+# shared environmental variance, c^2
+C  <- it1$Estimate[it1$name == "sqrtC11"]^2
+# unique environmental variance, e^2
+E  <- it1$Estimate[it1$name == "sqrtE11"]^42
+# total variance
+V  <- (A+C+E)
+# standardized A
+a2 <- A/V
+# standardized C
+c2 <- C/V
+# standardized E
+e2 <- E/V
+# table of estimates
+standACE1 <- rbind(cbind(A,C,E),cbind(a2,c2,e2))
+standACE1
+```
+
+
+```{r include=FALSE, message=FALSE, warning=FALSE, results='hide', eval=FALSE}
 #I want to use lapply to make a standACEi for each iteration
 
 stand <- function(data){
@@ -309,7 +376,7 @@ e2 <- E/V
 return(rbind(cbind(a2,c2,e2)))
 }
 
-standardized <- lapply(estimates_list, stand)
+standardized <- lapply(estimates_list2, stand)
 results <- do.call(rbind, standardized)
 
 #Bind them all together at the end 
@@ -318,9 +385,9 @@ results <- do.call(rbind, standardized)
 The numbers aren't looking quite right to me but at least now the output is in the form I wanted. At least for iteration1, EasyMx and hermines interval script produced the exact same results, but when I pull out the standardized, its wrong - maybe I am accidentally taking the square root twice? 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-rownames(results) <- c("1","2","3","4","5","6","7","8","10")
-colnames(results) <- c("A","C","E")
-kable(results, caption="Interval ACE Model Estimates Across Iterations")
+rownames(correct_df) <- c("1","2","3","4","5","6","7","8","9","10")
+colnames(correct_df) <- c("A","C","E")
+kable(correct_df, caption="Interval ACE Model Estimates Across Iterations")
 ```
 
 ```{r include=FALSE}
@@ -352,7 +419,7 @@ now that the parameters stored in a more accessible way, I want to graph them as
 
 ```{r include=FALSE}
 #just thinking this through by starting very simple and layering up 
-df_results <- as.data.frame(results)
+df_results <- as.data.frame(correct_df)
 
 ggplot(df_results, mapping=aes(x=A)) +
   geom_density()
@@ -371,30 +438,18 @@ results_long <- pivot_longer(
   cols = c("A","C","E"),
   names_to = "Estimate")
 
-results_long$Iteration <- rep(1:9, each = 3)
+results_long$Iteration <- rep(1:10, each = 3)
 
 ggplot(results_long, mapping=aes(x=value, fill=Estimate)) + 
   geom_density() +
   scale_fill_manual(values= c("lightblue","#8EC3E6","#6BADCE")) +
   theme_minimal() +
-  labs(title="Distribution of A,C,E Estimates Across 9 Iterations",
+  labs(title="Distribution of A,C,E Estimates Across 10 Iterations",
        subtitle="Simulated Parameters: A =.3, C =.2, E =.5",
        x="Value",
        y="Density",
        fill="Parameter")
 ```
 
-These values aren't even close, but I am going to leave it as is for now. It would be nice to add in CIs / some kind of shading, but its probably not worth fighting with the openMx outputs to get me those. 
-
-Hermine's script and EasyMx's get us the same result in iteration1, so that is a good sanity check. However, the way that the iterations are stored requires standardization and there are inconsistencies with how the different methods report estimates, and that makes it sketchy. I am feeling a little bit skeptical about if I correctly modified the things that needed modifying, and left the stuff alone that was already standardized. 
-
-I did look a little closer at the EasyMx Iteration1 output, and the simulated numbers are within the CIs, so that is encouraging. 
-
-## Further steps
-
-Will return to the following if time allows: 
--Need to do the ordinal with easyMx - will need to modify the function 
--Need to get down to the bottom of why my EasyMx iterations are giving the wrong values. The Hermine results with iteration 1 are consistent with the simulated data, but EasyMx is not. 
--Also worth considering if its the missing data injections that are fucking it up - its set to random, but perhaps the amount of missingness has consequences??
-
+My functions aren't working right, so it just gives me the same A,C,E values 10 times. ugh. too much time has gone into this portfolio. 
 

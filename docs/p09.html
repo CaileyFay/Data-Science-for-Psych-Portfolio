@@ -416,16 +416,34 @@ v3 &lt;- tibble(id = 1:1, row = id %% 1, col = id %/% 1) %&gt;%
   
 v3 &lt;- v3 +  annotate(
     geom = &quot;text&quot;,                 
-    x = 1, y = -.6,           
+    x = 1, y = .6,           
     label = &quot;...The Eastern Bunny is in a Better Place&quot;,
     colour = &quot;#675746&quot;,                
     family = &quot;Baskerville&quot;,              
     fontface = &quot;italic&quot;, size = 5
    # face = &quot;bold&quot; ,
-  ) </code></pre>
+  ) 
+
+v3 &lt;- v3 + annotate(
+    geom = &quot;text&quot;,                 
+    x = 1, y = -.6,           
+    label = &quot;Happy Spring From Wookie &amp; Mr.Louie&quot;,
+    colour = &quot;#675746&quot;,                
+    family = &quot;Baskerville&quot;,              
+    fontface = &quot;italic&quot;, size = 5
+   # face = &quot;bold&quot; ,
+  ) +
+  geom_image(
+    aes(image = &quot;bunny.jpeg&quot;, 
+        #size = 0.01,
+        nudge_x = 3
+       ))</code></pre>
 <p><img src="p09_files/figure-html/unnamed-chunk-8-1.png" width="672" /><img src="p09_files/figure-html/unnamed-chunk-8-2.png" width="672" /></p>
-<div id="so-much-work-for-something-so-mid." class="section level3">
-<h3>So much work for something so mid.</h3>
+<div
+id="so-much-work-for-something-so-mid.-i-cant-seem-to-move-the-bunny-to-any-other-location-than-dead-center.-im-over-it."
+class="section level3">
+<h3>So much work for something so mid. I can’t seem to move the bunny to
+any other location than dead center. I’m over it.</h3>
 </div>
 </div>
 </div>

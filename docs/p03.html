@@ -356,7 +356,7 @@ all the iterations.</p>
   )) %&gt;%
   mutate(Ord_1 = case_when(
     y1 &lt;= 14 ~ 1,
-  y1 &lt;= 15 ~ 2,
+  y1 &lt;= 15 ~ 2,      #does this make sense or do people end up with multiple numbers by doing it this way  -- it seems like its working OK just eyeballing my iterations ord var. 
   y1 &lt;= 16 ~ 3,
   y1 &gt;= 17 ~ 4,
   is.na(y1) ~ 4,
@@ -444,10 +444,10 @@ output. For your entertainment, this is what it gave me.</p>
 <p><img src="funny_embed.jpeg" width="104" /></p>
 </div>
 <div
-id="descriptives-interval-ace-uses-the-first-variable-ordinal-uses-the-second."
+id="descriptives-interval-ace-uses-the-first-variable-ordinal-uses-the-second.-iteration1"
 class="section level3">
 <h3>Descriptives: Interval ACE uses the first variable, Ordinal uses the
-second.</h3>
+second. Iteration1</h3>
 <p><img src="p03_files/figure-html/unnamed-chunk-10-1.png" width="672" /><img src="p03_files/figure-html/unnamed-chunk-10-2.png" width="672" /></p>
 </div>
 </div>
@@ -455,10 +455,17 @@ second.</h3>
 <h2>Interval ACE with Easymx</h2>
 <p>emxTwinModel function already modified (sourced at the
 beginning).</p>
+<pre class="r"><code>estACE</code></pre>
+<pre><code>##            [,1]       [,2]       [,3]
+## [1,] 0.47181234 0.15537817 0.40990030
+## [2,] 0.45493831 0.14982118 0.39524051</code></pre>
 <p>Now I want to repeat this for the other 9 iterations</p>
 <pre class="r"><code>run_int &lt;- function(df) {
-   model &lt;- emxTwinModel(model=&quot;Cholesky&quot;, relatedness =&#39;RCoef&#39;, data=df, run=TRUE, use=c(&#39;y1&#39;,&#39;y2&#39;), name=&#39;model&#39;, components=&#39;ACE&#39;)
-   }
+   model &lt;- emxModelTwin(model=&quot;Cholesky&quot;, relatedness =&#39;RCoef&#39;, data=df, run=TRUE, use=c(&#39;y1&#39;,&#39;y2&#39;), name=&#39;model&#39;, components=&#39;ACE&#39;)
+   local_sum &lt;- summary(fitACE)
+   return(list(model=model, sum=local_sum))
+}
+
 results &lt;- lapply(df_list, run_int)</code></pre>
 <pre><code>## Running model with 4 parameters
 ## Running model with 4 parameters
@@ -470,7 +477,9 @@ results &lt;- lapply(df_list, run_int)</code></pre>
 ## Running model with 4 parameters
 ## Running model with 4 parameters
 ## Running model with 4 parameters</code></pre>
-<pre class="r"><code>results</code></pre>
+<pre class="r"><code>results
+
+#now the problem is that it is running the same iteration every time? identical results here </code></pre>
 <div id="this-is-not-so-easy" class="section level3">
 <h3>This is not so easy</h3>
 <p>Now I have a big list of model outputs, but I can’t do anything with
@@ -481,57 +490,99 @@ id="option-1-try-to-figure-out-a-clean-way-of-extracting-parameters-with-easymx"
 class="section level4">
 <h4>Option 1: Try to figure out a clean way of extracting parameters
 with EasyMx</h4>
-<p>Now I want to make a function that uses my method for standardizing
-A,C,E and putting it into tables</p>
-<ol style="list-style-type: decimal">
-<li>lets try it out on Iteration 2</li>
-</ol>
-<pre class="r"><code>estimates_df2
-
-# Generate &amp; Print Output
-# additive genetic variance, a^2
-A &lt;- estimates_df2$Estimate[estimates_df2$name == &quot;sqrtA11&quot;]^2
-# shared environmental variance, c^2
-C  &lt;- estimates_df2$Estimate[estimates_df2$name == &quot;sqrtC11&quot;]^2
-# unique environmental variance, e^2
-E  &lt;- estimates_df2$Estimate[estimates_df2$name == &quot;sqrtE11&quot;]^2
-# total variance
-V  &lt;- (A+C+E)
-# standardized A
-a2 &lt;- A/V
-# standardized C
-c2 &lt;- C/V
-# standardized E
-e2 &lt;- E/V
-# table of estimates
-standACE2 &lt;- rbind(cbind(a2,c2,e2))</code></pre>
-<ol start="2" style="list-style-type: decimal">
-<li>Now we scale it up by trying to make a function</li>
-</ol>
-<pre class="r"><code>#I want to use lapply to make a standACEi for each iteration
-
-stand &lt;- function(data){
-  A &lt;- data$Estimate[data$name == &quot;sqrtA11&quot;]^2
-# shared environmental variance, c^2
-C  &lt;- data$Estimate[data$name == &quot;sqrtC11&quot;]^2
-# unique environmental variance, e^2
-E  &lt;- data$Estimate[data$name == &quot;sqrtE11&quot;]^2
-# total variance
-V  &lt;- (A+C+E)
-# standardized A
-a2 &lt;- A/V
-# standardized C
-c2 &lt;- C/V
-# standardized E
-e2 &lt;- E/V
-# table of estimates
-return(rbind(cbind(a2,c2,e2)))
+<pre class="r"><code>stand3 &lt;- function(data) {
+  # 1. Access the parameters table from the summary
+  params &lt;- data$sum$parameters
+  
+  # 2. Pull the &#39;Estimate&#39; value where the &#39;name&#39; matches your labels
+  # We use [1] at the end just to ensure we get a single numeric value
+  A &lt;- params$Estimate[params$name == &quot;VA11&quot;]
+  C &lt;- params$Estimate[params$name == &quot;VC11&quot;]
+  E &lt;- params$Estimate[params$name == &quot;VE11&quot;]
+  
+  # 3. Calculation
+  V  &lt;- (A + C + E)
+  a2 &lt;- A / V
+  c2 &lt;- C / V
+  e2 &lt;- E / V
+  
+  # 4. Return as a clean row
+  estACE &lt;- rbind(cbind(a2,c2,e2))
+  return(estACE)
 }
 
-standardized &lt;- lapply(estimates_list, stand)
-results &lt;- do.call(rbind, standardized)
+# Run the apply
+estimates_list2 &lt;- lapply(results, stand3)
 
-#Bind them all together at the end </code></pre>
+# Combine into one big table
+correct_results &lt;- do.call(rbind, estimates_list2)
+correct_df &lt;- as.data.frame(correct_results)
+kable(correct_df)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">a2</th>
+<th align="right">c2</th>
+<th align="right">e2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.45493831</td>
+<td align="right">0.14982118</td>
+<td align="right">0.39524051</td>
+</tr>
+<tr class="even">
+<td align="right">0.45493831</td>
+<td align="right">0.14982118</td>
+<td align="right">0.39524051</td>
+</tr>
+<tr class="odd">
+<td align="right">0.45493831</td>
+<td align="right">0.14982118</td>
+<td align="right">0.39524051</td>
+</tr>
+<tr class="even">
+<td align="right">0.45493831</td>
+<td align="right">0.14982118</td>
+<td align="right">0.39524051</td>
+</tr>
+<tr class="odd">
+<td align="right">0.45493831</td>
+<td align="right">0.14982118</td>
+<td align="right">0.39524051</td>
+</tr>
+<tr class="even">
+<td align="right">0.45493831</td>
+<td align="right">0.14982118</td>
+<td align="right">0.39524051</td>
+</tr>
+<tr class="odd">
+<td align="right">0.45493831</td>
+<td align="right">0.14982118</td>
+<td align="right">0.39524051</td>
+</tr>
+<tr class="even">
+<td align="right">0.45493831</td>
+<td align="right">0.14982118</td>
+<td align="right">0.39524051</td>
+</tr>
+<tr class="odd">
+<td align="right">0.45493831</td>
+<td align="right">0.14982118</td>
+<td align="right">0.39524051</td>
+</tr>
+<tr class="even">
+<td align="right">0.45493831</td>
+<td align="right">0.14982118</td>
+<td align="right">0.39524051</td>
+</tr>
+</tbody>
+</table>
+<p>I don’t know why my lapply of the results is leading to the same
+iteration getting standardized over and over in the stand function</p>
+<p>lets try it out on Iteration 1 to confirm I get the same thing as w
+Hermine and the first run of easy mx</p>
 <p>The numbers aren’t looking quite right to me but at least now the
 output is in the form I wanted. At least for iteration1, EasyMx and
 hermines interval script produced the exact same results, but when I
@@ -541,7 +592,6 @@ the square root twice?</p>
 <caption>Interval ACE Model Estimates Across Iterations</caption>
 <thead>
 <tr class="header">
-<th align="left"></th>
 <th align="right">A</th>
 <th align="right">C</th>
 <th align="right">E</th>
@@ -549,58 +599,54 @@ the square root twice?</p>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">1</td>
-<td align="right">0.11139936</td>
-<td align="right">0.26816558</td>
-<td align="right">0.62043505</td>
+<td align="right">0.45493831</td>
+<td align="right">0.14982118</td>
+<td align="right">0.39524051</td>
 </tr>
 <tr class="even">
-<td align="left">2</td>
-<td align="right">0.01753173</td>
-<td align="right">0.32437181</td>
-<td align="right">0.65809646</td>
+<td align="right">0.45493831</td>
+<td align="right">0.14982118</td>
+<td align="right">0.39524051</td>
 </tr>
 <tr class="odd">
-<td align="left">3</td>
-<td align="right">0.11854103</td>
-<td align="right">0.22995973</td>
-<td align="right">0.65149924</td>
+<td align="right">0.45493831</td>
+<td align="right">0.14982118</td>
+<td align="right">0.39524051</td>
 </tr>
 <tr class="even">
-<td align="left">4</td>
-<td align="right">0.00526405</td>
-<td align="right">0.31693206</td>
-<td align="right">0.67780389</td>
+<td align="right">0.45493831</td>
+<td align="right">0.14982118</td>
+<td align="right">0.39524051</td>
 </tr>
 <tr class="odd">
-<td align="left">5</td>
-<td align="right">0.04147170</td>
-<td align="right">0.25986055</td>
-<td align="right">0.69866775</td>
+<td align="right">0.45493831</td>
+<td align="right">0.14982118</td>
+<td align="right">0.39524051</td>
 </tr>
 <tr class="even">
-<td align="left">6</td>
-<td align="right">0.01562877</td>
-<td align="right">0.28298541</td>
-<td align="right">0.70138581</td>
+<td align="right">0.45493831</td>
+<td align="right">0.14982118</td>
+<td align="right">0.39524051</td>
 </tr>
 <tr class="odd">
-<td align="left">7</td>
-<td align="right">0.01934775</td>
-<td align="right">0.29206759</td>
-<td align="right">0.68858466</td>
+<td align="right">0.45493831</td>
+<td align="right">0.14982118</td>
+<td align="right">0.39524051</td>
 </tr>
 <tr class="even">
-<td align="left">8</td>
-<td align="right">0.08167756</td>
-<td align="right">0.28919938</td>
-<td align="right">0.62912305</td>
+<td align="right">0.45493831</td>
+<td align="right">0.14982118</td>
+<td align="right">0.39524051</td>
 </tr>
 <tr class="odd">
-<td align="left">10</td>
-<td align="right">0.00000000</td>
-<td align="right">0.30908862</td>
-<td align="right">0.69091138</td>
+<td align="right">0.45493831</td>
+<td align="right">0.14982118</td>
+<td align="right">0.39524051</td>
+</tr>
+<tr class="even">
+<td align="right">0.45493831</td>
+<td align="right">0.14982118</td>
+<td align="right">0.39524051</td>
 </tr>
 </tbody>
 </table>
@@ -618,30 +664,10 @@ hermine method</h4>
 <p>now that the parameters stored in a more accessible way, I want to
 graph them as 3 overlapping density distributions.</p>
 <p>Now I am going to reshape the data and plot:
-<img src="p03_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
-<p>These values aren’t even close, but I am going to leave it as is for
-now. It would be nice to add in CIs / some kind of shading, but its
-probably not worth fighting with the openMx outputs to get me those.</p>
-<p>Hermine’s script and EasyMx’s get us the same result in iteration1,
-so that is a good sanity check. However, the way that the iterations are
-stored requires standardization and there are inconsistencies with how
-the different methods report estimates, and that makes it sketchy. I am
-feeling a little bit skeptical about if I correctly modified the things
-that needed modifying, and left the stuff alone that was already
-standardized.</p>
-<p>I did look a little closer at the EasyMx Iteration1 output, and the
-simulated numbers are within the CIs, so that is encouraging.</p>
+<img src="p03_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+<p>My functions aren’t working right, so it just gives me the same A,C,E
+values 10 times. ugh. too much time has gone into this portfolio.</p>
 </div>
-</div>
-<div id="further-steps" class="section level2">
-<h2>Further steps</h2>
-<p>Will return to the following if time allows: -Need to do the ordinal
-with easyMx - will need to modify the function -Need to get down to the
-bottom of why my EasyMx iterations are giving the wrong values. The
-Hermine results with iteration 1 are consistent with the simulated data,
-but EasyMx is not. -Also worth considering if its the missing data
-injections that are fucking it up - its set to random, but perhaps the
-amount of missingness has consequences??</p>
 </div>
 
 
