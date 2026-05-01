@@ -15,6 +15,7 @@ First, of course, I will load up my packages like always. In a separate file, I 
 
 ```{r message=FALSE, warning=FALSE, results='hide'}
 library(shiny)
+library(shinydashboard)
 library(googlesheets4) #in love with this
 library(janitor)
 library(dplyr)
@@ -127,7 +128,8 @@ Finally, I made an interactive dashboard. Its not very complex, but bonus points
 Point to a different repo that hosts the shiny app and it will do better? 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-suppressWarnings(
-  suppressMessages(shiny::shinyAppFile("P4_ESM/app.R")))
+ suppressWarnings(
+   suppressMessages(shiny::shinyAppFile("P4_ESM/app.R")))
+
 ```
 

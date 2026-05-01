@@ -2,37 +2,63 @@
 title: "Portfolio 1: Math-ing in R"
 ---
 
-> This may come as a shock to no one, but R can do math. In this portfolio piece, I will demonstrate how to do some math in R that I find particularly enjoyable. 
+>  In this portfolio piece, I will demonstrate how to do some math in R that I find particularly enjoyable. It turns out it is NOT enjoyable in R. 
 
-Let's load the relevant packages first, among these are the package mosaiCalc (CITATION NEEDED) which will do some of the heavy lifting.
+Let's load the relevant packages first, among these are the package mosaiCalc which will do some of the heavy lifting.
 
 ```{r load-packages, message=FALSE}
 library(tidyverse) 
 library(tidyr)
 library(mosaicCalc)
+library(pracma) #for RREF 
 #this is also helpful and necessary 
 help(package="mosaicCalc")
+library(knitr)
+library(kableExtra)
 ```
 
-We will start with vectors, something all of us can get behind. Contrasts are vectors, and we love contrasts, don't we? 
+lets slap together a system of equations: -2x + y - z = 4; x + 2y + 3z = 13; 3x + z = -1 and make a matrix 
 ```{r}
-#first making a simple linear combination 
-#add in an actual example from Eric's class, show that they dot to zero using R 
-project()
+
+A <- matrix(c(-2,1,3,
+              1,2,0,
+              -1,3,1,
+              4,13,-1), nrow=3)
+
 
 ```
 
-To plot a vector field in R, we can use the vectorfield_plot function. It seems like it can only handle two dimensional vectors but I will certainly circle back with a more interesting example if I learn otherwise. The use of tilde expressions are terrible, but my example functions are ..... 
+To solve this system, we just take the Reduced Row Echelon Form of the matrix (RREF). We get exactly one solution, x=-1, y=4, z=2
+```{r}
+kable(rref(A))
+```
+
+Lets do it with one more system: x-2y+3z = -2; -x+y-2z=3, 2x-y+3z = -7
+```{r}
+B <- matrix(c(1,-1,2,
+              -2,1,-1,
+              3,-2,3,
+              -2,3,-7), nrow=3)
+
+rref(B)
+
+
+```
+This is a dependent system with infinitely many solutions. let z = t, then x = -t-4, y = t-1, and we get solutions for any real number t. 
+
+Now I will try to plot this stuff, starting with the first example: 
 
 ```{r}
-#plot a vector field 
-vectorfield_plot(x ~ tan(y), y ~ tan(x), bounds(x=-1:1, y=-1:1),
-  npts = 5,
-  color = "pink",
-  alpha = 0.9,
-  transform = sqrt,
-  env = NULL
-)
+
+
+# Define the coefficient matrix A and constant vector b
+# Equation: 1x + 2y = 30 and 3x + 4y = 50
+A <- matrix(c(1, 3, 2, 4), nrow = 2, ncol = 2)
+b <- c(30, 50)
+
+# Plot the system
+plotEqn(A, b)
+
   
 ```
 As it turns out, this particular method will not handle three variables, but apparently one strategy is to use heatmaps to visualize the third variable. That is something to play around with in the future. 
@@ -48,7 +74,7 @@ library(pracma) #for the integrate function, because the functions in mosiacCalc
   
 ```
 
-Mauris placerat in velit a pharetra. Nulla viverra bibendum lectus, ut lobortis nibh. Aenean malesuada, orci vitae dictum placerat, enim justo aliquet leo, ac tincidunt augue ipsum et mi. Nullam in pharetra metus, nec molestie felis. Duis varius rhoncus pulvinar. Integer semper urna sed tellus rhoncus, vel suscipit odio iaculis. Mauris iaculis neque pellentesque ex convallis venenatis. Sed ultrices euismod fermentum. Ut feugiat risus at turpis tincidunt viverra.
+
 
 
 ```{r}
@@ -59,4 +85,4 @@ ggplot(data = fish_encounters, aes(x = station, y = seen)) +
   
 ```
 
-Donec sagittis suscipit orci in ultrices. Vivamus iaculis eleifend est et dictum. Fusce non urna at lacus dapibus tincidunt ac sed nibh. Donec luctus lectus elit, ac ultrices tortor mollis sit amet. Nulla finibus lacinia arcu. Proin sollicitudin non odio et pulvinar. Maecenas finibus faucibus finibus. Ut elementum metus velit, a sodales sapien commodo et. Vivamus pulvinar, sapien et porta cursus, elit est luctus nisi, eget fringilla odio diam et enim. Sed sodales suscipit bibendum. Morbi ut metus semper, laoreet felis sodales, consequat dolor.
+

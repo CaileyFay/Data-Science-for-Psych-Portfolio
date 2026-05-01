@@ -1,0 +1,12 @@
+name: P4_ESM
+title: P4_ESM
+username: caileynfay
+account: caileynfay
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 17275578
+bundleId: 11935277
+url: https://caileynfay.shinyapps.io/P4_ESM/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
