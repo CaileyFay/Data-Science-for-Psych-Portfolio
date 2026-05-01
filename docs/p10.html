@@ -11,9 +11,9 @@
 
 
 
-<title>Portfolio 10</title>
+<title>Airline Loyalty Data - Data Wrangling Practice</title>
 
-<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -141,11 +141,15 @@ $(document).ready(function () {
     href = "index.html";
   var menuAnchor = $('a[href="' + href + '"]');
 
-  // mark it active
-  menuAnchor.tab('show');
-
-  // if it's got a parent navbar menu mark it active as well
-  menuAnchor.closest('li.dropdown').addClass('active');
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
 
   // Navbar adjustments
   var navHeight = $(".navbar").first().height() + 15;
@@ -174,8 +178,8 @@ $(document).ready(function () {
   border-radius: 4px;
 }
 
-.tabset-dropdown > .nav-tabs > li.active:before {
-  content: "";
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
   font-family: 'Glyphicons Halflings';
   display: inline-block;
   padding: 10px;
@@ -183,16 +187,9 @@ $(document).ready(function () {
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-  content: "&#xe258;";
-  border: none;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-  content: "";
+  content: "\e258";
   font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
+  border: none;
 }
 
 .tabset-dropdown > .nav-tabs > li.active {
@@ -293,109 +290,397 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Portfolio 10</h1>
+<h1 class="title toc-ignore">Airline Loyalty Data - Data Wrangling
+Practice</h1>
 
 </div>
 
 
 <blockquote>
-<p>The projects should be numbered consecutively (i.e., in the order in
-which you began them), and should include for each project a description
-of the goal, the product (computer program, hand graph, computer graph,
-etc.), the data, and some interpretation. Reports must be reproducible
-and of high quality in terms of writing, grammar, presentation, etc.</p>
+<p>To wrap up this portfolio, I found some data online (<a
+href="https://mavenanalytics.io/data-playground/airline-loyalty-program"
+class="uri">https://mavenanalytics.io/data-playground/airline-loyalty-program</a>).
+Hopefully this is going to be a fun feel good activity. This data is
+clean and ready to go, and the place where I downloaded it from even
+gave some ideas for what to explore!</p>
 </blockquote>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
-hendrerit purus ut dapibus vestibulum. Suspendisse potenti. Cras
-faucibus mauris in leo condimentum lobortis. Cras euismod sollicitudin
-augue, ut venenatis quam placerat eu. Maecenas vulputate rhoncus odio,
-in interdum risus malesuada gravida. Maecenas cursus sed dui sit amet
-lacinia. Nunc dignissim metus nec ex mattis, non rutrum urna cursus.
-Morbi pretium elementum purus, in aliquet libero eleifend ac. Nam
-finibus, ligula sed ultrices pharetra, tellus risus consequat tortor,
-facilisis maximus elit lectus a metus. Sed vel dictum nulla, vitae
-blandit turpis. Integer pulvinar tempor diam ac venenatis. Vestibulum
-est lacus, suscipit et ipsum nec, consectetur iaculis leo. Morbi libero
-lacus, scelerisque non sollicitudin vitae, accumsan sed tellus.
-Suspendisse quis orci tellus.</p>
-<div id="r-markdown" class="section level2">
-<h2>R Markdown</h2>
-<p>This is an R Markdown document. Markdown is a simple formatting
-syntax for authoring HTML, PDF, and MS Word documents. For more details
-on using R Markdown see <a href="http://rmarkdown.rstudio.com"
-class="uri">http://rmarkdown.rstudio.com</a>.</p>
-<p>When you click the <strong>Knit</strong> button a document will be
-generated that includes both content as well as the output of any
-embedded R code chunks within the document. You can embed an R code
-chunk like this:</p>
-<pre class="r"><code>summary(cars)</code></pre>
-<pre><code>##      speed           dist       
-##  Min.   : 4.0   Min.   :  2.00  
-##  1st Qu.:12.0   1st Qu.: 26.00  
-##  Median :15.0   Median : 36.00  
-##  Mean   :15.4   Mean   : 42.98  
-##  3rd Qu.:19.0   3rd Qu.: 56.00  
-##  Max.   :25.0   Max.   :120.00</code></pre>
-<p>Maecenas luctus convallis efficitur. Vestibulum pharetra laoreet nibh
-non congue. Etiam ornare, neque sit amet condimentum aliquet, odio ipsum
-porttitor elit, eu malesuada turpis augue sit amet arcu. Integer nec
-quam et massa congue tincidunt. Donec sit amet diam placerat, pharetra
-quam nec, ornare nisl. Quisque erat turpis, imperdiet eget tellus non,
-interdum ultricies nisi. Fusce a erat est. Nunc sollicitudin ante non
-eros vulputate, sed eleifend nulla hendrerit. Nam ac quam nulla.
-Praesent a ligula a justo auctor tristique ac vel neque. Class aptent
-taciti sociosqu ad litora torquent per conubia nostra, per inceptos
-himenaeos. Quisque tempor felis sed lorem efficitur volutpat. Aliquam
-lectus diam, lacinia vitae velit eget, pulvinar porta massa. Curabitur
-nec egestas mi.</p>
+<div id="lets-check-out-the-data-first" class="section level2">
+<h2>Lets check out the data first:</h2>
+<table>
+<caption>Codebook</caption>
+<colgroup>
+<col width="24%" />
+<col width="18%" />
+<col width="57%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Table</th>
+<th align="left">Field</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Customer Flight Activity</td>
+<td align="left">Loyalty Number</td>
+<td align="left">Customer’s unique loyalty number</td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td align="left">Year</td>
+<td align="left">Year of the period</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td align="left">Month</td>
+<td align="left">Month of the period</td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td align="left">Total Flights</td>
+<td align="left">Sum of Flights Booked (all tickets purchased in the
+period)</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td align="left">Distance</td>
+<td align="left">Flight distance traveled in the period (km)</td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td align="left">Points Accumulated</td>
+<td align="left">Loyalty points accumulated in the period</td>
+</tr>
+</tbody>
+</table>
+<table>
+<caption>Travel Stats of Loyalty Members</caption>
+<colgroup>
+<col width="13%" />
+<col width="4%" />
+<col width="5%" />
+<col width="12%" />
+<col width="8%" />
+<col width="16%" />
+<col width="14%" />
+<col width="25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">Loyalty.Number</th>
+<th align="right">Year</th>
+<th align="right">Month</th>
+<th align="right">Total.Flights</th>
+<th align="right">Distance</th>
+<th align="right">Points.Accumulated</th>
+<th align="right">Points.Redeemed</th>
+<th align="right">Dollar.Cost.Points.Redeemed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">100590</td>
+<td align="right">2018</td>
+<td align="right">6</td>
+<td align="right">12</td>
+<td align="right">15276</td>
+<td align="right">22914</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">100590</td>
+<td align="right">2018</td>
+<td align="right">7</td>
+<td align="right">12</td>
+<td align="right">9168</td>
+<td align="right">13752</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">100590</td>
+<td align="right">2018</td>
+<td align="right">5</td>
+<td align="right">4</td>
+<td align="right">6504</td>
+<td align="right">9756</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">100590</td>
+<td align="right">2018</td>
+<td align="right">10</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">512</td>
+<td align="right">92</td>
+</tr>
+<tr class="odd">
+<td align="right">100590</td>
+<td align="right">2018</td>
+<td align="right">2</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">100590</td>
+<td align="right">2018</td>
+<td align="right">4</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+<table>
+<caption>Loyalty Member Demographics</caption>
+<colgroup>
+<col width="17%" />
+<col width="9%" />
+<col width="19%" />
+<col width="12%" />
+<col width="13%" />
+<col width="8%" />
+<col width="11%" />
+<col width="8%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">Loyalty.Number</th>
+<th align="left">Country</th>
+<th align="left">Province</th>
+<th align="left">City</th>
+<th align="left">Postal.Code</th>
+<th align="left">Gender</th>
+<th align="left">Education</th>
+<th align="right">Salary</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">480934</td>
+<td align="left">Canada</td>
+<td align="left">Ontario</td>
+<td align="left">Toronto</td>
+<td align="left">M2Z 4K1</td>
+<td align="left">Female</td>
+<td align="left">Bachelor</td>
+<td align="right">83236</td>
+</tr>
+<tr class="even">
+<td align="right">549612</td>
+<td align="left">Canada</td>
+<td align="left">Alberta</td>
+<td align="left">Edmonton</td>
+<td align="left">T3G 6Y6</td>
+<td align="left">Male</td>
+<td align="left">College</td>
+<td align="right">NA</td>
+</tr>
+<tr class="odd">
+<td align="right">429460</td>
+<td align="left">Canada</td>
+<td align="left">British Columbia</td>
+<td align="left">Vancouver</td>
+<td align="left">V6E 3D9</td>
+<td align="left">Male</td>
+<td align="left">College</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="right">608370</td>
+<td align="left">Canada</td>
+<td align="left">Ontario</td>
+<td align="left">Toronto</td>
+<td align="left">P1W 1K4</td>
+<td align="left">Male</td>
+<td align="left">College</td>
+<td align="right">NA</td>
+</tr>
+<tr class="odd">
+<td align="right">530508</td>
+<td align="left">Canada</td>
+<td align="left">Quebec</td>
+<td align="left">Hull</td>
+<td align="left">J8Y 3Z5</td>
+<td align="left">Male</td>
+<td align="left">Bachelor</td>
+<td align="right">103495</td>
+</tr>
+<tr class="even">
+<td align="right">193662</td>
+<td align="left">Canada</td>
+<td align="left">Yukon</td>
+<td align="left">Whitehorse</td>
+<td align="left">Y2K 6R0</td>
+<td align="left">Male</td>
+<td align="left">Bachelor</td>
+<td align="right">51124</td>
+</tr>
+</tbody>
+</table>
+<table>
+<colgroup>
+<col width="12%" />
+<col width="10%" />
+<col width="6%" />
+<col width="13%" />
+<col width="13%" />
+<col width="13%" />
+<col width="14%" />
+<col width="15%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Marital.Status</th>
+<th align="left">Loyalty.Card</th>
+<th align="right">CLV</th>
+<th align="left">Enrollment.Type</th>
+<th align="right">Enrollment.Year</th>
+<th align="right">Enrollment.Month</th>
+<th align="right">Cancellation.Year</th>
+<th align="right">Cancellation.Month</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Married</td>
+<td align="left">Star</td>
+<td align="right">3839.14</td>
+<td align="left">Standard</td>
+<td align="right">2016</td>
+<td align="right">2</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Divorced</td>
+<td align="left">Star</td>
+<td align="right">3839.61</td>
+<td align="left">Standard</td>
+<td align="right">2016</td>
+<td align="right">3</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Single</td>
+<td align="left">Star</td>
+<td align="right">3839.75</td>
+<td align="left">Standard</td>
+<td align="right">2014</td>
+<td align="right">7</td>
+<td align="right">2018</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">Single</td>
+<td align="left">Star</td>
+<td align="right">3839.75</td>
+<td align="left">Standard</td>
+<td align="right">2013</td>
+<td align="right">2</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Married</td>
+<td align="left">Star</td>
+<td align="right">3842.79</td>
+<td align="left">Standard</td>
+<td align="right">2014</td>
+<td align="right">10</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Married</td>
+<td align="left">Star</td>
+<td align="right">3844.57</td>
+<td align="left">Standard</td>
+<td align="right">2012</td>
+<td align="right">5</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+</tr>
+</tbody>
+</table>
+<p>There was a promotional running from Feb - Apr 2018. We have data on:
+* How long someone has been part of the flight loyalty program * How
+much they have flown with the airline * Points accumulated and redeemed
+* Marital status, education, income, where the person lives, etc</p>
+<div id="analysis-questions" class="section level3">
+<h3>Analysis Questions:</h3>
+<ul>
+<li>What impact did the campaign have on loyalty program memberships
+(gross / net)?</li>
+<li>Was the campaign adoption more successful for certain demographics
+of loyalty members?</li>
+<li>What impact did the campaign have on booked flights during the
+summer?</li>
+</ul>
 </div>
-<div id="including-plots" class="section level2">
-<h2>Including Plots</h2>
-<p>You can also embed plots, for example:</p>
-<p><img src="p10_files/figure-html/pressure-1.png" width="672" /></p>
-<p>Note that the <code>echo = FALSE</code> parameter was added to the
-code chunk to prevent printing of the R code that generated the
-plot.</p>
-<p>Morbi tincidunt mollis odio sit amet feugiat. Ut vel risus eu ante
-dictum consequat. Integer et luctus mauris. Donec nec faucibus urna, sed
-commodo risus. Nam elementum pulvinar erat, eget convallis est blandit
-vel. Etiam gravida sapien eu massa hendrerit maximus. Proin dolor quam,
-porta vitae libero non, venenatis porta tellus. Vivamus et elit a est
-aliquet consequat. Proin tempus, purus quis suscipit placerat, dui nunc
-euismod dui, sit amet luctus leo lectus in risus. Phasellus consectetur
-eleifend arcu. Nullam venenatis blandit nulla ut ullamcorper. Vestibulum
-eu arcu quis massa scelerisque sodales in ac augue. Quisque dapibus
-fringilla turpis, ut cursus tortor cursus sed. Sed facilisis quam eget
-neque viverra venenatis. Suspendisse ut lorem nec erat elementum
-bibendum. Curabitur lobortis purus in cursus blandit.</p>
-<p>Aliquam sed ex et lorem consequat feugiat at porta leo. Fusce id
-hendrerit tellus. Maecenas dictum felis neque, quis dictum metus
-tristique eu. Vivamus sed blandit nisl. Integer ut urna dolor. Cras in
-egestas eros, in aliquam nisi. Duis vitae elementum quam. Vivamus vel
-turpis commodo, porttitor urna vitae, viverra sem. Nam nec dignissim
-erat, id viverra libero. Integer vel lectus pellentesque tortor
-fringilla posuere. Vivamus quis magna accumsan, porta tortor at, aliquam
-urna. Aliquam vestibulum ante massa, ut gravida lectus sagittis
-vitae.</p>
-<p>Sed eget ipsum auctor, gravida magna sit amet, tincidunt mi. Nulla
-erat ante, volutpat nec sem eget, luctus posuere est. Praesent convallis
-nunc ac turpis bibendum, in maximus magna convallis. Vestibulum ante
-ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae;
-Sed sit amet nulla ante. Sed elit sem, lobortis nec nisi a, rhoncus
-ornare nunc. Curabitur ultrices neque feugiat, facilisis magna eu,
-consectetur magna. Mauris id eleifend ex.</p>
-<p>Morbi tincidunt mollis odio sit amet feugiat. Ut vel risus eu ante
-dictum consequat. Integer et luctus mauris. Donec nec faucibus urna, sed
-commodo risus. Nam elementum pulvinar erat, eget convallis est blandit
-vel. Etiam gravida sapien eu massa hendrerit maximus. Proin dolor quam,
-porta vitae libero non, venenatis porta tellus. Vivamus et elit a est
-aliquet consequat. Proin tempus, purus quis suscipit placerat, dui nunc
-euismod dui, sit amet luctus leo lectus in risus. Phasellus consectetur
-eleifend arcu. Nullam venenatis blandit nulla ut ullamcorper. Vestibulum
-eu arcu quis massa scelerisque sodales in ac augue. Quisque dapibus
-fringilla turpis, ut cursus tortor cursus sed. Sed facilisis quam eget
-neque viverra venenatis. Suspendisse ut lorem nec erat elementum
-bibendum. Curabitur lobortis purus in cursus blandit.</p>
+<div id="the-campaign-relates-to-a-spike-in-enrollment"
+class="section level3">
+<h3>The campaign relates to a spike in enrollment</h3>
+<p><img src="p10_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p>Dumbbell chart looking at 2017 monthly enrollments versus 2018. This
+one really magnifies the differences to make it seem like there were
+huge changes between 2017 and 2018, even after the campaign had ended
+.</p>
+<p><img src="p10_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+</div>
+<div id="there-do-not-appear-to-be-gender-differences-in-enrollments"
+class="section level3">
+<h3>There do not appear to be gender differences in enrollments</h3>
+<p><img src="p10_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+</div>
+<div
+id="we-could-use-this-chart-to-say-that-enrollments-are-lower-for-more-educated-people-but-i-imagine-that-if-you-make-enrollment-count-proportional-to-the-number-of-people-with-that-degree-we-would-see-something-different"
+class="section level3">
+<h3>We could use this chart to say that enrollments are lower for more
+educated people (but I imagine that if you make enrollment count
+proportional to the number of people with that degree, we would see
+something different)</h3>
+<p><img src="p10_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+</div>
+</div>
+<div id="there-was-a-big-impact-on-booked-flights-over-the-summer"
+class="section level2">
+<h2>There was a big impact on booked flights over the summer</h2>
+<p><img src="p10_files/figure-html/unnamed-chunk-7-1.png" width="672" /><img src="p10_files/figure-html/unnamed-chunk-7-2.png" width="672" /></p>
+<div
+id="youll-see-that-even-though-the-campaign-ended-iin-april-2018-we-dont-see-the-effect-of-the-campaign-on-bookings-until-may-ish.-between-the-gross-enrollments-and-the-activity-plots-it-appears-that-the-campaign-led-people-to-enroll-a-lot-more-than-usual-between-feb-and-april-and-this-led-to-a-spike-in-bookings-for-the-summer."
+class="section level3">
+<h3>You’ll see that even though the campaign ended iin April 2018, we
+don’t see the effect of the campaign on bookings until May-ish. Between
+the gross enrollments and the activity plots, it appears that the
+campaign led people to enroll a lot more than usual between feb and
+april, and this led to a spike in bookings for the summer.</h3>
+</div>
+</div>
+<div
+id="the-last-thing-i-am-going-to-do-is-try-to-map-the-members-using-either-their-zip-codes-or-cities-following-the-la-quinta-lab"
+class="section level1">
+<h1>The last thing I am going to do is try to map the members using
+either their zip codes or cities, following the La Quinta Lab</h1>
+<p>I am using the mapcan package to get the outline / map of Canada</p>
+<p>Here is the US, just because. I really like the usmap package - cool
+stuff!
+<img src="p10_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>Canada initial map
+<img src="p10_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>It turns out that there is not an easy R package (like zipcodeR) for
+canadian postal codes long and lat, so I am aborting this mission.</p>
 </div>
 
 

@@ -1,20 +1,216 @@
 ---
-title: "Portfolio 10"
+title: "Airline Loyalty Data - Data Wrangling Practice"
 ---
 
-> The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
+> To wrap up this portfolio, I found some data online (https://mavenanalytics.io/data-playground/airline-loyalty-program). Hopefully this is going to be a fun feel good activity. This data is clean and ready to go, and the place where I downloaded it from even gave some ideas for what to explore!
 
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed hendrerit purus ut dapibus vestibulum. Suspendisse potenti. Cras faucibus mauris in leo condimentum lobortis. Cras euismod sollicitudin augue, ut venenatis quam placerat eu. Maecenas vulputate rhoncus odio, in interdum risus malesuada gravida. Maecenas cursus sed dui sit amet lacinia. Nunc dignissim metus nec ex mattis, non rutrum urna cursus. Morbi pretium elementum purus, in aliquet libero eleifend ac. Nam finibus, ligula sed ultrices pharetra, tellus risus consequat tortor, facilisis maximus elit lectus a metus. Sed vel dictum nulla, vitae blandit turpis. Integer pulvinar tempor diam ac venenatis. Vestibulum est lacus, suscipit et ipsum nec, consectetur iaculis leo. Morbi libero lacus, scelerisque non sollicitudin vitae, accumsan sed tellus. Suspendisse quis orci tellus.
+## Lets check out the data first: 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(haven)
+library(knitr)
+library(kableExtra)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(ggalt)
 
-
-```{r, child='p10/demo.Rmd'}
+activity <- read.csv("Airline+Loyalty+Program/Customer Flight Activity.csv")
+history <- read.csv("Airline+Loyalty+Program/Customer Loyalty History.csv")
+calendar <- read.csv("Airline+Loyalty+Program/Calendar.csv")
+dictionary <- read.csv("Airline+Loyalty+Program/Airline Loyalty Data Dictionary.csv")
+kable(head(dictionary), caption = "Codebook")
+kable(head(activity), caption = "Travel Stats of Loyalty Members")
+history_table <-head(history)
+kable(history_table[,1:8], caption = "Loyalty Member Demographics") 
+kable(history_table[,9:16]) 
 ```
 
+There was a promotional running from Feb - Apr 2018.
+We have data on:
+* How long someone has been part of the flight loyalty program 
+* How much they have flown with the airline 
+* Points accumulated and redeemed 
+* Marital status, education, income, where the person lives, etc 
 
-Aliquam sed ex et lorem consequat feugiat at porta leo. Fusce id hendrerit tellus. Maecenas dictum felis neque, quis dictum metus tristique eu. Vivamus sed blandit nisl. Integer ut urna dolor. Cras in egestas eros, in aliquam nisi. Duis vitae elementum quam. Vivamus vel turpis commodo, porttitor urna vitae, viverra sem. Nam nec dignissim erat, id viverra libero. Integer vel lectus pellentesque tortor fringilla posuere. Vivamus quis magna accumsan, porta tortor at, aliquam urna. Aliquam vestibulum ante massa, ut gravida lectus sagittis vitae.
+### Analysis Questions: 
 
-Sed eget ipsum auctor, gravida magna sit amet, tincidunt mi. Nulla erat ante, volutpat nec sem eget, luctus posuere est. Praesent convallis nunc ac turpis bibendum, in maximus magna convallis. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Sed sit amet nulla ante. Sed elit sem, lobortis nec nisi a, rhoncus ornare nunc. Curabitur ultrices neque feugiat, facilisis magna eu, consectetur magna. Mauris id eleifend ex.
+* What impact did the campaign have on loyalty program memberships (gross / net)?
+* Was the campaign adoption more successful for certain demographics of loyalty members? 
+* What impact did the campaign have on booked flights during the summer?
 
-Morbi tincidunt mollis odio sit amet feugiat. Ut vel risus eu ante dictum consequat. Integer et luctus mauris. Donec nec faucibus urna, sed commodo risus. Nam elementum pulvinar erat, eget convallis est blandit vel. Etiam gravida sapien eu massa hendrerit maximus. Proin dolor quam, porta vitae libero non, venenatis porta tellus. Vivamus et elit a est aliquet consequat. Proin tempus, purus quis suscipit placerat, dui nunc euismod dui, sit amet luctus leo lectus in risus. Phasellus consectetur eleifend arcu. Nullam venenatis blandit nulla ut ullamcorper. Vestibulum eu arcu quis massa scelerisque sodales in ac augue. Quisque dapibus fringilla turpis, ut cursus tortor cursus sed. Sed facilisis quam eget neque viverra venenatis. Suspendisse ut lorem nec erat elementum bibendum. Curabitur lobortis purus in cursus blandit.
 
+### The campaign relates to a spike in enrollment
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+history <- history %>%
+  filter(Enrollment.Year > 2015)
+
+ggplot(history, mapping = aes(x=Enrollment.Month, fill=factor(Enrollment.Month))) + 
+  geom_histogram() + 
+  facet_grid(~Enrollment.Year) +
+   scale_fill_manual(values = c("grey","red","red","red","grey","grey","grey","grey","grey","grey","grey","grey"))+
+  theme_minimal() + 
+  labs(title = "Monthly Enrollments in the Loyalty Program from 2016 to 2018",
+       subtitle = "Jumps in Enrollment Correspond with the Feb - April 2018 Campaign",
+       x = "Month",
+       y = "Number of Enrollments",
+       fill = "Month") + 
+  theme(axis.text.x = element_blank())
+
+```
+
+Dumbbell chart looking at 2017 monthly enrollments versus 2018. This one really magnifies the differences to make it seem like there were huge changes between 2017 and 2018, even after the campaign had ended . 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+dumbell <- history %>% filter(Enrollment.Year > 2016) %>% select(c("Enrollment.Year","Enrollment.Month", "Loyalty.Number"))
+
+dumbell <- data.frame(table(dumbell$Enrollment.Month, dumbell$Enrollment.Year))
+
+dumbell <- dumbell %>% rename(Month = "Var1", Year = "Var2")
+
+dumbell <- dumbell %>% pivot_wider(names_from = "Year",
+                        values_from = "Freq",
+                        id_cols = "Month",
+                        names_prefix = "year_")
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(dumbell, mapping = aes(x=year_2017, xend = year_2018, y = Month, group = Month)) +
+  geom_dumbbell(colour = "lightblue",
+                colour_xend = "#2A52BE",
+                size = 2,
+                dot_guide = TRUE,
+                dot_guide_size = .15,
+                dot_guide_colour = "grey") +
+  coord_flip() +
+  labs(title = "Changes in Monthly Enrollment from 2017 to 2018",
+       x = "Month",
+       y = "Number of New Enrollments") +
+  theme_classic() 
+
+```
+
+### There do not appear to be gender differences in enrollments
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+history <- history %>%
+  filter(Enrollment.Year > 2017)
+
+ggplot(history, mapping = aes(x=Enrollment.Month, fill=factor(Enrollment.Month))) + 
+  geom_histogram() + 
+  facet_grid(~Gender) +
+   scale_fill_manual(values = c("grey","red","red","red","grey","grey","grey","grey","grey","grey","grey","grey"))+
+  theme_minimal()+ 
+  labs(title = "Monthly Enrollments in the Loyalty Program in 2018",
+       subtitle = "Jumps in Enrollment Correspond with the Feb - April 2018 Campaign",
+       x = "Month",
+       y = "Number of Enrollments",
+       fill = "Month") + 
+  theme(axis.text.x = element_blank())
+
+```
+
+### We could use this chart to say that enrollments are lower for more educated people (but I imagine that if you make enrollment count proportional to the number of people with that degree, we would see something different)
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+history <- history %>%
+  mutate(group = factor(Education, levels = c("High School or Below","College","Bachelor","Master","Doctor")))
+
+ggplot(history, mapping = aes(x=Enrollment.Month, fill=factor(Enrollment.Month))) + 
+  geom_histogram() + 
+  facet_grid(~group) +
+   scale_fill_manual(values = c("grey","red","red","red","grey","grey","grey","grey","grey","grey","grey","grey"))+
+  theme_minimal() + 
+  labs(title = "Monthly Enrollments in the Loyalty Program in 2018",
+       subtitle = "Jumps in Enrollment Correspond with the Feb - April 2018 Campaign",
+       x = "Month",
+       y = "Number of Enrollments",
+       fill = "Month") + 
+  theme(axis.text.x = element_blank())
+
+```
+
+## There was a big impact on booked flights over the summer
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+act <- activity %>% select(c("Loyalty.Number","Year","Month","Total.Flights", "Distance")) %>%
+  pivot_wider(names_from = "Year",
+                        values_from = c("Total.Flights","Distance"),
+                        values_fn = sum,
+                        id_cols = "Month",
+                        names_prefix = "year_") 
+
+act <- act %>% pivot_longer(cols = c("Total.Flights_year_2018","Total.Flights_year_2017","Distance_year_2018","Distance_year_2017"),
+                     names_to = c("Act_Type","Year"),
+                     names_sep = "_year_"
+                    )
+
+act %>% filter(Act_Type == "Total.Flights") %>% 
+ggplot(act, mapping = aes(x=Month, y=value, color = Year)) +
+  geom_line() +
+  theme_classic() +
+  labs(title = "Total Flights in 2017 and 2018",
+       x = "Month",
+       y= "Total Flights",
+       color = "Year")
+
+
+act %>% filter(Act_Type == "Distance") %>% 
+  mutate(dist_mil = value / 1000000) %>%
+ggplot(act, mapping = aes(x=Month, y=dist_mil, color = Year)) +
+  geom_line() +
+  theme_classic() +
+  labs(title = "Total Flight Miles in 2017 and 2018",
+       x = "Month",
+       y= "Total Miles (in Millions)",
+       color = "Year") +
+  theme(axis.text.y = element_text(angle = 45),
+        axis.text.x = element_text(angle =45),
+        text = element_text(family = "Baskerville", size = 15))
+
+```
+
+### You'll see that even though the campaign ended iin April 2018, we don't see the effect of the campaign on bookings until May-ish. Between the gross enrollments and the activity plots, it appears that the campaign led people to enroll a lot more than usual between feb and april, and this led to a spike in bookings for the summer. 
+
+
+# The last thing I am going to do is try to map the members using either their zip codes or cities, following the La Quinta Lab 
+
+I am using the mapcan package to get the outline / map of Canada 
+
+Here is the US, just because. I really like the usmap package - cool stuff!
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(usmap)
+library(ggthemes) # for the theme_map
+
+plot_usmap(
+  regions = c("states", "state", "counties", "county"),
+  include = c(),
+  exclude = c(),
+  data = data.frame(),
+  values = "values",
+  theme = theme_map(),
+  labels = FALSE,
+  label_color = "black",
+  data_year = NULL
+)
+
+```
+
+Canada initial map 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#haha never mind we only have canada
+
+library(mapcan)
+canada_map <- mapcan(boundaries = province, type = standard)
+
+ggplot(canada_map, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill = "white", color = "black") +
+  theme_mapcan() +
+  coord_fixed() +
+  labs(title = "Loyalty Members in Canada")
+
+
+```
+
+It turns out that there is not an easy R package (like zipcodeR) for canadian postal codes long and lat, so I am aborting this mission. 
