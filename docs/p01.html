@@ -13,7 +13,7 @@
 
 <title>Portfolio 1: Math-ing in R</title>
 
-<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.31/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -296,50 +296,179 @@ $(document).ready(function () {
 
 
 <blockquote>
-<p>This may come as a shock to no one, but R can do math. In this
-portfolio piece, I will demonstrate how to do some math in R that I find
-particularly enjoyable.</p>
+<p>In this portfolio piece, I will demonstrate how to do some math in R.
+It turns out a lot of it is NOT enjoyable in R, so I am going to stick
+with solving and visualizing some simple systems of equations.</p>
 </blockquote>
-<pre class="r"><code>library(tidyverse) 
-library(tidyr)
-library(mosaicCalc)</code></pre>
-<pre class="r"><code># Create a barplot of the number of fish encounters by species
-ggplot(data = fish_encounters, aes(x = station, y = seen)) +
-  geom_bar(stat = &quot;identity&quot;) +
-  labs(x = &quot;Species&quot;, y = &quot;Number of Fish Encounters&quot;)</code></pre>
-<p><img src="p01_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
-<p>Sed mollis purus faucibus leo finibus, ut pharetra nibh elementum.
-Nulla id orci lorem. Mauris sollicitudin mi eget tellus vehicula, ut
-convallis lorem mollis. In blandit nulla diam, a malesuada sem volutpat
-interdum. Ut elementum elit at velit maximus, ac tempor odio porttitor.
-Suspendisse lobortis sollicitudin tortor, ut pharetra libero luctus a.
-Sed hendrerit faucibus metus. Sed rutrum purus vel pellentesque
-euismod.</p>
-<pre class="r"><code># Create a barplot of the number of fish encounters by species
-ggplot(data = fish_encounters, aes(x = station, y = seen)) +
-  geom_bar(stat = &quot;identity&quot;) +
-  labs(x = &quot;Species&quot;, y = &quot;Number of Fish Encounters&quot;)</code></pre>
-<p><img src="p01_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
-<p>Mauris placerat in velit a pharetra. Nulla viverra bibendum lectus,
-ut lobortis nibh. Aenean malesuada, orci vitae dictum placerat, enim
-justo aliquet leo, ac tincidunt augue ipsum et mi. Nullam in pharetra
-metus, nec molestie felis. Duis varius rhoncus pulvinar. Integer semper
-urna sed tellus rhoncus, vel suscipit odio iaculis. Mauris iaculis neque
-pellentesque ex convallis venenatis. Sed ultrices euismod fermentum. Ut
-feugiat risus at turpis tincidunt viverra.</p>
-<pre class="r"><code># Create a barplot of the number of fish encounters by species
-ggplot(data = fish_encounters, aes(x = station, y = seen)) +
-  geom_bar(stat = &quot;identity&quot;) +
-  labs(x = &quot;Species&quot;, y = &quot;Number of Fish Encounters&quot;)</code></pre>
-<p><img src="p01_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
-<p>Donec sagittis suscipit orci in ultrices. Vivamus iaculis eleifend
-est et dictum. Fusce non urna at lacus dapibus tincidunt ac sed nibh.
-Donec luctus lectus elit, ac ultrices tortor mollis sit amet. Nulla
-finibus lacinia arcu. Proin sollicitudin non odio et pulvinar. Maecenas
-finibus faucibus finibus. Ut elementum metus velit, a sodales sapien
-commodo et. Vivamus pulvinar, sapien et porta cursus, elit est luctus
-nisi, eget fringilla odio diam et enim. Sed sodales suscipit bibendum.
-Morbi ut metus semper, laoreet felis sodales, consequat dolor.</p>
+<p>Lets slap together a system of equations and make a matrix:</p>
+<table>
+<caption>System of Equations</caption>
+<thead>
+<tr class="header">
+<th align="right">X</th>
+<th align="right">Y</th>
+<th align="right">Z</th>
+<th align="right">.</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">-2</td>
+<td align="right">1</td>
+<td align="right">-1</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">3</td>
+<td align="right">13</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">-1</td>
+</tr>
+</tbody>
+</table>
+<p>To solve this system, we just take the Reduced Row Echelon Form of
+the matrix (RREF). We get exactly one solution, x=-1, y=4, z=2</p>
+<table>
+<caption>Reduced Row Echelon Form</caption>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">-1</td>
+</tr>
+<tr class="even">
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">2</td>
+</tr>
+</tbody>
+</table>
+<p>Lets do it with one more system:</p>
+<table>
+<caption>System of Equations</caption>
+<thead>
+<tr class="header">
+<th align="right">X</th>
+<th align="right">Y</th>
+<th align="right">Z</th>
+<th align="right">.</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">-2</td>
+<td align="right">3</td>
+<td align="right">-2</td>
+</tr>
+<tr class="even">
+<td align="right">-1</td>
+<td align="right">1</td>
+<td align="right">-2</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">-1</td>
+<td align="right">3</td>
+<td align="right">-7</td>
+</tr>
+</tbody>
+</table>
+<table>
+<caption>Reduced Row Echelon Form</caption>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">-4</td>
+</tr>
+<tr class="even">
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">-1</td>
+<td align="right">-1</td>
+</tr>
+<tr class="odd">
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+<p>This is a dependent system with infinitely many solutions. let z = t,
+then x = -t-4, y = t-1, and we get solutions for any real number t.</p>
+<div id="now-i-will-try-to-plot-this-stuff-with-matlib-plot-functions"
+class="section level2">
+<h2>Now I will try to plot this stuff with matlib plot functions</h2>
+<p>Side note: it took a very long time to get these to work because I
+had to install some extra stuff (XQuartz), update my version of R, and
+get the rgl package working. It was worth it though! This technique
+creates some really cool 3d interactive plots, but they don’t show up in
+rmd. I can only view them in XQuartz. I will provide the code I used and
+the screenshots from XQuartz :-l</p>
+<div id="starting-with-the-first-example" class="section level3">
+<h3>Starting with the first example:</h3>
+<pre class="r"><code>#1
+A &lt;- matrix(c(-2,1,3,
+              1,2,0,
+              -1,3,1), nrow=3)
+
+b &lt;- c( 4,13,-1)</code></pre>
+<pre><code>## x1      =  -1 
+##   x2    =   4 
+##     x3  =   2</code></pre>
+<pre class="r"><code>plotEqn3d(A,b, xlim=c(-1,4), ylim=c(-1,4))</code></pre>
+<p><img src="SEQ1.png" /><!-- --></p>
+<p>The second system of equations:</p>
+<pre><code>##  1*x1 - 2*x2 + 3*x3  =  -2 
+## -1*x1 + 1*x2 - 2*x3  =   3 
+##  2*x1 - 1*x2 + 3*x3  =  -7</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">System of Equations</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1<em>x1 - 2</em>x2 + 3*x3 = -2</td>
+</tr>
+<tr class="even">
+<td align="left">-1<em>x1 + 1</em>x2 - 2*x3 = 3</td>
+</tr>
+<tr class="odd">
+<td align="left">2<em>x1 - 1</em>x2 + 3*x3 = -7</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>plotEqn3d(C, d)</code></pre>
+<p><img src="SEQ2.png" /><!-- --></p>
+</div>
+</div>
+<div
+id="the-output-of-this-project-isnt-massive-but-i-swear-this-took-me-a-while-to-figure-out.-i-am-quite-satisfied-with-this-plotting-technique"
+class="section level2">
+<h2>The output of this project isn’t massive but I swear this took me a
+while to figure out. I am quite satisfied with this plotting
+technique!</h2>
+</div>
 
 
 

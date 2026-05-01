@@ -2,11 +2,10 @@
 title: "Portfolio 1: Math-ing in R"
 ---
 
->  In this portfolio piece, I will demonstrate how to do some math in R that I find particularly enjoyable. It turns out it is NOT enjoyable in R. 
+>  In this portfolio piece, I will demonstrate how to do some math in R. It turns out a lot of it is NOT enjoyable in R, so I am going to stick with solving and visualizing some simple systems of equations. 
 
-Let's load the relevant packages first, among these are the package mosaiCalc which will do some of the heavy lifting.
 
-```{r load-packages, message=FALSE}
+```{r echo=FALSE, load-packages, message=FALSE, warning=FALSE}
 library(tidyverse) 
 library(tidyr)
 library(mosaicCalc)
@@ -19,99 +18,85 @@ library(rgl)
 library(matlib)
 ```
 
-lets slap together a system of equations: -2x + y - z = 4; x + 2y + 3z = 13; 3x + z = -1 and make a matrix 
-```{r}
+Lets slap together a system of equations and make a matrix:
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 A <- matrix(c(-2,1,3,
               1,2,0,
               -1,3,1,
               4,13,-1), nrow=3)
-
-
+A %>% kable(col.names = c("X", "Y","Z","."), caption = "System of Equations" )
 ```
 
 To solve this system, we just take the Reduced Row Echelon Form of the matrix (RREF). We get exactly one solution, x=-1, y=4, z=2
-```{r}
-kable(rref(A))
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+kable(rref(A), caption = "Reduced Row Echelon Form")
 ```
 
-Lets do it with one more system: x-2y+3z = -2; -x+y-2z=3, 2x-y+3z = -7
-```{r}
+Lets do it with one more system: 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 B <- matrix(c(1,-1,2,
               -2,1,-1,
               3,-2,3,
               -2,3,-7), nrow=3)
 
-rref(B)
+B %>% kable(col.names = c("X", "Y","Z", "."), caption = "System of Equations" )
 
+kable(rref(B), caption = "Reduced Row Echelon Form")
 
 ```
 This is a dependent system with infinitely many solutions. let z = t, then x = -t-4, y = t-1, and we get solutions for any real number t. 
 
-Now I will try to plot this stuff, starting with the first example: 
+## Now I will try to plot this stuff with matlib plot functions
 
-```{r}
+Side note: it took a very long time to get these to work because I had to install some extra stuff (XQuartz), update my version of R, and get the rgl package working. It was worth it though! This technique creates some really cool 3d interactive plots, but they don't show up in rmd. I can only view them in XQuartz. I will provide the code I used and the screenshots from XQuartz :-l
+
+### Starting with the first example: 
+
+```{r message=FALSE, warning=FALSE}
 #1
 A <- matrix(c(-2,1,3,
               1,2,0,
               -1,3,1), nrow=3)
 
 b <- c( 4,13,-1)
-Solve(A, b, fractions=TRUE)   
-
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#kable(Solve(A, b, fractions=TRUE), col.names = "Solution")
+Solve(A,b, fractions=TRUE)
+```
+```{r message=FALSE, warning=FALSE}
 plotEqn3d(A,b, xlim=c(-1,4), ylim=c(-1,4))
+```
 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics("SEQ1.png") 
+```
 
-#2
+The second system of equations: 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 C <- matrix(c(1,-1,2,
               -2,1,-1,
               3,-2,3), nrow=3)
 d <-c(-2,3,-7)
 
-# Plot the system
-
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+kable(showEqn(C,d), col.names = "System of Equations")
+```
+```{r message=FALSE, warning=FALSE}
 plotEqn3d(C, d)
-
-  
-```
-As it turns out, this particular method will not handle three variables, but apparently one strategy is to use heatmaps to visualize the third variable. That is something to play around with in the future. 
-
-I'm bored of this, so I am going to practice taking some plain old boring integrals. First thing to note is that ~ is the enemy. They show up under lots of different conditions. At least in the context of differentiation, our friend "~" means "with respect to," which is fine. 
-
-```{r}
-#Tutorial Example, need to come up with my own stuff - I will just run through pauls online notes problems in here and time if I can do it faster by hand vs on R 
-library(pracma) #for the integrate function, because the functions in mosiacCalc suck. 
-
-
-
-  
 ```
 
-```{r}
-A <- matrix(c(2, 1, -1,
-             -3, -1, 2,
-             -2,  1, 2), 3, 3, byrow=TRUE)
-colnames(A) <- paste0('x', 1:3)
-b <- c(8, -11, -3)
-showEqn(A, b)
-
-c( R(A), R(cbind(A,b)) )          # show ranks
-all.equal( R(A), R(cbind(A,b)) )  # consistent?
-solve(A, b)
-inv(A) %*% b
-plotEqn3d(A,b, xlim=c(0,4), ylim=c(0,4))
-
-
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics("SEQ2.png") 
 
 ```
 
 
-```{r}
-# Create a barplot of the number of fish encounters by species
-ggplot(data = fish_encounters, aes(x = station, y = seen)) +
-  geom_bar(stat = "identity") +
-  labs(x = "Species", y = "Number of Fish Encounters")
-  
-```
+## The output of this project isn't massive but I swear this took me a while to figure out. I am quite satisfied with this plotting technique! 
+
+
 
 
