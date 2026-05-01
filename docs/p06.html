@@ -13,7 +13,7 @@
 
 <title>Factor analysis with my NLSY variables</title>
 
-<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.31/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -312,7 +312,7 @@ depression of the NLSY79 in 2020 and 2022.</p>
 <p>I use the factanal() function to see what the one-factor structure
 looks like. This function requires complete cases, so I used na.ommit,
 which yielded 428 observations.</p>
-<p><img src="p06_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p><img src="p06_files/figure-html/unnamed-chunk-3-1.png" alt="" width="672" /></p>
 <p>The following table shows the items, variance unexplained by common
 factors (uniqueness), and their factor loadings (fl1).</p>
 <table>
@@ -422,7 +422,7 @@ financial, romantic, and health related risk-taking.</p>
 <p>I selected the 8 items from 2010 and cleared out all incomplete
 observations. There were 6,988 observations remaining. First I checked
 out the scree plot and parallel analysis.</p>
-<p><img src="p06_files/figure-html/unnamed-chunk-8-1.png" width="672" /><img src="p06_files/figure-html/unnamed-chunk-8-2.png" width="672" /></p>
+<p><img src="p06_files/figure-html/unnamed-chunk-8-1.png" alt="" width="672" /><img src="p06_files/figure-html/unnamed-chunk-8-2.png" alt="" width="672" /></p>
 <pre><code>## Parallel analysis suggests that the number of factors =  4  and the number of components =  1</code></pre>
 <p>Next I test the one factor structure:</p>
 <table>
@@ -556,7 +556,7 @@ just practice, so I will go ahead and give it a whirl.</p>
 <p>The cfa function just used the complete cases, so the sample ends up
 being the same as the na.omit route, but I don’t have to manually do the
 deletion, which I like.</p>
-<pre><code>## lavaan 0.6-20 ended normally after 1 iteration
+<pre><code>## lavaan 0.6-21 ended normally after 1 iteration
 ## 
 ##   Estimator                                         ML
 ##   Optimization method                           NLMINB
@@ -626,19 +626,19 @@ href="https://quantdev.ssri.psu.edu/sites/qdev/files/LongitudinalMeasurementInva
 class="uri">https://quantdev.ssri.psu.edu/sites/qdev/files/LongitudinalMeasurementInvariance_2017_1108.html</a></p>
 <p>There are three different years of general risk variables, and I am
 going to select these and make a new frame.
-<img src="p06_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<img src="p06_files/figure-html/unnamed-chunk-12-1.png" alt="" width="672" /></p>
 <p>From this, I learned that there were no complete observations. This
 suggests that perhaps most people were asked in 2010, and if they didn’t
 answer in 2010, they were asked in 2012 or 2014.</p>
 <p>I will pivot to NLSY79 depression variables (CESD items) which have
 better coverage.</p>
-<p><img src="p06_files/figure-html/unnamed-chunk-13-1.png" width="672" /><img src="p06_files/figure-html/unnamed-chunk-13-2.png" width="672" /></p>
+<p><img src="p06_files/figure-html/unnamed-chunk-13-1.png" alt="" width="672" /><img src="p06_files/figure-html/unnamed-chunk-13-2.png" alt="" width="672" /></p>
 <p>Now that I have found some longitudinal data that checks out, I can
 start modeling. Starting with a Configural Invariance Model - I gather
 this is looking at: do we have the same factor structure for each group
 (or in this case, the group is the year). Is the 2020 factor structure
 reasonably similar to the 2022 factor structure?</p>
-<pre><code>## lavaan 0.6-20 ended normally after 64 iterations
+<pre><code>## lavaan 0.6-21 ended normally after 64 iterations
 ## 
 ##   Estimator                                         ML
 ##   Optimization method                           NLMINB
@@ -772,7 +772,7 @@ reasonably similar to the 2022 factor structure?</p>
 <p>It ran! I don’t know what it did, so now I need to figure out what it
 means / accomplishes in this first step.</p>
 <p>Finally, I tried out a new plotting technique, semPaths.
-<img src="p06_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<img src="p06_files/figure-html/unnamed-chunk-15-1.png" alt="" width="672" /></p>
 <p>The correlation between the latent variable depression at time 1 and
 time 2 is .66, and they appear to have the same factor structure. This
 makes sense because the CESD is a really good measure of depression, and

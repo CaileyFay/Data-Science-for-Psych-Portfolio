@@ -1,5 +1,5 @@
 ---
-title: "Custom Greeting Cards"
+title: "Dog Cards"
 ---
 
 ### For this portfolio, I am going to make a custom Easter Card featuring my dogs. 

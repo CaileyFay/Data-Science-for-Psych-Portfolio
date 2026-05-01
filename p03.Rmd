@@ -1,5 +1,5 @@
 ---
-title: "Automating the Hermine Interval ACE procedure"
+title: "ACE Modeling with Simulated Data & EasyMx"
 ---
 
 Loading packages and sourcing my BG helpers 

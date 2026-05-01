@@ -13,7 +13,7 @@
 
 <title>Correlation Matrix, Scatter Plot Matrix, and Network Plots</title>
 
-<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.31/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -498,7 +498,7 @@ satisfaction with life, and group affiliation seeking.</p>
 <h2>Heatmap with vis-cor</h2>
 <p>Visualizing the correlation matrix with a heatmap using the vis_cor
 function:
-<img src="p02_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<img src="p02_files/figure-html/unnamed-chunk-13-1.png" alt="" width="672" /></p>
 <p>Now improving it:</p>
 <pre><code>## Warning: `aes_string()` was deprecated in ggplot2 3.0.0.
 ## ℹ Please use tidy evaluation idioms with `aes()`.
@@ -508,39 +508,39 @@ function:
 ## This warning is displayed once per session.
 ## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
 ## generated.</code></pre>
-<p><img src="p02_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p><img src="p02_files/figure-html/unnamed-chunk-14-1.png" alt="" width="672" /></p>
 <p>Perhaps a better option than vis_cor is corrplot for making something
 like a heatmap. Here I play around with the different corrplot
 options.</p>
-<p><img src="p02_files/figure-html/unnamed-chunk-15-1.png" width="672" />
-<img src="p02_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<p><img src="p02_files/figure-html/unnamed-chunk-15-1.png" alt="" width="672" />
+<img src="p02_files/figure-html/unnamed-chunk-16-1.png" alt="" width="672" /></p>
 <p>I like this chart, but I’d maybe like it even better wake themed?
 Ends up being too hard to figure out how to incorporate. I miss ggplot.
-<img src="p02_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<img src="p02_files/figure-html/unnamed-chunk-17-1.png" alt="" width="672" /></p>
 <p>I tried out some other stuff, but it is quite ugly. If interested,
 see p02.rmd.</p>
 </div>
 <div id="network-plot" class="section level2">
 <h2>Network Plot</h2>
-<p><img src="p02_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<p><img src="p02_files/figure-html/unnamed-chunk-19-1.png" alt="" width="672" /></p>
 <p>This one is cool but there is way too much going on (totally
 uninformative).</p>
-<p><img src="p02_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<p><img src="p02_files/figure-html/unnamed-chunk-20-1.png" alt="" width="672" /></p>
 <p>Still more condensed than I would like, and the dots are too big.</p>
-<p><img src="p02_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
+<p><img src="p02_files/figure-html/unnamed-chunk-21-1.png" alt="" width="672" /></p>
 <p>Bonus activities:</p>
 <p>The Religiosity Scale was very reliable (α = .97). Here’s the heatmap
 of its items. Its solid blue, which tracks. Not sure what I was
 expecting.
-<img src="p02_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
-<p><img src="p02_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+<img src="p02_files/figure-html/unnamed-chunk-22-1.png" alt="" width="672" /></p>
+<p><img src="p02_files/figure-html/unnamed-chunk-23-1.png" alt="" width="672" /></p>
 <p>Now for the less reliable scale: self control: still fairly reliable
 .88</p>
-<p><img src="p02_files/figure-html/unnamed-chunk-24-1.png" width="672" /><img src="p02_files/figure-html/unnamed-chunk-24-2.png" width="672" /></p>
+<p><img src="p02_files/figure-html/unnamed-chunk-24-1.png" alt="" width="672" /><img src="p02_files/figure-html/unnamed-chunk-24-2.png" alt="" width="672" /></p>
 <p>Last thing I would like to do is map fear of negative evaluation and
 self esteem together, since the first network plot revealed that there
 were very related.</p>
-<p><img src="p02_files/figure-html/unnamed-chunk-25-1.png" width="672" /><img src="p02_files/figure-html/unnamed-chunk-25-2.png" width="672" /></p>
+<p><img src="p02_files/figure-html/unnamed-chunk-25-1.png" alt="" width="672" /><img src="p02_files/figure-html/unnamed-chunk-25-2.png" alt="" width="672" /></p>
 </div>
 
 

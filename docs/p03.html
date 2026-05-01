@@ -11,9 +11,9 @@
 
 
 
-<title>Automating the Hermine Interval ACE procedure</title>
+<title>ACE Modeling with Simulated Data &amp; EasyMx</title>
 
-<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.31/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -32,11 +32,11 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet" />
+<link href="site_libs/htmltools-fill-0.5.9/fill.css" rel="stylesheet" />
 <script src="site_libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
 <script src="site_libs/viz-1.8.2/viz.js"></script>
 <link href="site_libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet" />
-<script src="site_libs/grViz-binding-1.0.11/grViz.js"></script>
+<script src="site_libs/grViz-binding-1.0.12/grViz.js"></script>
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -295,8 +295,8 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Automating the Hermine Interval ACE
-procedure</h1>
+<h1 class="title toc-ignore">ACE Modeling with Simulated Data &amp;
+EasyMx</h1>
 
 </div>
 
@@ -390,15 +390,15 @@ class="section level2">
 <tbody>
 <tr class="odd">
 <td align="left">Unstandardized</td>
-<td align="right">0.56931539</td>
-<td align="right">0.46455046</td>
-<td align="right">-0.03386585</td>
+<td align="right">0.56932438</td>
+<td align="right">0.46454837</td>
+<td align="right">-0.03387275</td>
 </tr>
 <tr class="even">
 <td align="left">Standardized</td>
-<td align="right">0.56931539</td>
-<td align="right">0.46455046</td>
-<td align="right">-0.03386585</td>
+<td align="right">0.56932438</td>
+<td align="right">0.46454837</td>
+<td align="right">-0.03387275</td>
 </tr>
 </tbody>
 </table>
@@ -422,15 +422,15 @@ with this.</p>
 <tbody>
 <tr class="odd">
 <td align="left">Unstandardized</td>
-<td align="right">0.47181234</td>
-<td align="right">0.15537817</td>
-<td align="right">0.40990030</td>
+<td align="right">0.47181159</td>
+<td align="right">0.15537857</td>
+<td align="right">0.40990084</td>
 </tr>
 <tr class="even">
 <td align="left">Standardized</td>
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.45493750</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 </tbody>
 </table>
@@ -441,14 +441,14 @@ output. For your entertainment, this is what it gave me.</p>
 <div class="grViz html-widget html-fill-item" id="htmlwidget-c85b3454dce0fe4dc731" style="width:672px;height:480px;"></div>
 <script type="application/json" data-for="htmlwidget-c85b3454dce0fe4dc731">{"x":{"diagram":"\ndigraph ACE_Model {\n  graph [layout = neato, overlap = FALSE, outputorder = edgesfirst]\n  \n  # Latent Variables\n  node [shape = circle, fixedsize = true, width = 0.8]\n  A [label = \"A\"]; C [label = \"C\"]; E [label = \"E\"]\n  \n  # Observed Variable\n  node [shape = box, fixedsize = true, width = 1.2]\n  Trait [label = \"Observed\nTrait\"]\n  \n  # Paths and Labels\n  A -> Trait [label = \"0.45\"]\n  C -> Trait [label = \"0.15\"]\n  E -> Trait [label = \"0.4\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 <p>It reminds me of the graphing equivalent to this gem.</p>
-<p><img src="funny_embed.jpeg" width="104" /></p>
+<p><img src="funny_embed.jpeg" alt="" width="104" /></p>
 </div>
 <div
 id="descriptives-interval-ace-uses-the-first-variable-ordinal-uses-the-second.-iteration1"
 class="section level3">
 <h3>Descriptives: Interval ACE uses the first variable, Ordinal uses the
 second. Iteration1</h3>
-<p><img src="p03_files/figure-html/unnamed-chunk-10-1.png" width="672" /><img src="p03_files/figure-html/unnamed-chunk-10-2.png" width="672" /></p>
+<p><img src="p03_files/figure-html/unnamed-chunk-10-1.png" alt="" width="672" /><img src="p03_files/figure-html/unnamed-chunk-10-2.png" alt="" width="672" /></p>
 </div>
 </div>
 <div id="interval-ace-with-easymx" class="section level2">
@@ -457,8 +457,8 @@ second. Iteration1</h3>
 beginning).</p>
 <pre class="r"><code>estACE</code></pre>
 <pre><code>##            [,1]       [,2]       [,3]
-## [1,] 0.47181234 0.15537817 0.40990030
-## [2,] 0.45493831 0.14982118 0.39524051</code></pre>
+## [1,] 0.47181159 0.15537857 0.40990084
+## [2,] 0.45493750 0.14982154 0.39524096</code></pre>
 <p>Now I want to repeat this for the other 9 iterations</p>
 <pre class="r"><code>run_int &lt;- function(df) {
    model &lt;- emxModelTwin(model=&quot;Cholesky&quot;, relatedness =&#39;RCoef&#39;, data=df, run=TRUE, use=c(&#39;y1&#39;,&#39;y2&#39;), name=&#39;model&#39;, components=&#39;ACE&#39;)
@@ -528,54 +528,54 @@ kable(correct_df)</code></pre>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.4549375</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 <tr class="even">
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.4549375</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 <tr class="odd">
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.4549375</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 <tr class="even">
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.4549375</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 <tr class="odd">
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.4549375</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 <tr class="even">
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.4549375</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 <tr class="odd">
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.4549375</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 <tr class="even">
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.4549375</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 <tr class="odd">
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.4549375</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 <tr class="even">
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.4549375</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 </tbody>
 </table>
@@ -599,54 +599,54 @@ the square root twice?</p>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.4549375</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 <tr class="even">
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.4549375</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 <tr class="odd">
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.4549375</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 <tr class="even">
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.4549375</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 <tr class="odd">
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.4549375</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 <tr class="even">
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.4549375</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 <tr class="odd">
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.4549375</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 <tr class="even">
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.4549375</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 <tr class="odd">
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.4549375</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 <tr class="even">
-<td align="right">0.45493831</td>
-<td align="right">0.14982118</td>
-<td align="right">0.39524051</td>
+<td align="right">0.4549375</td>
+<td align="right">0.14982154</td>
+<td align="right">0.39524096</td>
 </tr>
 </tbody>
 </table>
@@ -664,7 +664,7 @@ hermine method</h4>
 <p>now that the parameters stored in a more accessible way, I want to
 graph them as 3 overlapping density distributions.</p>
 <p>Now I am going to reshape the data and plot:
-<img src="p03_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+<img src="p03_files/figure-html/unnamed-chunk-22-1.png" alt="" width="672" /></p>
 <p>My functions aren’t working right, so it just gives me the same A,C,E
 values 10 times. ugh. too much time has gone into this portfolio.</p>
 </div>

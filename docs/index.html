@@ -13,7 +13,7 @@
 
 <title>My Portfolio</title>
 
-<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.31/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -141,11 +141,15 @@ $(document).ready(function () {
     href = "index.html";
   var menuAnchor = $('a[href="' + href + '"]');
 
-  // mark it active
-  menuAnchor.tab('show');
-
-  // if it's got a parent navbar menu mark it active as well
-  menuAnchor.closest('li.dropdown').addClass('active');
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
 
   // Navbar adjustments
   var navHeight = $(".navbar").first().height() + 15;
@@ -174,8 +178,8 @@ $(document).ready(function () {
   border-radius: 4px;
 }
 
-.tabset-dropdown > .nav-tabs > li.active:before {
-  content: "";
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
   font-family: 'Glyphicons Halflings';
   display: inline-block;
   padding: 10px;
@@ -183,16 +187,9 @@ $(document).ready(function () {
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-  content: "&#xe258;";
-  border: none;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-  content: "";
+  content: "\e258";
   font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
+  border: none;
 }
 
 .tabset-dropdown > .nav-tabs > li.active {
@@ -308,21 +305,44 @@ Science for Psychologists</a>. You can find the links to individual
 portfolio pieces in the header. Each piece has a description of the
 goal, the product (computer program, hand graph, computer graph, etc.),
 the data, and some interpretation. I encourage you to explore them.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus eu
-tortor ac lectus vestibulum imperdiet eget nec elit. Nam enim elit,
-condimentum vel vulputate et, bibendum id leo. Nam faucibus enim nec
-libero auctor finibus. Integer eu nisl a leo commodo interdum vel eu
-augue. Fusce gravida enim non augue porttitor malesuada. Integer tempor
-mattis quam at scelerisque. Sed scelerisque tristique gravida.
-Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere
-cubilia curae;</p>
-<p>Vivamus non faucibus erat. Class aptent taciti sociosqu ad litora
-torquent per conubia nostra, per inceptos himenaeos. Proin facilisis
-nunc non tristique molestie. Ut semper laoreet dignissim. Integer
-venenatis augue quis metus finibus rhoncus. Praesent et metus auctor,
-tempus magna ac, euismod purus. Sed nulla augue, maximus vel convallis
-viverra, interdum et nulla. Aenean neque magna, varius vitae mi sed,
-consequat lobortis quam.</p>
+<div id="portfolio-1-math-ing-in-r" class="section level3">
+<h3>Portfolio 1: Math-ing in R</h3>
+</div>
+<div
+id="portfolio-2-correlation-matrix-scatter-plot-matrix-and-network-plots"
+class="section level3">
+<h3>Portfolio 2: Correlation Matrix, Scatter Plot Matrix, and Network
+Plots</h3>
+</div>
+<div id="portfolio-3-ace-modeling-with-simulated-data-easymx"
+class="section level3">
+<h3>Portfolio 3: ACE Modeling with Simulated Data &amp; EasyMx</h3>
+</div>
+<div id="portfolio-4-shiny-app-interactive-dashboard"
+class="section level3">
+<h3>Portfolio 4: Shiny App Interactive Dashboard</h3>
+</div>
+<div id="portfolio-5-survival-analysis" class="section level3">
+<h3>Portfolio 5: Survival Analysis</h3>
+</div>
+<div id="portfolio-6-factor-analysis-with-the-nlsy"
+class="section level3">
+<h3>Portfolio 6: Factor Analysis with the NLSY</h3>
+</div>
+<div id="portfolio-7-making-fyp-poster-figures" class="section level3">
+<h3>Portfolio 7: Making FYP Poster Figures</h3>
+</div>
+<div id="portfolio-8-love-is-blind-plot-recreation"
+class="section level3">
+<h3>Portfolio 8: Love is Blind Plot Recreation</h3>
+</div>
+<div id="portfolio-9-dog-cards" class="section level3">
+<h3>Portfolio 9: Dog Cards</h3>
+</div>
+<div id="portfolio-10-airline-loyalty-data---data-wrangling-practice"
+class="section level3">
+<h3>Portfolio 10: Airline Loyalty Data - Data Wrangling Practice</h3>
+</div>
 
 
 
