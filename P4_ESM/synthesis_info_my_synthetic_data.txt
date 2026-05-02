@@ -1,13 +1,11 @@
-Date saved: 01 May 2026, 16:39 
+Date saved: 01 May 2026, 20:14 
 Data frame with original data: ESM 
 Number of synthetic data sets: 1 
 Output file(s):(csv) my_synthetic_data.csv
 Additional file: synobject_my_synthetic_data.RData
 Methods used:
-       Extraversion       Agreeableness   Conscientiousness Emotional_Stability 
-           "sample"              "cart"              "cart"              "cart" 
-           Openness           timestamp         who_are_you            num_name 
-             "cart"              "cart"              "cart"         "collinear" 
-          date_time                hour 
-             "cart"              "cart" 
-Seed used: 942590499 
+       Extraversion       Agreeableness   Conscientiousness Emotional_Stability            Openness           timestamp         who_are_you 
+           "sample"              "cart"              "cart"              "cart"              "cart"              "cart"              "cart" 
+           num_name           date_time                hour 
+        "collinear"              "cart"              "cart" 
+Seed used: 659643706 

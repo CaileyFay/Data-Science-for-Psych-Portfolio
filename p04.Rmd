@@ -1,13 +1,12 @@
 ---
 title: "Portfolio 4: Using Shiny App to Make an Interactive Dashboard of Some ESM Personality Data"
-runtime: shiny
 ---
 I was once again inspired by something we talked about in Will's Personality Seminar. SO, for this portfolio, I will be doing an abrieviated version of the density distribution approach for mapping the relationship between trait standing and trait manifestation. The data is coming from my favorite guinea pig, my boyfriend, who was nice enough to fill out some short pseudo personality state assessment that I made. Here are my learning objectives for this portfolio piece...lets see if I succeed! 
 
 - [ ] I want to learn how to make an interactive dashboard with the Shiny App. This is how I will visualize mr. boyfriends data. 
 - [ ] I also wanted to learn how to do a survey in such a way that it can be imported straight into r as it updates, and it turns out it was shockingly easy! Spoiler alert: I consider myself a qualtrics girly but google forms and some random post on stackoverflow did me a real solid. 
 - [ ] I wanted to test out the density distribution method on a real person I actually know. I am aware it's not empirical, but I thought it would be fun. 
-- [ ] My last learning objective is figuring out how to generate lots of data points based on a smaller number of real, existing datapoints. Me and mr. boyfriend filled out the survey around 5-10 times each, and from that I generated 1000 datapoints for each of the big 5 traits. 
+- [ ] My last learning objective is figuring out how to generate lots of data points based on a smaller number of real, existing datapoints. Me and mr. boyfriend filled out the survey around 10ish times each, and from that I generated 1000 datapoints for each of the big 5 traits. 
 
 To get started with the Shiny app, I used this tutorial https://www.youtube.com/watch?v=VTI84Pqk3SI&t=1s by Grace Thompkins that was super helpful. 
 
@@ -121,15 +120,11 @@ syn_data %>%
 
 Nothing about the way I conducted this was foolproof, but this little snapshot makes it seem like we have fairly similar personality profiles. 
 
-Finally, I made an interactive dashboard. Its not very complex, but bonus points for it taking me forever to figure out??? 
+Finally, I made an interactive dashboard. Its not very complex, but bonus points for it taking me forever to figure out??? Jokes on me though, because I could not figure out a workaround that allowed me to have the interactive dashboard in the md and also be able to switch between tabs on the portfolio site. Here is a screenshot of the dashboard I made. 
 
-### GAHH I can't see to get rid of this ugly warning message 
-
-Point to a different repo that hosts the shiny app and it will do better? 
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
- suppressWarnings(
-   suppressMessages(shiny::shinyAppFile("P4_ESM/app.R")))
-
+If you uncomment the first line in this chunk and run the document, you can check out the dashboard (or just take my word for it)
+```{r message=FALSE, warning=FALSE}
+#shiny::shinyAppFile("P4_ESM/app.R")
+knitr::include_graphics("dashboard.png") 
 ```
 

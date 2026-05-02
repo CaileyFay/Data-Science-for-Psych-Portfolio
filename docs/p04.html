@@ -13,7 +13,7 @@
 
 <title>Portfolio 4: Using Shiny App to Make an Interactive Dashboard of Some ESM Personality Data</title>
 
-<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.31/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -316,6 +316,11 @@ on stackoverflow did me a real solid.</label></li>
 <li><label><input type="checkbox" />I wanted to test out the density
 distribution method on a real person I actually know. I am aware it’s
 not empirical, but I thought it would be fun.</label></li>
+<li><label><input type="checkbox" />My last learning objective is
+figuring out how to generate lots of data points based on a smaller
+number of real, existing datapoints. Me and mr. boyfriend filled out the
+survey around 10ish times each, and from that I generated 1000
+datapoints for each of the big 5 traits.</label></li>
 </ul>
 <p>To get started with the Shiny app, I used this tutorial <a
 href="https://www.youtube.com/watch?v=VTI84Pqk3SI&amp;t=1s"
@@ -323,41 +328,42 @@ class="uri">https://www.youtube.com/watch?v=VTI84Pqk3SI&amp;t=1s</a> by
 Grace Thompkins that was super helpful.</p>
 <p>First, of course, I will load up my packages like always. In a
 separate file, I created the link between my google form responses and
-then cleaned it up a little bit. this is the document I am sourcing. It
-just makes life easier for when I am trying to set up the app.</p>
+then cleaned up the data a little bit and sourced it.</p>
 <pre class="r"><code>library(shiny)
-library(googlesheets4)
-library(janitor)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;janitor&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:stats&#39;:
-## 
-##     chisq.test, fisher.test</code></pre>
-<pre class="r"><code>library(dplyr)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;dplyr&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:stats&#39;:
-## 
-##     filter, lag</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     intersect, setdiff, setequal, union</code></pre>
-<pre class="r"><code>library(tidyr)
+library(shinydashboard)
+library(googlesheets4) #in love with this
+library(janitor)
+library(dplyr)
+library(tidyr)
 library(gsheet)
+library(ggplot2)
+library(synthpop) #also in love with this - very cool discovery 
+library(flexdashboard)
+library(haven)
 
-source(&quot;/Users/caileyfay/Documents/GitHub/Data-Science-for-Psych-Portfolio/P4_ESM/cleaning_ESM.r&quot;)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;lubridate&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     date, intersect, setdiff, union</code></pre>
-<pre><code>## Warning: There was 1 warning in `mutate()`.
-## ℹ In argument: `date_time = mdy_hms(all_of(timestamp))`.
-## Caused by warning:
-## ! Using `all_of()` outside of a selecting function was deprecated in tidyselect
-##   1.2.0.
-## ℹ See details at
-##   &lt;https://tidyselect.r-lib.org/reference/faq-selection-context.html&gt;</code></pre>
+source(&quot;/Users/caileyfay/Documents/LabsD4P/Data-Science-for-Psych-Portfolio/P4_ESM/cleaning_ESM.r&quot;)</code></pre>
+<p>Next I generated lots of data using the synthpop package, which I
+learned about here:</p>
+<p><a href="https://www.synthpop.org.uk/get-started.html"
+class="uri">https://www.synthpop.org.uk/get-started.html</a></p>
+<p>You can find the code in the cleaning_ESM.r file.</p>
+<p>I made some fun charts to see how my synthetic data turned out. I
+start out super simple.</p>
+<p><img src="p04_files/figure-html/unnamed-chunk-2-1.png" alt="" width="672" /><img src="p04_files/figure-html/unnamed-chunk-2-2.png" alt="" width="672" /><img src="p04_files/figure-html/unnamed-chunk-2-3.png" alt="" width="672" /><img src="p04_files/figure-html/unnamed-chunk-2-4.png" alt="" width="672" /><img src="p04_files/figure-html/unnamed-chunk-2-5.png" alt="" width="672" /><img src="p04_files/figure-html/unnamed-chunk-2-6.png" alt="" width="672" /><img src="p04_files/figure-html/unnamed-chunk-2-7.png" alt="" width="672" /><img src="p04_files/figure-html/unnamed-chunk-2-8.png" alt="" width="672" /></p>
+<p>Nothing about the way I conducted this was foolproof, but this little
+snapshot makes it seem like we have fairly similar personality
+profiles.</p>
+<p>Finally, I made an interactive dashboard. Its not very complex, but
+bonus points for it taking me forever to figure out??? Jokes on me
+though, because I could not figure out a workaround that allowed me to
+have the interactive dashboard in the md and also be able to switch
+between tabs on the portfolio site. Here is a screenshot of the
+dashboard I made.</p>
+<p>If you uncomment the first line in this chunk and run the document,
+you can check out the dashboard (or just take my word for it)</p>
+<pre class="r"><code>#shiny::shinyAppFile(&quot;P4_ESM/app.R&quot;)
+knitr::include_graphics(&quot;dashboard.png&quot;) </code></pre>
+<p><img src="dashboard.png" alt="" width="1020" /></p>
 
 
 
